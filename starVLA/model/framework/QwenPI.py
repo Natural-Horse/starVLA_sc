@@ -1,0 +1,640 @@
+# Copyright 2025 starVLA community. All rights reserved.
+# Licensed under the MIT License, Version 1.0 (the "License");
+# Implemented by Jinhui YE / HKUST University] in [2025].
+"""
+Qwen-GROOT Framework
+A lightweight implementation that Qwen2.5-vl + Flow-matching head to directly predict continuous actions
+Flow-matching header is copyright from GR00T N1.5, but a sample MoE inspired by PI_0
+"""
+from typing import List
+from tqdm import tqdm
+from typing import List, Optional, Tuple
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import numpy as np
+from PIL import Image
+
+
+
+from starVLA.training.trainer_utils import initialize_overwatch
+from deployment.model_server.tools.image_tools import to_pil_preserve
+
+logger = initialize_overwatch(__name__)
+
+# HuggingFace Default / LLaMa-2 IGNORE_INDEX (for labels)
+IGNORE_INDEX = -100
+
+
+def _cfg_get(cfg, key, default=None):
+    if cfg is None:
+        return default
+    if hasattr(cfg, "get"):
+        return cfg.get(key, default)
+    return getattr(cfg, key, default)
+
+
+from starVLA.model.framework.base_framework import baseframework
+from starVLA.model.modules.vlm import get_vlm_model
+from starVLA.model.modules.action_model.LayerwiseFM_ActionHeader import get_action_model, LayerwiseFlowmatchingActionHead
+from starVLA.training.trainer_utils.trainer_tools import resize_images
+from starVLA.model.tools import FRAMEWORK_REGISTRY
+
+####################################################
+# ⚠️ Warning: This framework has been restructured and is NOT compatible with checkpoints created before 2025-10-20.
+####################################################
+
+@FRAMEWORK_REGISTRY.register("QwenPI")
+class Qwen_PI(baseframework):
+    """
+    Multimodal vision-language-action model.
+
+    Components:
+      - Qwen2.5 VL interface for fused language/vision token embeddings
+      - Layer-wise cross DiT diffusion head 
+      
+
+    Focus: Predict future continuous actions conditioned on images + instruction.
+    """
+# 
+    def __init__(
+        self,
+        config: Optional[dict] = None,
+        **kwargs,
+    ) -> None:
+        """
+        Construct all submodules and cache key configuration values.
+
+        Args:
+            config: Hierarchical configuration (OmegaConf/dict) containing framework + trainer sections.
+            **kwargs: Reserved for future overrides (unused).
+        """
+
+        super().__init__()
+        self.config = config
+        self.qwen_vl_interface = get_vlm_model(config=self.config)
+
+        # Dynamic VLM dimensions keep Qwen3/Qwen3.5/action heads aligned.
+        model_config = self.qwen_vl_interface.model.config
+        text_config = getattr(model_config, "text_config", None)
+        llm_hidden_size = getattr(model_config, "hidden_size", None)
+        if llm_hidden_size is None and text_config is not None:
+            llm_hidden_size = getattr(text_config, "hidden_size", None)
+        if llm_hidden_size is None:
+            raise ValueError("Unable to infer VLM hidden_size from model config.")
+
+        num_vl_layers = getattr(model_config, "num_hidden_layers", None)
+        if num_vl_layers is None and text_config is not None:
+            num_vl_layers = getattr(text_config, "num_hidden_layers", None)
+        if num_vl_layers is None:
+            num_vl_layers = 36
+        self.config.framework.qwenvl.vl_hidden_dim = llm_hidden_size
+        self.config.framework.qwenvl.num_vl_layers = num_vl_layers
+
+        self.action_model: LayerwiseFlowmatchingActionHead = get_action_model(config=self.config)
+
+        self.future_action_window_size = config.framework.action_model.future_action_window_size
+        self.past_action_window_size = config.framework.action_model.past_action_window_size
+        self.chunk_len = self.past_action_window_size + 1 + self.future_action_window_size
+        
+    def _router_tokens(self) -> tuple[str, str]:
+        datasets_cfg = _cfg_get(self.config, "datasets", None)
+        router_cfg = _cfg_get(datasets_cfg, "router_data", None)
+        signal_cfg = _cfg_get(datasets_cfg, "vlm_signal_data", None)
+        pred_action_token = _cfg_get(router_cfg, "pred_action_token", None)
+        if pred_action_token is None:
+            pred_action_token = _cfg_get(signal_cfg, "pred_action_token", "<|pred_action|>")
+        pred_bbox_token = _cfg_get(router_cfg, "pred_bbox_token", "<|pred_bbox|>")
+        return str(pred_action_token), str(pred_bbox_token)
+
+    def _single_router_token_ids(self) -> dict[str, int] | None:
+        pred_action_token, pred_bbox_token = self._router_tokens()
+        tokenizer = self.qwen_vl_interface.processor.tokenizer
+        action_ids = tokenizer(pred_action_token, add_special_tokens=False).input_ids
+        bbox_ids = tokenizer(pred_bbox_token, add_special_tokens=False).input_ids
+        if len(action_ids) != 1 or len(bbox_ids) != 1:
+            logger.warning(
+                "Router tokens must be single tokenizer ids for first-token routing. "
+                "Got %s -> %s, %s -> %s. Falling back to generate-and-parse routing.",
+                pred_action_token,
+                action_ids,
+                pred_bbox_token,
+                bbox_ids,
+            )
+            return None
+        return {"action": int(action_ids[0]), "bbox": int(bbox_ids[0])}
+
+    def _select_action_hidden_states(self, hidden_states, indices: torch.Tensor | None = None) -> list[torch.Tensor]:
+        expected_layers = len(self.action_model.model.transformer_blocks)
+        vl_embs_list = list(hidden_states[-expected_layers:])
+        if indices is not None:
+            vl_embs_list = [hidden.index_select(0, indices.to(hidden.device)) for hidden in vl_embs_list]
+        return vl_embs_list
+
+    def action_loss_from_hidden_states(
+        self,
+        hidden_states,
+        examples: List[dict],
+        indices: torch.Tensor | None = None,
+        *,
+        detach_vlm_hidden_states: bool = False,
+    ) -> torch.Tensor:
+        """Compute action-head loss from already-computed Qwen hidden states."""
+        if not examples:
+            raise ValueError("examples must be non-empty when computing action loss.")
+
+        vl_embs_list = self._select_action_hidden_states(hidden_states, indices=indices)
+        if detach_vlm_hidden_states:
+            vl_embs_list = [hidden.detach() for hidden in vl_embs_list]
+        base_hidden = vl_embs_list[-1]
+        actions = [example["action"] for example in examples]
+        state = [example["state"] for example in examples] if "state" in examples[0] else None
+
+        device_type = "cuda" if base_hidden.is_cuda else "cpu"
+        with torch.autocast(device_type=device_type, dtype=torch.float32, enabled=base_hidden.is_cuda):
+            actions = torch.tensor(
+                np.array(actions), device=base_hidden.device, dtype=base_hidden.dtype
+            )
+            actions_target = actions[:, -(self.future_action_window_size + 1):, :]
+
+            repeated_diffusion_steps = (
+                self.config.trainer.get("repeated_diffusion_steps", 4) if self.config and self.config.trainer else 4
+            )
+            actions_target_repeated = actions_target.repeat(repeated_diffusion_steps, 1, 1)
+            vl_embs_list_repeated = [h.repeat(repeated_diffusion_steps, 1, 1) for h in vl_embs_list]
+
+            state_repeated = None
+            if state is not None:
+                state = torch.tensor(
+                    np.array(state), device=base_hidden.device, dtype=base_hidden.dtype
+                )
+                state_repeated = state.repeat(repeated_diffusion_steps, 1, 1)
+
+            action_loss = self.action_model(vl_embs_list_repeated, actions_target_repeated, state_repeated)
+
+        return action_loss
+
+    def forward(
+        self,
+        examples: List[dict] = None,
+        **kwargs,
+    ) -> Tuple:
+        """
+        Args:
+            examples: List[dict], each dict requires:
+                - image: List[PIL.Image] (multi-view)
+                - lang: str instruction
+                - action: np.ndarray or list shaped [T, action_dim]
+        Returns:
+            dict:
+                action_loss (torch.Tensor): Scalar diffusion noise prediction loss.
+        """
+        batch_images = [example["image"] for example in examples]  #  [B，[PLT]]
+        instructions = [example["lang"] for example in examples]  # [B, str]
+        actions = [example["action"] for example in examples]  # label [B， len, 7]
+        
+        state = [example["state"] for example in examples] if "state" in examples[0] else None  # [B, 1, state_dim]
+        
+
+        # Step 1: QWenVL input format
+        qwen_inputs = self.qwen_vl_interface.build_qwenvl_inputs(images=batch_images, instructions=instructions)
+        with torch.autocast("cuda", dtype=torch.bfloat16):
+            qwenvl_outputs = self.qwen_vl_interface(
+                **qwen_inputs,
+                output_attentions=False,
+                output_hidden_states=True,
+                return_dict=True,
+            )
+            # 取与 DiT 层数匹配的最后 N 层隐藏态，按层喂给 DiT
+            all_hidden = qwenvl_outputs.hidden_states
+
+        # Step 4: Action Expert Forward and Loss
+        action_loss = self.action_loss_from_hidden_states(all_hidden, examples)
+        action_dim_loss = getattr(self.action_model, "latest_action_dim_loss", None)
+
+
+        return {"action_loss": action_loss, "action_dim_loss": action_dim_loss}
+
+    def forward_action_with_route(
+        self,
+        examples: List[dict],
+        route_token: str | None = None,
+    ) -> dict:
+        """Run Qwen with assistant route token included, then train the action expert."""
+        if type(examples) is not list:
+            examples = [examples]
+        if route_token is None:
+            route_token, _ = self._router_tokens()
+
+        batch_images = [example["image"] for example in examples]
+        instructions = [example["lang"] for example in examples]
+        solutions = [route_token for _ in examples]
+
+        qwen_inputs = self.qwen_vl_interface.build_qwenvl_inputs(
+            images=batch_images,
+            instructions=instructions,
+            solutions=solutions,
+        )
+        with torch.autocast("cuda", dtype=torch.bfloat16):
+            qwenvl_outputs = self.qwen_vl_interface(
+                **qwen_inputs,
+                output_attentions=False,
+                output_hidden_states=True,
+                return_dict=True,
+            )
+
+        action_loss = self.action_loss_from_hidden_states(qwenvl_outputs.hidden_states, examples)
+        action_dim_loss = getattr(self.action_model, "latest_action_dim_loss", None)
+        return {
+            "action_loss": action_loss,
+            "action_dim_loss": action_dim_loss,
+            "vlm_loss": getattr(qwenvl_outputs, "loss", None),
+            "qwen_outputs": qwenvl_outputs,
+        }
+
+    def _train_image_size(self):
+        datasets_cfg = _cfg_get(self.config, "datasets", None)
+        vla_cfg = _cfg_get(datasets_cfg, "vla_data", None)
+        router_cfg = _cfg_get(datasets_cfg, "router_data", None)
+        return _cfg_get(vla_cfg, "image_size", _cfg_get(router_cfg, "image_size", None))
+
+    @torch.inference_mode()
+    def predict_action( # TODO align  predict_action with forward, make api more flexible
+        self,
+        examples: List[dict] = None,
+        solutions: Optional[List[str]] = None,
+        **kwargs,
+    ) -> np.ndarray:
+        """
+        推理：单次前向直接回归未来动作（无扩散采样）。
+
+        Steps:
+          1. Resize images to training resolution (if specified)
+          2. Encode with QwenVL (hidden states retained)
+          6. Return normalized action trajectory
+
+        Returns:
+            dict:
+                normalized_actions (np.ndarray): Shape [B, T, action_dim], diffusion-sampled normalized actions.
+        """
+        if type(examples) is not list:
+            examples = [examples]
+        from deployment.model_server.tools.image_tools import to_pil_preserve
+        batch_images = [to_pil_preserve(example["image"]) for example in examples]  #  [B，[PLT]]
+        instructions = [example["lang"] for example in examples]  # [B, str]
+    
+        state = [example["state"] for example in examples] if "state" in examples[0] else None  # [B, 1, state_dim]
+        
+        train_obs_image_size = self._train_image_size()
+        if train_obs_image_size:
+            batch_images = resize_images(batch_images, target_size=train_obs_image_size)
+    
+        # Step 1: QWenVL input format
+        qwen_inputs = self.qwen_vl_interface.build_qwenvl_inputs(
+            images=batch_images,
+            instructions=instructions,
+            solutions=solutions,
+        )
+        if solutions is not None:
+            qwen_inputs.pop("labels", None)
+        with torch.autocast("cuda", dtype=torch.bfloat16):
+            qwenvl_outputs = self.qwen_vl_interface(
+                **qwen_inputs,
+                output_attentions=False,
+                output_hidden_states=True,
+                return_dict=True,
+            )
+            all_hidden = qwenvl_outputs.hidden_states
+            vl_embs_list = self._select_action_hidden_states(all_hidden)
+            base_hidden = vl_embs_list[-1]
+
+        state = torch.from_numpy(np.array(state)).to(base_hidden.device, dtype=base_hidden.dtype) if state is not None else None
+        prev_action_chunk = kwargs.pop("prev_action_chunk", kwargs.pop("action_prefix", None))
+        inference_delay = kwargs.pop("inference_delay", 0)
+        if kwargs:
+            logger.warning("Ignoring unsupported predict_action kwargs: %s", sorted(kwargs))
+        # Step 4: Action Expert Forward and Loss
+        with torch.autocast("cuda", dtype=torch.float32):
+            pred_actions = self.action_model.predict_action(
+                vl_embs_list,
+                state,
+                prev_action_chunk=prev_action_chunk,
+                inference_delay=inference_delay,
+            )  # (B, chunk_len, action_dim)
+
+        normalized_actions = pred_actions.detach().cpu().numpy()
+        if torch.is_tensor(inference_delay):
+            delay_metadata = inference_delay.detach().cpu().tolist()
+        elif isinstance(inference_delay, np.ndarray):
+            delay_metadata = inference_delay.tolist()
+        else:
+            delay_metadata = inference_delay
+        return {
+            "normalized_actions": normalized_actions,
+            "rtc": {
+                "enabled": bool(self.action_model.rtc_enabled),
+                "applied": prev_action_chunk is not None,
+                "inference_delay": delay_metadata,
+            },
+        }
+
+    @torch.inference_mode()
+    def predict_action_with_route_token(
+        self,
+        examples: List[dict] = None,
+        route_token: str | None = None,
+        **kwargs,
+    ) -> dict:
+        if type(examples) is not list:
+            examples = [examples]
+        if route_token is None:
+            route_token, _ = self._router_tokens()
+        return self.predict_action(
+            examples=examples,
+            solutions=[route_token for _ in examples],
+            **kwargs,
+        )
+
+    @torch.inference_mode()
+    def predict_route(
+        self,
+        examples: List[dict] = None,
+        max_new_tokens: int = 64,
+        do_sample: bool = False,
+        temperature: float = 0.2,
+        top_p: float = 0.95,
+        route_mode: str = "first_token",
+        continue_bbox: bool = True,
+        continue_action: bool = False,
+        route_confidence_threshold: float | None = None,
+        **generate_kwargs,
+    ) -> dict:
+        """Predict the router decision.
+
+        Default ``route_mode="first_token"`` reads the first-token logits and
+        chooses between the two configured route tokens. This avoids waiting for
+        a full autoregressive answer before dispatching to the action expert.
+        """
+        if type(examples) is not list:
+            examples = [examples]
+
+        from deployment.model_server.tools.image_tools import to_pil_preserve
+
+        batch_images = [to_pil_preserve(example["image"]) for example in examples]
+        instructions = [example["lang"] for example in examples]
+        train_obs_image_size = self._train_image_size()
+        if train_obs_image_size:
+            batch_images = resize_images(batch_images, target_size=train_obs_image_size)
+
+        qwen_inputs = self.qwen_vl_interface.build_qwenvl_inputs(images=batch_images, instructions=instructions)
+        generation_kwargs = {
+            "max_new_tokens": max_new_tokens,
+            "do_sample": do_sample,
+        }
+        if do_sample:
+            generation_kwargs.update({"temperature": temperature, "top_p": top_p})
+        generation_kwargs.update(generate_kwargs)
+
+        pred_action_token, pred_bbox_token = self._router_tokens()
+        token_ids = self._single_router_token_ids()
+        if route_mode == "first_token" and token_ids is not None:
+            with torch.autocast("cuda", dtype=torch.bfloat16):
+                qwen_output = self.qwen_vl_interface(
+                    **qwen_inputs,
+                    output_attentions=False,
+                    output_hidden_states=False,
+                    return_dict=True,
+                )
+
+            first_logits = qwen_output.logits[:, -1, :]
+            route_token_ids = torch.tensor(
+                [token_ids["action"], token_ids["bbox"]],
+                device=first_logits.device,
+                dtype=torch.long,
+            )
+            route_logits = first_logits.index_select(-1, route_token_ids)
+            route_probs = torch.softmax(route_logits.float(), dim=-1)
+            route_choice = torch.argmax(route_probs, dim=-1)
+            route_confidence = torch.max(route_probs, dim=-1).values
+
+            raw_first_ids = torch.argmax(first_logits, dim=-1)
+            raw_first_texts = self.qwen_vl_interface.processor.batch_decode(
+                raw_first_ids[:, None],
+                skip_special_tokens=False,
+            )
+
+            chosen_route_token_ids = []
+            routes = []
+            for idx, choice_tensor in enumerate(route_choice):
+                choice = int(choice_tensor.item())
+                confidence = float(route_confidence[idx].item())
+                if route_confidence_threshold is not None and confidence < float(route_confidence_threshold):
+                    route = "unknown"
+                    route_token = None
+                    route_token_id = int(raw_first_ids[idx].item())
+                    generated_text = raw_first_texts[idx].strip()
+                elif choice == 0:
+                    route = "action"
+                    route_token = pred_action_token
+                    route_token_id = token_ids["action"]
+                    generated_text = pred_action_token
+                else:
+                    route = "bbox"
+                    route_token = pred_bbox_token
+                    route_token_id = token_ids["bbox"]
+                    generated_text = pred_bbox_token
+
+                chosen_route_token_ids.append(route_token_id)
+                routes.append(
+                    {
+                        "route": route,
+                        "route_token": route_token,
+                        "generated_text": generated_text,
+                        "route_confidence": confidence,
+                        "route_action_prob": float(route_probs[idx, 0].item()),
+                        "route_bbox_prob": float(route_probs[idx, 1].item()),
+                        "raw_first_token_id": int(raw_first_ids[idx].item()),
+                        "raw_first_token_text": raw_first_texts[idx].strip(),
+                    }
+                )
+
+            routes_to_continue = {"bbox"}
+            if continue_action:
+                routes_to_continue.add("action")
+
+            if any(item["route"] in routes_to_continue for item in routes):
+                forced_inputs = {
+                    key: value
+                    for key, value in qwen_inputs.items()
+                    if key != "labels"
+                }
+                input_ids = forced_inputs["input_ids"]
+                route_ids = torch.tensor(
+                    chosen_route_token_ids,
+                    device=input_ids.device,
+                    dtype=input_ids.dtype,
+                )[:, None]
+                forced_inputs["input_ids"] = torch.cat([input_ids, route_ids], dim=1)
+                if "attention_mask" in forced_inputs:
+                    attention_mask = forced_inputs["attention_mask"]
+                    forced_inputs["attention_mask"] = torch.cat(
+                        [attention_mask, torch.ones_like(route_ids)],
+                        dim=1,
+                    )
+
+                generated = self.qwen_vl_interface.generate(**forced_inputs, **generation_kwargs)
+                gen_ids = generated.sequences if hasattr(generated, "sequences") else generated
+                prompt_len = int(qwen_inputs["input_ids"].shape[1])
+                new_ids = gen_ids[:, prompt_len:]
+                texts = self.qwen_vl_interface.processor.batch_decode(new_ids, skip_special_tokens=False)
+                for route_item, text in zip(routes, texts):
+                    if route_item["route"] in routes_to_continue:
+                        route_item["generated_text"] = text.strip()
+
+            return {
+                "routes": routes,
+                "route_mode": "first_token",
+            }
+
+        if route_mode != "generate":
+            logger.warning("Unsupported route_mode=%s; falling back to generate-and-parse routing.", route_mode)
+
+        generated = self.qwen_vl_interface.generate(**qwen_inputs, **generation_kwargs)
+        gen_ids = generated.sequences if hasattr(generated, "sequences") else generated
+        prompt_len = int(qwen_inputs["input_ids"].shape[1])
+        new_ids = gen_ids[:, prompt_len:]
+        texts = self.qwen_vl_interface.processor.batch_decode(new_ids, skip_special_tokens=False)
+
+        routes = []
+        for text in texts:
+            stripped = text.strip()
+            if stripped.startswith(pred_action_token):
+                route = "action"
+                route_token = pred_action_token
+            elif stripped.startswith(pred_bbox_token):
+                route = "bbox"
+                route_token = pred_bbox_token
+            else:
+                route = "unknown"
+                route_token = None
+            routes.append(
+                {
+                    "route": route,
+                    "route_token": route_token,
+                    "generated_text": stripped,
+                }
+            )
+        return {
+            "routes": routes,
+            "route_mode": "generate",
+        }
+
+    @torch.inference_mode()
+    def predict_router(
+        self,
+        examples: List[dict] = None,
+        max_new_tokens: int = 64,
+        **generate_kwargs,
+    ) -> dict:
+        """Route each example, then run the action expert only for action-route items."""
+        if type(examples) is not list:
+            examples = [examples]
+        route_output = self.predict_route(
+            examples=examples,
+            max_new_tokens=max_new_tokens,
+            **generate_kwargs,
+        )
+        routes = route_output["routes"]
+        pred_action_token, _ = self._router_tokens()
+        action_indices = [idx for idx, item in enumerate(routes) if item["route"] == "action"]
+        if action_indices:
+            action_examples = [examples[idx] for idx in action_indices]
+            action_output = self.predict_action_with_route_token(
+                examples=action_examples,
+                route_token=pred_action_token,
+            )
+            normalized_actions = action_output["normalized_actions"]
+            for local_idx, sample_idx in enumerate(action_indices):
+                routes[sample_idx]["normalized_actions"] = normalized_actions[local_idx]
+        return {"routes": routes}
+
+
+
+if __name__ == "__main__":
+    from omegaconf import OmegaConf
+    import debugpy
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config_yaml", type=str, default="./starVLA/config/training/starvla_cotrain_oxe.yaml", help="Path to YAML config")
+    args, clipargs = parser.parse_known_args()
+
+    debugpy.listen(("0.0.0.0", 10092))
+    print("🔍 Rank 0 waiting for debugger attach on port 10092...")
+    debugpy.wait_for_client()
+
+    cfg = OmegaConf.load(args.config_yaml)
+    # try get model
+    cfg.framework.qwenvl.base_vlm = "./playground/Pretrained_models/Qwen3-VL-4B-Instruct"
+    
+
+    model = Qwen_PI(cfg)
+    # ckpt="/mnt/petrelfs/yejinhui/Projects/llavavla/results/Checkpoints/1011_qwenpi/checkpoints/need_steps_10000_pytorch_model.pt"
+    # model = Qwen_PI.from_pretrained(ckpt)
+    print(model)
+
+
+    # fake sample 
+    image = Image.fromarray(np.random.randint(0, 255, (224, 224, 3), dtype=np.uint8))
+    # Create a sample
+    sample = {
+        "action": np.random.uniform(-1, 1, size=(16, 7)).astype(np.float16), # action_chunk, action_dim
+        "image": [image, image], # two views
+        "lang": "This is a fake instruction for testing.",
+        "state" : np.random.uniform(-1, 1, size=(1, 7)).astype(np.float16), # chunk, state_dim
+    }
+
+    batch  = [sample, sample]  # batch size 2
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
+    forward_output = model(batch)
+    action_loss = forward_output['action_loss']
+    print(f"Action Loss: {action_loss.item()}")
+
+    # test predict action
+    predict_output = model.predict_action([sample])
+    normalized_actions = predict_output['normalized_actions']
+    print(f"Unnormalized Action: {normalized_actions}")
+
+    # # Advance: try forward model with dataloader
+    # # can be fake sample， but here get from dataloader for simpler
+    # from starVLA.dataloader.lerobot_datasets import get_vla_dataset, collate_fn
+
+    # vla_dataset_cfg = cfg.datasets.vla_data
+    # dataset = get_vla_dataset(data_cfg=vla_dataset_cfg)
+
+    # from torch.utils.data import DataLoader
+
+    # train_dataloader = DataLoader(
+    #     dataset,
+    #     batch_size=2,
+    #     num_workers=1,  # For Debug
+    #     collate_fn=collate_fn,
+    # )
+    # # 
+    # for batch in tqdm(train_dataloader, desc="Processing Batches"):
+    #     batch
+    #     break
+
+    # # try get model
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # model = model.to(device)
+    # model(batch)
+
+    # action = model.predict_action(batch_images=[batch[0]["image"]], instructions=[batch[0]["lang"]])
+
+    # # fake state
+    # for ba in batch:
+    #     ba["state"] = ba["action"][0][None]
+
+    # model(batch)
+    # action = model.predict_action(batch_images=[batch[0]["image"]], instructions=[batch[0]["lang"]], state=[batch[0]["state"]])

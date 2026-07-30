@@ -1,0 +1,177 @@
+run_id: qwenpi_wallx_cotrain_multi_vlm_07015015_vlm04_vllr1e6
+run_root_dir: results/Checkpoints
+seed: 42
+trackers: [jsonl, wandb]
+wandb_entity: yuxuanxu-xyx-beijing-jiaotong-university
+wandb_project: qwenpi_wallx_cotrain_multi_vlm_07015015_vlm04_vllr1e6
+is_debug: false
+
+framework:
+  name: QwenPI
+  qwenvl:
+    base_vlm: /diff/wallx_workspace/wallx_data_ckp/checkpoints/Qwen/Qwen3-VL-4B-Instruct
+    attn_implementation: flash_attention_2
+    torch_dtype: bfloat16
+    vl_hidden_dim: 2560
+  dino:
+    dino_backbone: dinov2_vits14
+
+  action_model:
+    action_model_type: DiT-B
+    hidden_size: 1024
+    add_pos_embed: true
+    max_seq_len: 1024
+    action_dim: 6
+    state_dim: 6
+    future_action_window_size: 15
+    action_horizon: 16
+    past_action_window_size: 0
+    repeated_diffusion_steps: 8
+    noise_beta_alpha: 1.5
+    noise_beta_beta: 1.0
+    noise_s: 0.999
+    num_timestep_buckets: 1000
+    num_inference_timesteps: 4
+    num_target_vision_tokens: 32
+    diffusion_model_cfg:
+      cross_attention_dim: 2560
+      dropout: 0.2
+      final_dropout: true
+      interleave_self_attention: true
+      norm_type: "ada_norm"
+      num_layers: 16
+      output_dim: 2560
+      positional_embeddings: null
+
+datasets:
+  split:
+    enable: true
+    train_ratio: 0.9
+    mode: contiguous
+
+  vla_data:
+    dataset_py: wallx_vla_dataset
+    repo_id: dzb/lerobot_ego_data
+    root: /diff/wallx_workspace/wallx_data_ckp/datasets/dzb/lerobot_ego_data
+    per_device_batch_size: 8
+    num_workers: 4
+    image_size: [224, 224]
+    action_horizon: 16
+    action_in_ego: true
+    use_delta_action: false
+    normalize_action: true
+    normalize_state: true
+    truncate_keyframe_value: 2
+    include_history_keyframes: true
+    max_history_keyframes: 2
+    history_keyframe_values: [1, 2]
+    include_state: false
+    video_backend: pyav
+    tolerance_s: 0.0001
+    action_prompt_template: "{instruction}\nYou are performing a drone navigation task. Please predict the next action."
+
+  # Base VLM config is kept for compatibility and split bookkeeping.
+  vlm_data:
+    dataset_py: wallx_vlm_dataset
+    repo_id: dzb/lerobot_ego_data
+    root: /diff/wallx_workspace/wallx_data_ckp/datasets/dzb/lerobot_ego_data
+    per_device_batch_size: 4
+    num_workers: 4
+    image_size: [224, 224]
+    action_horizon: 16
+    include_history_keyframes: false
+    max_history_keyframes: null
+    history_keyframe_values: [1, 2]
+    max_retry: 32
+    video_backend: pyav
+    tolerance_s: 0.0001
+    bbox_prompt_template: "{instruction}\nYou are performing a drone navigation task. Please identify the {target_name} in the front view and output its bounding box as <point>[x1, y1, x2, y2]</point>. The output must strictly follow the format <point>[x1, y1, x2, y2]</point> without any other text."
+
+  vlm_multi:
+    enable: true
+    sync_source_choice_across_ranks: true
+    source_seed: 42
+    eval_source: dzb
+
+    sources:
+      dzb:
+        enabled: true
+        weight: 0.7
+        dataset_py: wallx_vlm_dataset
+        repo_id: dzb/lerobot_ego_data
+        root: /diff/wallx_workspace/wall-x_723584a/datasets/dzb/lerobot_ego_data
+        per_device_batch_size: 4
+        num_workers: 4
+        image_size: [224, 224]
+        action_horizon: 16
+        include_history_keyframes: false
+        max_history_keyframes: null
+        history_keyframe_values: [1, 2]
+        max_retry: 32
+        video_backend: pyav
+        tolerance_s: 0.0001
+        bbox_prompt_template: "{instruction}\nYou are performing a drone navigation task. Please identify the {target_name} in the front view and output its bounding box as <point>[x1, y1, x2, y2]</point>. The output must strictly follow the format <point>[x1, y1, x2, y2]</point> without any other text."
+
+      gqa:
+        enabled: true
+        weight: 0.15
+        dataset_py: vlm_sft_qwen3_datasets
+        dataset_use: gqa_local
+        data_flatten: false
+        base_interval: 2
+        max_pixels: 1000000
+        min_pixels: 784
+        model_max_length: 4096
+        model_type: qwen2.5vl
+        per_device_batch_size: 1
+
+      vg:
+        enabled: true
+        weight: 0.15
+        dataset_py: vlm_sft_qwen3_datasets
+        dataset_use: visual_genome_local
+        data_flatten: false
+        base_interval: 2
+        max_pixels: 1000000
+        min_pixels: 784
+        model_max_length: 4096
+        model_type: qwen2.5vl
+        per_device_batch_size: 1
+
+trainer:
+  epochs: 100
+  max_train_steps: 15000
+  num_warmup_steps: 300
+  save_interval: 1000
+  eval_interval: 50
+  learning_rate:
+    base: 1.0e-05
+    qwen_vl_interface: 1.0e-06
+    action_model: 1.0e-06
+  lr_scheduler_type: cosine_with_min_lr
+  scheduler_specific_kwargs:
+    min_lr: 5.0e-07
+  freeze_modules: ''
+  loss_scale:
+    vla: 1.0
+    vlm: 0.4
+  repeated_diffusion_steps: 4
+  max_grad_norm: 1.0
+  warmup_ratio: 0.1
+  weight_decay: 0.0
+  logging_frequency: 5
+  gradient_clipping: 5.0
+  gradient_accumulation_steps: 1
+
+  optimizer:
+    name: AdamW
+    betas: [0.9, 0.95]
+    eps: 1.0e-08
+    weight_decay: 1.0e-08
+
+  save_format: pt
+  is_resume: false
+  resume_epoch: null
+  resume_step: null
+  enable_gradient_checkpointing: true
+  enable_mixed_precision_training: true

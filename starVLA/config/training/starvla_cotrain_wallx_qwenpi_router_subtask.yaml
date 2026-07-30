@@ -1,0 +1,253 @@
+run_id: qwenpi_wallx_router_subtask
+run_root_dir: results/Checkpoints
+seed: 42
+trackers: [jsonl, wandb]
+wandb_entity: yuxuanxu-xyx-beijing-jiaotong-university
+wandb_project: qwenpi_wallx_router_subtask
+is_debug: false
+
+framework:
+  name: QwenPI
+  router:
+    # flow_matching: action route CE + flow-matching action expert loss.
+    # fast_token_ce: action route CE + FAST action-token CE; action expert loss is disabled.
+    action_supervision: flow_matching
+    # token: action route is only <|pred_action|>.
+    # route_subtask: action route is <|pred_action|><|subtask|>{subtask_text}<|end_subtask|>.
+    action_route_format: route_subtask
+    subtask_start_token: "<|subtask|>"
+    subtask_end_token: "<|end_subtask|>"
+    # true: action loss also updates Qwen VLM hidden states.
+    # false: action loss only updates the action expert; router/bbox VLM CE still updates Qwen.
+    action_loss_grad_to_vlm: true
+  qwenvl:
+    base_vlm: /diff/wallx_workspace/wallx_data_ckp/checkpoints/Qwen/Qwen3-VL-4B-Instruct-ActionRouterSubtask
+    attn_implementation: flash_attention_2
+    torch_dtype: bfloat16
+    vl_hidden_dim: 2560
+    freeze: false
+    special_tokens:
+      policy: strict
+      require_fast_action_tokens: true
+      action_token_prefix: "<robot_action_"
+      action_token_count: 2048
+      router_tokens:
+        - "<|pred_action|>"
+        - "<|pred_bbox|>"
+        - "<|subtask|>"
+        - "<|end_subtask|>"
+  action_tokenizer:
+    type: fast
+    path: /diff/wallx_workspace/wall-x/fast-tokenizer
+    token_prefix: "<robot_action_"
+    token_count: 2048
+  dino:
+    dino_backbone: dinov2_vits14
+
+  action_model:
+    freeze: false
+    action_model_type: DiT-B
+    hidden_size: 1024
+    add_pos_embed: true
+    max_seq_len: 1024
+    action_dim: 6
+    state_dim: 6
+    future_action_window_size: 31
+    action_horizon: 32
+    past_action_window_size: 0
+    repeated_diffusion_steps: 8
+    noise_beta_alpha: 1.5
+    noise_beta_beta: 1.0
+    noise_s: 0.999
+    num_timestep_buckets: 1000
+    num_inference_timesteps: 4
+    num_target_vision_tokens: 32
+    diffusion_model_cfg:
+      cross_attention_dim: 2560
+      dropout: 0.2
+      final_dropout: true
+      interleave_self_attention: true
+      norm_type: "ada_norm"
+      num_layers: 16
+      output_dim: 2560
+      positional_embeddings: null
+
+datasets:
+  split:
+    enable: true
+    train_ratio: 0.9
+    mode: contiguous
+
+  router_data:
+    dataset_py: wallx_router_dataset
+    repo_id: dzb/lerobot_ego_data_subtask
+    root: /diff/wallx_workspace/xyx1/lerobot_ego_data_subtask
+    per_device_batch_size: 4
+    num_workers: 4
+    image_size: [224, 224]
+    action_horizon: 32
+    action_in_ego: true
+    use_delta_action: false
+    normalize_action: true
+    normalize_state: true
+    truncate_keyframe_value: 2
+    include_history_keyframes: true
+    max_history_keyframes: 2
+    history_keyframe_values: [1]
+    snap_rotation_to_start: true
+    include_state: false
+    max_retry: 64
+    video_backend: pyav
+    tolerance_s: 0.0001
+    pred_action_token: "<|pred_action|>"
+    pred_bbox_token: "<|pred_bbox|>"
+    pred_signal_pred_action: "<pred_action>"
+    pred_signal_stop: "<stop>"
+    action_supervision: flow_matching
+    action_route_format: route_subtask
+    subtask_start_token: "<|subtask|>"
+    subtask_end_token: "<|end_subtask|>"
+    subtask_text_field: subtask_text
+    operation_grasp_true: "put"
+    operation_grasp_false: "grasp"
+    bbox_solution_separator: ""
+    photometric_augmentation:
+      enabled: false
+      probability: 0.6
+      brightness: 0.15
+      contrast: 0.15
+      saturation: 0.15
+      hue: 0.02
+      sharpness: 0.05
+    router_prompt_template_grasp: |
+      {instruction}
+      {instruction}
+      {instruction}
+
+      GRASP PHASE: FIND AND GRASP THE OBJECT.
+      The current target is the object to be grasped: {target_name}.
+      {target_name}, {target_name}, {target_name} should be grasped.
+      If the object is still far away, output {pred_action_token}{subtask_start_token}SUBTASK_TEXT{subtask_end_token}.
+      SUBTASK_TEXT should be one short Search or Fly to command.
+      If the object is close enough for grasping, output {pred_bbox_token}<point>[x1, y1, x2, y2]</point> for the object's location in the current front view.
+      Do not output anything else.
+    router_prompt_template_put: |
+      {instruction}
+      {instruction}
+      {instruction}
+
+      PLACE PHASE: GO TO THE PLACEMENT DESTINATION.
+      The current target is the placement destination: {target_name}.
+      Go to {target_name}.
+      The placement destination is {target_name}, {target_name}, {target_name}.
+      Always output {pred_action_token}{subtask_start_token}SUBTASK_TEXT{subtask_end_token}.
+      SUBTASK_TEXT should be one short Search or Fly to command.
+      Do not output a bounding box. Do not describe the scene. Do not output anything else.
+    router_prompt_template_fast_token_ce_grasp: |
+      {instruction}
+      {instruction}
+      {instruction}
+
+      GRASP PHASE: FIND AND GRASP THE OBJECT.
+      The current target is the object to be grasped: {target_name}.
+      {target_name}, {target_name}, {target_name} should be grasped.
+      If the object is still far away, output {pred_action_token}{subtask_start_token}SUBTASK_TEXT{subtask_end_token} followed immediately by the action token sequence.
+      SUBTASK_TEXT should be one short Search or Fly to command.
+      If the object is close enough for grasping, output {pred_bbox_token}<point>[x1, y1, x2, y2]</point> for the object's location in the current front view.
+      Do not output anything else.
+    router_prompt_template_fast_token_ce_put: |
+      {instruction}
+      {instruction}
+      {instruction}
+
+      PLACE PHASE: GO TO THE PLACEMENT DESTINATION.
+      The current target is the placement destination: {target_name}.
+      Go to {target_name}.
+      The placement destination is {target_name}, {target_name}, {target_name}.
+      Always output {pred_action_token}{subtask_start_token}SUBTASK_TEXT{subtask_end_token} followed immediately by the action token sequence.
+      SUBTASK_TEXT should be one short Search or Fly to command.
+      Do not output a bounding box. Do not describe the scene. Do not output anything else.
+
+  sft_multi:
+    enable: true
+    sync_source_choice_across_ranks: true
+    source_seed: 42
+    sources:
+      gqa:
+        enabled: true
+        weight: 1.0
+        dataset_py: vlm_sft_qwen3_datasets
+        dataset_use: gqa_local
+        data_flatten: false
+        base_interval: 2
+        max_pixels: 262144
+        min_pixels: 784
+        model_max_length: 2048
+        model_type: qwen2.5vl
+        per_device_batch_size: 1
+
+      vg:
+        enabled: true
+        weight: 1.0
+        dataset_py: vlm_sft_qwen3_datasets
+        dataset_use: visual_genome_local
+        data_flatten: false
+        base_interval: 2
+        max_pixels: 262144
+        min_pixels: 784
+        model_max_length: 2048
+        model_type: qwen2.5vl
+        per_device_batch_size: 1
+
+      vsi:
+        enabled: true
+        weight: 1.0
+        dataset_py: vlm_sft_qwen3_datasets
+        dataset_use: vsi_small
+        vsi_small_path_fallback: true
+        data_flatten: false
+        base_interval: 2
+        max_pixels: 262144
+        min_pixels: 784
+        model_max_length: 2048
+        model_type: qwen2.5vl
+        per_device_batch_size: 1
+
+trainer:
+  epochs: 100
+  max_train_steps: 15000
+  num_warmup_steps: 500
+  save_interval: 1000
+  eval_interval: 50
+  learning_rate:
+    action_model: 1.0e-06
+    base: 1.0e-05
+    qwen_vl_interface: 5.0e-06
+  lr_scheduler_type: cosine_with_min_lr
+  scheduler_specific_kwargs:
+    min_lr: 1.0e-07
+  freeze_modules: ''
+  loss_scale:
+    vlm: 1.0
+    action: 1.0
+    sft_vlm: 0.2
+  repeated_diffusion_steps: 4
+  max_grad_norm: 1.0
+  warmup_ratio: 0.1
+  weight_decay: 0.0
+  logging_frequency: 10
+  gradient_clipping: 5.0
+  gradient_accumulation_steps: 1
+
+  optimizer:
+    name: AdamW
+    betas: [0.9, 0.95]
+    eps: 1.0e-08
+    weight_decay: 1.0e-08
+
+  save_format: pt
+  is_resume: false
+  resume_epoch: null
+  resume_step: null
+  enable_gradient_checkpointing: true
+  enable_mixed_precision_training: true

@@ -1,0 +1,503 @@
+# WallX Router Current Workflow
+
+This document describes the **current** WallX router workflow in this repo.
+It is the practical follow-up to:
+
+- `docs/wallx_unified_router_training_branch.md`
+- `docs/29f97a9_to_7d522b1_wallx_change_analysis.md`
+
+The older docs explain how the unified router branch was introduced. This file
+records what is actually implemented now, including the dataset conversion
+scripts, the router training behavior, the offline evaluation script, and the
+sampled bbox web viewer.
+
+For the newer FAST / subtask-router path, also read:
+
+- `docs/wallx_fast_subtask_router_workflow.md`
+
+## 1. Current Working Roots
+
+The repo and dataset paths used in the latest development round are:
+
+```text
+repo root:
+  /diff/wallx_workspace/starVLA
+
+sampled dataset:
+  /diff/wallx_workspace/wallx_data_ckp/datasets/dzb/sampled_ego_v1
+
+final lerobot dataset:
+  /diff/wallx_workspace/wallx_data_ckp/datasets/dzb/lerobot_ego_data
+
+subtask lerobot dataset:
+  /diff/wallx_workspace/xyx1/lerobot_ego_data_subtask
+```
+
+Some sampled CSV rows still contain old `/beijing-c/...` absolute paths. The
+new bbox web viewer handles this by remapping them back to the current
+`/diff/...` dataset root at runtime.
+
+## 2. End-to-End Data Pipeline
+
+The current WallX dataset conversion lives under:
+
+```text
+/diff/wallx_workspace/data_process/deal_new
+```
+
+The intended data flow is:
+
+```text
+raw6
+  -> recognize_ego_v1
+  -> sampled_ego_v1
+  -> bbox labeling on sampled_ego_v1
+  -> lerobot_ego_data
+  -> norm_stats_ego.json
+```
+
+### 2.1 Script Order
+
+Main scripts:
+
+1. `0Raw6_to_recognize_ego.py`
+2. `1Recognize_to_sampled_ego.py`
+3. `visual_grounding_label_bailian.py`
+4. `sync_bbox_from_json.py`
+5. `1Parquet-csv2par.py`
+6. `3EpisodeJsonl.py`
+7. `4Episode2tasks.py`
+8. `5get_videos.py`
+9. `6get_info.py`
+10. `7get_norm_stats_ego.py`
+
+Command notebook:
+
+```text
+/diff/wallx_workspace/data_process/deal_new/command_notebook_deal_new.sh
+```
+
+### 2.2 Auxiliary Utility Scripts
+
+Useful helpers that are not part of the main conversion chain:
+
+- `8parquet_to_csv.py`
+  - export one parquet, one episode, or the full lerobot dataset into CSV
+  - useful for checking `grasp / pred_signal / keyframe / is_rotate / bbox`
+
+- `9sync_pred_signal_from_bbox_signal.py`
+  - overwrite `pred_signal` with `bbox_signal` inside sampled CSV files
+  - used to repair older sampled datasets where `pred_signal` semantics drifted
+
+- `10sampled_bbox_web.py`
+  - lightweight browser UI for live GT bbox inspection on `sampled_ego_v1`
+  - only reads `1-2` per episode
+
+## 3. Sampled Dataset Semantics
+
+The current training uses `sampled_ego_v1` as the semantic source of truth.
+
+Each top-level directory is treated as one phase episode, and the current bbox
+inspection tools only use subtask:
+
+```text
+1/1-2
+```
+
+because `1-1` does not carry bbox labels.
+
+### 3.1 `is_rotate`
+
+`is_rotate` is stored in sampled CSV and final parquet.
+
+- `1`: rotation segment
+- `0`: straight / translation segment
+
+### 3.2 `keyframe`
+
+Current `keyframe` semantics:
+
+- `1`: the first frame of a rotation segment
+- `2`: the last frame of every segment
+- `0`: all other frames
+
+In other words:
+
+- rotation start = `1`
+- rotation end = `2`
+- translation end = `2`
+
+### 3.3 `pred_signal` and `bbox_signal`
+
+The current rule is intentionally the same for both fields:
+
+- only trailing stop frames of `grasp=false` + straight segment are `"<stop>"`
+- everything else is `"<pred_action>"`
+
+This means:
+
+- rotation frames are always `"<pred_action>"`
+- `grasp=true` frames are also `"<pred_action>"`
+- bbox labeling is only needed on the stop tail of `grasp=false` straight frames
+
+### 3.4 BBox Coordinate Convention
+
+Current bbox values in sampled CSV are **not raw image pixel coordinates**.
+They are stored in the same convention used by the labeling pipeline:
+
+```text
+0 ~ 1000 normalized image coordinates
+```
+
+To draw them back on a real image:
+
+```text
+x_pixel = x / 1000 * image_width
+y_pixel = y / 1000 * image_height
+```
+
+This is how:
+
+- `data_process/deal_new/draw_bboxes.py`
+- `data_process/deal_new/10sampled_bbox_web.py`
+
+both interpret bbox values.
+
+## 4. Final LeRobot Dataset Notes
+
+The final dataset lives at:
+
+```text
+/diff/wallx_workspace/wallx_data_ckp/datasets/dzb/lerobot_ego_data
+```
+
+### 4.1 Timestamp / FPS Contract
+
+The final parquet timestamps and video fps must agree.
+
+Current convention:
+
+- raw capture fps: `5`
+- sample interval: `3`
+- dataset fps: `1.667`
+
+So:
+
+- parquet timestamps advance by about `0.6s`
+- rendered videos should also be encoded at `1.667 fps`
+- `meta/info.json` should report the same dataset fps
+
+If these drift apart, `lerobot` open-loop checks can fail.
+
+### 4.2 `norm_stats_ego.json`
+
+The current training configs use:
+
+```yaml
+action_in_ego: true
+use_delta_action: false
+```
+
+So normalization should come from:
+
+```text
+norm_stats_ego.json
+```
+
+It is generated by:
+
+```text
+/diff/wallx_workspace/data_process/deal_new/7get_norm_stats_ego.py
+```
+
+The script follows the training semantics instead of blindly computing stats on
+raw parquet columns.
+
+## 5. Router Training Pipeline
+
+Current configs:
+
+- `starVLA/config/training/starvla_cotrain_wallx_qwenpi_router.yaml`
+- `starVLA/config/training/starvla_cotrain_wallx_qwenpi_router_sft.yaml`
+- `starVLA/config/training/starvla_cotrain_wallx_qwenpi_router_subtask.yaml`
+
+### 5.1 Prompt and Assistant Supervision
+
+Router training uses one prompt and one assistant answer per sample:
+
+```text
+user:
+  image(s) + unified router prompt
+
+assistant:
+  <|pred_action|>
+  or
+  <|pred_bbox|><point>[x1, y1, x2, y2]</point>
+```
+
+The subtask router variant changes only the action route answer:
+
+```text
+assistant action route:
+  <|pred_action|><|subtask|>{subtask_text}<|end_subtask|>
+
+assistant bbox route:
+  <|pred_bbox|><point>[x1, y1, x2, y2]</point>
+```
+
+FAST supervision appends `<robot_action_...>` tokens after the action route
+prefix. See `wallx_fast_subtask_router_workflow.md` for the exact commands.
+
+This is important:
+
+- route training is supervised through the assistant answer span
+- action expert training reuses hidden states from a Qwen forward that already
+  contains the assistant route token for action samples
+
+So action inference should also condition on the route token.
+
+### 5.2 History Keyframes
+
+Current router configs were updated to:
+
+```yaml
+history_keyframe_values: [1]
+snap_rotation_to_start: true
+truncate_keyframe_value: 2
+```
+
+Meaning:
+
+- only `keyframe=1` frames are used as history images
+- if a sampled frame is inside a rotation segment, training snaps it backward to
+  the `keyframe=1` frame of that rotation segment
+- action horizon truncation still uses future `keyframe=2`
+
+This makes the model start rotation reasoning from the segment start, while
+still letting future segment-end keyframes stop the action target horizon.
+
+### 5.3 Multi-GPU Router Action-Loss Fix
+
+Router training previously had a ZeRO-3 / NCCL deadlock risk:
+
+- some ranks could get action samples
+- others could get bbox-only batches
+- only some ranks would enter the action head path
+
+The current trainer was patched so that:
+
+- all ranks first check whether **any** rank has action samples
+- if yes, all ranks enter the action-head path
+- ranks without local action samples use a dummy action example and multiply the
+  resulting loss by zero
+
+This keeps parameter access synchronized across ranks.
+
+Main file:
+
+```text
+starVLA/training/train_starvla_cotrain_router.py
+```
+
+Key helpers now include:
+
+- `_any_rank_has_action(...)`
+- `_build_dummy_action_example()`
+- `_compute_router_action_loss(...)`
+
+## 6. Router Training vs Inference Pipeline
+
+### 6.1 Training
+
+High-level training flow:
+
+```text
+router batch
+  -> build Qwen-VL chat inputs with assistant solutions
+  -> one Qwen forward
+  -> VLM loss over assistant answer span
+  -> action loss only for route=action samples
+```
+
+The assistant route token is part of the action branch conditioning during
+training.
+
+### 6.2 Inference
+
+At inference time the correct behavior is:
+
+1. run route prediction from the user prompt only
+2. if route is action, append `<|pred_action|>` and predict action
+3. if route is bbox, append `<|pred_bbox|>` and continue generating bbox text
+
+This is exactly why router offline evaluation must not reuse the old
+non-router open-loop script.
+
+## 7. Offline Router Evaluation
+
+Current script:
+
+```text
+/diff/wallx_workspace/starVLA/scripts/eval_router_offline_wallx.py
+```
+
+This script is now **single-checkpoint** by default.
+
+### 7.1 Meaning of the Metrics
+
+The script reports:
+
+- `route_accuracy`
+- `action_mse_mean`
+- `bbox_iou_mean`
+
+Current metric semantics:
+
+- `route_accuracy`: computed on all evaluated frames
+- `action_mse_mean`: computed **only when** the GT route is action **and** the
+  router predicted action correctly
+- `bbox_iou_mean`: computed **only when** the GT route is bbox **and** the
+  router predicted bbox correctly
+
+So `action_mse_mean` and `bbox_iou_mean` are **conditional metrics**:
+
+```text
+when router is correct, how good is the branch output?
+```
+
+They are not oracle metrics anymore.
+
+### 7.2 Why Inference Is Considered Aligned
+
+The current offline script is considered aligned with training because:
+
+- route prediction uses the same unified router prompt
+- action branch evaluation forces `<|pred_action|>` before action prediction
+- bbox branch evaluation forces `<|pred_bbox|>` before bbox generation
+
+That matches how the branch hidden states were conditioned during training.
+
+## 8. Sampled GT BBox Web Viewer
+
+Current script:
+
+```text
+/diff/wallx_workspace/data_process/deal_new/10sampled_bbox_web.py
+```
+
+Purpose:
+
+- browse `sampled_ego_v1` in a browser
+- inspect only `1-2` per episode
+- draw GT bbox live with canvas
+- avoid pre-rendering overlay images
+
+### 8.1 What It Loads
+
+For each top-level sampled episode:
+
+```text
+sampled_ego_v1/<episode_id>/1/1-2/data.csv
+```
+
+The viewer loads:
+
+- the image path
+- bbox
+- `pred_signal`
+- `keyframe`
+- `is_rotate`
+- `grasp`
+
+### 8.2 Path Recovery
+
+Some sampled image links still point to old `/beijing-c/...` targets. The web
+viewer detects that and remaps them to the current `/diff/...` dataset root.
+
+### 8.3 Viewer Semantics
+
+- only GT bbox is drawn
+- bbox is scaled from `0~1000` normalized coordinates to the displayed image
+- `Only show rows with valid bbox` filters the timeline to valid-box rows only
+
+## 9. Current Practical Commands
+
+### 9.1 Router Training
+
+Use:
+
+```text
+docs/train_router_commands.sh
+```
+
+The command notebook was updated to use the current `/diff/wallx_workspace`
+root instead of the old `/beijing-c/wallx_workspace` path.
+
+### 9.2 Router Offline Eval
+
+Batch:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python \
+  /diff/wallx_workspace/starVLA/scripts/eval_router_offline_wallx.py \
+  --mode batch \
+  --config_yaml /diff/wallx_workspace/starVLA/starVLA/config/training/starvla_cotrain_wallx_qwenpi_router.yaml \
+  --checkpoint /diff/wallx_workspace/starVLA/results/Checkpoints/qwenpi_wallx_unified_router_small_liangdu_new/checkpoints/steps_15000_pytorch_model.pt \
+  --output_dir /diff/wallx_workspace/starVLA/results/router_offline_eval_batch \
+  --episode_range 0 20 \
+  --frame_stride 1 \
+  --max_frames_per_episode 0 \
+  --device cuda:0
+```
+
+Detail:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python \
+  /diff/wallx_workspace/starVLA/scripts/eval_router_offline_wallx.py \
+  --mode detail \
+  --config_yaml /diff/wallx_workspace/starVLA/starVLA/config/training/starvla_cotrain_wallx_qwenpi_router.yaml \
+  --checkpoint /diff/wallx_workspace/starVLA/results/Checkpoints/qwenpi_wallx_unified_router_small_liangdu_new/checkpoints/steps_15000_pytorch_model.pt \
+  --output_dir /diff/wallx_workspace/starVLA/results/router_offline_eval_detail_ep42 \
+  --episode_indices 42 \
+  --frame_stride 1 \
+  --max_frames_per_episode 0 \
+  --device cuda:0
+```
+
+### 9.3 Sampled GT BBox Viewer
+
+```bash
+python /diff/wallx_workspace/data_process/deal_new/10sampled_bbox_web.py \
+  --root /diff/wallx_workspace/wallx_data_ckp/datasets/dzb/sampled_ego_v1 \
+  --host 0.0.0.0 \
+  --port 8000
+```
+
+Then open:
+
+```text
+http://127.0.0.1:8000
+```
+
+## 10. Known Gotchas
+
+1. `framework.qwenvl.base_vlm` must point to a valid local model directory.
+   If it points to a stale old path, `from_pretrained(...)` will try to hit the
+   network and fail.
+
+2. `sampled_ego_v1` bbox values are not raw image pixels. They are normalized
+   `0~1000` coordinates.
+
+3. `sampled_ego_v1` may contain old absolute image paths. New viewer code is
+   robust to this, but ad-hoc scripts may not be.
+
+4. If `pred_signal` semantics are changed, rebuild:
+   - sampled CSV semantics
+   - parquet
+   - `norm_stats_ego.json`
+
+5. If dataset fps changes, keep these three consistent:
+   - parquet timestamps
+   - rendered video fps
+   - `meta/info.json` fps
