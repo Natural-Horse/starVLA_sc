@@ -28,12 +28,9 @@ except Exception:
 from accelerate import Accelerator, DeepSpeedPlugin
 from accelerate.logging import get_logger
 from accelerate.utils import set_seed
-from lerobot.datasets.lerobot_dataset import LeRobotDatasetMetadata
-
-import lerobot.datasets.lerobot_dataset as _lerobot_dataset
-
-
 def _install_wallx_v2_lerobot_compat() -> None:
+    from lerobot.datasets import lerobot_dataset as _lerobot_dataset
+
     if getattr(_lerobot_dataset, "_starvla_wallx_v2_compat", False):
         return
     original_check = _lerobot_dataset.check_version_compatibility
@@ -50,7 +47,6 @@ def _install_wallx_v2_lerobot_compat() -> None:
     _lerobot_dataset._starvla_wallx_v2_compat = True
 
 
-_install_wallx_v2_lerobot_compat()
 from omegaconf import OmegaConf
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
@@ -193,10 +189,16 @@ def _clone_cfg(cfg: Any):
 
 
 def _dataset_total_episodes(data_cfg: Any) -> int:
-    repo_id = str(_cfg_get(data_cfg, "repo_id", "dzb/lerobot_ego_data"))
     root = str(_cfg_get(data_cfg, "root", ""))
     if not root:
         raise ValueError("data_cfg.root is required when datasets.split.enable is true.")
+    if str(_cfg_get(data_cfg, "dataset_py", "")) == "go2_waypoint_router_dataset":
+        info_path = Path(root) / "meta" / "info.json"
+        return int(json.loads(info_path.read_text())["total_episodes"])
+    _install_wallx_v2_lerobot_compat()
+    from lerobot.datasets.lerobot_dataset import LeRobotDatasetMetadata
+
+    repo_id = str(_cfg_get(data_cfg, "repo_id", "dzb/lerobot_ego_data"))
     meta = LeRobotDatasetMetadata(repo_id, root=root)
     return int(meta.total_episodes)
 
@@ -361,7 +363,7 @@ def prepare_data(
     Optional[dict[str, DataLoader]],
     Optional[dict[str, float]],
 ]:
-    logger.info("Creating WallX unified router dataset")
+    logger.info("Creating unified router dataset: %s", cfg.datasets.router_data.dataset_py)
     _apply_router_framework_overrides(cfg)
 
     split_summary = _resolve_router_episode_split(cfg)
@@ -792,9 +794,35 @@ class VLARouterTrainer(TrainerUtils):
             solutions=solutions,
         )
 
-    @staticmethod
-    def _route_counts(batch_router):
-        counts = {"action": 0, "bbox": 0, "unknown": 0}
+    def _configured_route_tokens(self, *, include_bbox: bool = False) -> dict[str, str]:
+        router_cfg = self.config.datasets.router_data
+        configured = _cfg_get(router_cfg, "route_tokens", None)
+        if configured:
+            main_routes = [str(route) for route in _cfg_get(router_cfg, "main_routes", configured.keys())]
+            tokens = {route: str(_cfg_get(configured, route)) for route in main_routes}
+            if include_bbox:
+                bbox_token = _cfg_get(router_cfg, "pred_bbox_token", None)
+                if bbox_token:
+                    tokens["bbox"] = str(bbox_token)
+            return tokens
+        return {
+            "action": str(_cfg_get(router_cfg, "pred_action_token", "<|pred_action|>")),
+            "bbox": str(_cfg_get(router_cfg, "pred_bbox_token", "<|pred_bbox|>")),
+        }
+
+    def _bbox_flag(self, key: str, default: bool = False) -> bool:
+        bbox_cfg = _cfg_get(self.config.datasets.router_data, "bbox", None)
+        return bool(_cfg_get(bbox_cfg, key, default))
+
+    def _filter_bbox_samples(self, batch_router, *, training: bool):
+        enabled = self._bbox_flag("train_enabled" if training else "evaluation_enabled", False)
+        if enabled or not isinstance(batch_router, list):
+            return batch_router
+        return [sample for sample in batch_router if str(sample.get("route", "")) != "bbox"]
+
+    def _route_counts(self, batch_router):
+        counts = {route: 0 for route in self._configured_route_tokens(include_bbox=False)}
+        counts["unknown"] = 0
         for sample in batch_router:
             route = str(sample.get("route", "unknown"))
             if route not in counts:
@@ -807,7 +835,7 @@ class VLARouterTrainer(TrainerUtils):
         return [
             idx
             for idx, sample in enumerate(batch_router)
-            if sample.get("route") == "action" and "action" in sample
+            if "action" in sample
         ]
 
     @staticmethod
@@ -827,6 +855,7 @@ class VLARouterTrainer(TrainerUtils):
 
         example: dict[str, Any] = {
             "action": np.zeros((action_horizon, action_dim), dtype=np.float16),
+            "action_mask": np.ones((action_horizon,), dtype=np.float16),
         }
         if bool(_cfg_get(router_cfg, "include_state", False)):
             example["state"] = np.zeros((1, state_dim), dtype=np.float16)
@@ -891,18 +920,15 @@ class VLARouterTrainer(TrainerUtils):
         return action_loss * 0.0, local_has_action, global_has_action
 
     def _route_token_ids(self):
-        router_cfg = self.config.datasets.router_data
-        pred_action_token = str(router_cfg.pred_action_token)
-        pred_bbox_token = str(router_cfg.pred_bbox_token)
         tokenizer = self._get_qwen_vl_interface().processor.tokenizer
-        action_ids = tokenizer(pred_action_token, add_special_tokens=False).input_ids
-        bbox_ids = tokenizer(pred_bbox_token, add_special_tokens=False).input_ids
-        if len(action_ids) != 1 or len(bbox_ids) != 1:
-            return None
-        return {
-            int(action_ids[0]): "action",
-            int(bbox_ids[0]): "bbox",
-        }
+        result = {}
+        include_bbox = self._bbox_flag("evaluation_enabled", False)
+        for route, token in self._configured_route_tokens(include_bbox=include_bbox).items():
+            token_ids = tokenizer(token, add_special_tokens=False).input_ids
+            if len(token_ids) != 1:
+                return None
+            result[int(token_ids[0])] = route
+        return result
 
     def _compute_route_token_metrics(self, qwen_output, batch_inputs):
         token_id_to_route = self._route_token_ids()
@@ -916,7 +942,9 @@ class VLARouterTrainer(TrainerUtils):
         logits = qwen_output.logits.detach()
         route_total = 0
         route_correct = 0
-        pred_counts = {"action": 0, "bbox": 0, "other": 0}
+        route_names = list(self._configured_route_tokens(include_bbox=self._bbox_flag("evaluation_enabled", False)))
+        pred_counts = {route: 0 for route in route_names}
+        pred_counts["other"] = 0
 
         for i in range(labels.shape[0]):
             label_positions = torch.nonzero(labels[i] != IGNORE_INDEX, as_tuple=False).reshape(-1)
@@ -937,13 +965,14 @@ class VLARouterTrainer(TrainerUtils):
 
         if route_total == 0:
             return {}
-        return {
+        metrics = {
             "router_token_accuracy": route_correct / route_total,
             "router_token_eval_count": route_total,
-            "router_pred_action_count": pred_counts.get("action", 0),
-            "router_pred_bbox_count": pred_counts.get("bbox", 0),
             "router_pred_other_count": pred_counts.get("other", 0),
         }
+        for route in route_names:
+            metrics[f"router_pred_{route}_count"] = pred_counts.get(route, 0)
+        return metrics
 
     def _compute_router_ce_breakdown_metrics(self, qwen_output, batch_inputs, batch_router):
         if getattr(qwen_output, "logits", None) is None:
@@ -954,7 +983,6 @@ class VLARouterTrainer(TrainerUtils):
 
         router_cfg = self.config.datasets.router_data
         action_route_format = str(_cfg_get(router_cfg, "action_route_format", "token")).strip()
-        pred_action_token = str(_cfg_get(router_cfg, "pred_action_token", "<|pred_action|>"))
         subtask_start_token = str(_cfg_get(router_cfg, "subtask_start_token", "<|subtask|>"))
         subtask_end_token = str(_cfg_get(router_cfg, "subtask_end_token", "<|end_subtask|>"))
         tokenizer = self._get_qwen_vl_interface().processor.tokenizer
@@ -996,7 +1024,8 @@ class VLARouterTrainer(TrainerUtils):
                     add_values("router_bbox_text_ce", token_losses[1:])
                     continue
 
-                if route != "action":
+                route_tokens = self._configured_route_tokens(include_bbox=False)
+                if route not in route_tokens:
                     continue
 
                 route_prefix_len = 1
@@ -1004,7 +1033,7 @@ class VLARouterTrainer(TrainerUtils):
                     subtask_text = str(sample.get("subtask_text", "")).strip()
                     if subtask_text:
                         route_prefix = (
-                            f"{pred_action_token}"
+                            f"{route_tokens[route]}"
                             f"{subtask_start_token}"
                             f"{subtask_text}"
                             f"{subtask_end_token}"
@@ -1031,11 +1060,9 @@ class VLARouterTrainer(TrainerUtils):
     def _append_batch_route_metrics(self, log_dict, batch_router):
         counts = self._route_counts(batch_router)
         total = max(sum(counts.values()), 1)
-        log_dict["batch_route_action_count"] = counts["action"]
-        log_dict["batch_route_bbox_count"] = counts["bbox"]
-        log_dict["batch_route_unknown_count"] = counts["unknown"]
-        log_dict["batch_route_action_fraction"] = counts["action"] / total
-        log_dict["batch_route_bbox_fraction"] = counts["bbox"] / total
+        for route, count in counts.items():
+            log_dict[f"batch_route_{route}_count"] = count
+            log_dict[f"batch_route_{route}_fraction"] = count / total
 
     def _append_action_dim_loss_metrics(self, log_dict, prefix: str = "action_dim_loss"):
         action_model = getattr(self._unwrap_model(), "action_model", None)
@@ -1060,6 +1087,9 @@ class VLARouterTrainer(TrainerUtils):
 
     def _train_step(self, batch_router, batch_sft=None, sft_source_name: Optional[str] = None):
         log_dict = {}
+        batch_router = self._filter_bbox_samples(batch_router, training=True)
+        if not batch_router:
+            raise RuntimeError("Router batch is empty after excluding disabled bbox samples.")
         action_indices = self._action_indices(batch_router)
 
         with self.accelerator.accumulate(self.model):
@@ -1182,6 +1212,9 @@ class VLARouterTrainer(TrainerUtils):
             step_metrics = {}
 
         batch_router = self._get_next_eval_batch()
+        batch_router = self._filter_bbox_samples(batch_router, training=False)
+        if not batch_router:
+            return step_metrics
         action_indices = self._action_indices(batch_router)
         batch_inputs = self._prepare_router_batch(batch_router)
         qwen_vl_interface = self._get_qwen_vl_interface()
@@ -1243,10 +1276,11 @@ class VLARouterTrainer(TrainerUtils):
             )
             if self.is_sft_multi:
                 logger.info(f"  SFT source probs = {self.sft_source_prob_map}")
+            logger.info("  Route tokens: %s", self._configured_route_tokens(include_bbox=False))
             logger.info(
-                "  Route tokens: action=%s bbox=%s",
-                router_cfg.pred_action_token,
-                router_cfg.pred_bbox_token,
+                "  BBox enabled: train=%s evaluation=%s",
+                self._bbox_flag("train_enabled", False),
+                self._bbox_flag("evaluation_enabled", False),
             )
             if self.split_summary:
                 logger.info(

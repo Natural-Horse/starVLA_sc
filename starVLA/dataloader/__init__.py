@@ -133,3 +133,18 @@ def build_dataloader(cfg, dataset_py="lerobot_datasets_oxe"):
             num_workers=int(subtask_dataset_cfg.get("num_workers", 4)),
         )
         return subtask_train_dataloader
+    elif dataset_py == "go2_waypoint_router_dataset":
+        from starVLA.dataloader.go2_waypoint_dataset import (
+            collate_fn_go2,
+            get_go2_waypoint_dataset,
+        )
+
+        router_dataset_cfg = cfg.datasets.router_data
+        router_dataset = get_go2_waypoint_dataset(data_cfg=router_dataset_cfg)
+        return DataLoader(
+            router_dataset,
+            batch_size=router_dataset_cfg.per_device_batch_size,
+            collate_fn=collate_fn_go2,
+            num_workers=int(router_dataset_cfg.get("num_workers", 4)),
+            shuffle=bool(router_dataset_cfg.get("shuffle", True)),
+        )

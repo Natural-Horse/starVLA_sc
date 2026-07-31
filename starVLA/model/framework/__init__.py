@@ -26,11 +26,11 @@ except NameError:
 
 # Auto-import all framework submodules to trigger registration
 if pkg_path is not None:
-    try:
-        for _, module_name, _ in pkgutil.iter_modules(pkg_path):
+    for _, module_name, _ in pkgutil.iter_modules(pkg_path):
+        try:
             importlib.import_module(f"{__name__}.{module_name}")
-    except Exception as e:
-        logger.log(f"Warning: Failed to auto-import framework submodules: {e}")
+        except Exception as exc:
+            logger.warning("Skipping optional framework module %s: %s", module_name, exc)
         
 def build_framework(cfg):
     """

@@ -360,7 +360,13 @@ class LayerwiseFlowmatchingActionHead(nn.Module):
         return BatchFeature(data=batch)
 
 
-    def forward(self, vl_embs_list: list, actions: torch.Tensor, state: torch.Tensor = None):
+    def forward(
+        self,
+        vl_embs_list: list,
+        actions: torch.Tensor,
+        state: torch.Tensor = None,
+        action_mask: torch.Tensor = None,
+    ):
         """
         vl_embs: list of torch.Tensor, each shape (B, seq_length, feature_dim)
         actions: shape (B, future_action_window_size, D_action)
@@ -373,6 +379,13 @@ class LayerwiseFlowmatchingActionHead(nn.Module):
         base_t = self.sample_time(actions.shape[0], device=actions.device, dtype=actions.dtype)
         t = base_t[:, None].expand(-1, actions.shape[1])
         loss_mask = torch.ones(actions.shape[:2], device=actions.device, dtype=torch.bool)
+        if action_mask is not None:
+            action_mask = torch.as_tensor(action_mask, device=actions.device, dtype=torch.bool)
+            if tuple(action_mask.shape) != tuple(actions.shape[:2]):
+                raise ValueError(
+                    f"action_mask must have shape {tuple(actions.shape[:2])}, got {tuple(action_mask.shape)}"
+                )
+            loss_mask &= action_mask
         self.latest_rtc_delay = None
 
         if self.rtc_enabled and self.rtc_simulated_delay > 0:
@@ -385,7 +398,7 @@ class LayerwiseFlowmatchingActionHead(nn.Module):
             step_ids = torch.arange(actions.shape[1], device=actions.device)
             prefix_mask = step_ids.unsqueeze(0) < delay.unsqueeze(1)
             t = torch.where(prefix_mask, torch.ones_like(t), t)
-            loss_mask = ~prefix_mask
+            loss_mask &= ~prefix_mask
 
         noisy_trajectory = (1 - t[..., None]) * noise + t[..., None] * actions
         velocity = actions - noise
@@ -446,7 +459,7 @@ class LayerwiseFlowmatchingActionHead(nn.Module):
 
         # Slice out only the action portion of pred and target.
         squared_error = (pred_actions - velocity) ** 2
-        if self.rtc_enabled and self.rtc_simulated_delay > 0:
+        if action_mask is not None or (self.rtc_enabled and self.rtc_simulated_delay > 0):
             loss_mask = loss_mask.unsqueeze(-1).to(dtype=squared_error.dtype)
             denom = loss_mask.sum().clamp_min(1.0) * squared_error.shape[-1]
             loss = (squared_error * loss_mask).sum() / denom

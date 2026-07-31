@@ -1,0 +1,148 @@
+run_id: qwen3vl_go2_sparse_waypoint_router
+run_root_dir: results/Checkpoints
+seed: 42
+trackers: [jsonl, wandb]
+wandb_entity: null
+wandb_project: starvla_go2_waypoint
+is_debug: false
+
+framework:
+  name: QwenPI
+  router:
+    action_supervision: flow_matching
+    action_route_format: route_subtask
+    subtask_start_token: "<|subtask|>"
+    subtask_end_token: "<|end_subtask|>"
+    action_loss_grad_to_vlm: true
+
+  qwenvl:
+    base_vlm: /hdd4/MaTianran/rtc_starvla/models/base_vlm/Qwen3-VL-4B-Instruct-ActionRouterSubtask
+    attn_implementation: sdpa
+    torch_dtype: bfloat16
+    freeze: false
+    special_tokens:
+      policy: auto_add
+      require_fast_action_tokens: false
+      router_tokens:
+        - "<|nav|>"
+        - "<|grasp|>"
+        - "<|place|>"
+        - "<|done|>"
+        - "<|recover|>"
+        - "<|pred_bbox|>"
+        - "<|subtask|>"
+        - "<|end_subtask|>"
+
+  action_model:
+    freeze: false
+    action_model_type: DiT-B
+    hidden_size: 1024
+    add_pos_embed: true
+    max_seq_len: 1024
+    action_dim: 3
+    state_dim: 3
+    future_action_window_size: 3
+    action_horizon: 4
+    past_action_window_size: 0
+    noise_beta_alpha: 1.5
+    noise_beta_beta: 1.0
+    noise_s: 0.999
+    num_timestep_buckets: 1000
+    num_inference_timesteps: 4
+    num_target_vision_tokens: 8
+    diffusion_model_cfg:
+      cross_attention_dim: 2560
+      dropout: 0.2
+      final_dropout: true
+      interleave_self_attention: true
+      norm_type: ada_norm
+      num_layers: 16
+      output_dim: 2560
+      positional_embeddings: null
+
+datasets:
+  split:
+    enable: true
+    train_ratio: 0.9
+    mode: contiguous
+
+  router_data:
+    dataset_py: go2_waypoint_router_dataset
+    root: /hdd4/MaTianran/pct_workspace/starVLA_sc/datasets/liangzhu_0729_n200/lerobot_dataset
+    per_device_batch_size: 4
+    num_workers: 4
+    shuffle: true
+    image_size: [224, 224]
+    action_horizon: 4
+    include_state: true
+    main_routes: [nav, grasp, place, done, recover]
+    route_tokens:
+      nav: "<|nav|>"
+      grasp: "<|grasp|>"
+      place: "<|place|>"
+      done: "<|done|>"
+      recover: "<|recover|>"
+    pred_bbox_token: "<|pred_bbox|>"
+    action_supervision: flow_matching
+    action_route_format: route_subtask
+    subtask_start_token: "<|subtask|>"
+    subtask_end_token: "<|end_subtask|>"
+    route_frame_stride:
+      nav: 2
+      grasp: 2
+      place: 2
+      done: 1
+      recover: 1
+    done_repeat: 8
+    rdp_epsilon_m: 0.12
+    yaw_metric_scale_m_per_rad: 0.45
+    max_translation_m: 0.50
+    max_yaw_deg: 25.0
+    bbox:
+      implementation_enabled: true
+      allow_route_prediction: false
+      train_enabled: false
+      evaluation_enabled: false
+      fallback_enabled: false
+
+  sft_multi:
+    enable: false
+
+trainer:
+  epochs: 100
+  max_train_steps: 5000
+  num_warmup_steps: 250
+  save_interval: 500
+  eval_interval: 100
+  learning_rate:
+    action_model: 1.0e-6
+    base: 1.0e-5
+    qwen_vl_interface: 5.0e-6
+  lr_scheduler_type: cosine_with_min_lr
+  scheduler_specific_kwargs:
+    min_lr: 1.0e-7
+  freeze_modules: ""
+  loss_scale:
+    vlm: 1.0
+    action: 1.0
+    sft_vlm: 0.0
+  repeated_diffusion_steps: 4
+  logging_frequency: 10
+  gradient_clipping: 5.0
+  gradient_accumulation_steps: 1
+  deepspeed:
+    zero_stage: 3
+    offload_optimizer_device: none
+    offload_param_device: none
+    zero3_save_16bit_model: true
+  optimizer:
+    name: AdamW
+    betas: [0.9, 0.95]
+    eps: 1.0e-8
+    weight_decay: 1.0e-8
+  save_format: pt
+  is_resume: false
+  resume_epoch: null
+  resume_step: null
+  enable_gradient_checkpointing: true
+  enable_mixed_precision_training: true

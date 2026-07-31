@@ -7,6 +7,7 @@ A lightweight implementation that Qwen2.5-vl + Flow-matching head to directly pr
 Flow-matching header is copyright from GR00T N1.5, but a sample MoE inspired by PI_0
 """
 from typing import List
+import re
 from tqdm import tqdm
 from typing import List, Optional, Tuple
 import torch
@@ -107,22 +108,42 @@ class Qwen_PI(baseframework):
         pred_bbox_token = _cfg_get(router_cfg, "pred_bbox_token", "<|pred_bbox|>")
         return str(pred_action_token), str(pred_bbox_token)
 
-    def _single_router_token_ids(self) -> dict[str, int] | None:
-        pred_action_token, pred_bbox_token = self._router_tokens()
+    def _configured_route_tokens(self, *, allow_bbox: bool = False) -> dict[str, str]:
+        datasets_cfg = _cfg_get(self.config, "datasets", None)
+        router_cfg = _cfg_get(datasets_cfg, "router_data", None)
+        configured = _cfg_get(router_cfg, "route_tokens", None)
+        if not configured:
+            pred_action_token, pred_bbox_token = self._router_tokens()
+            return {"action": pred_action_token, "bbox": pred_bbox_token}
+
+        main_routes = [str(route) for route in _cfg_get(router_cfg, "main_routes", configured.keys())]
+        tokens = {route: str(_cfg_get(configured, route)) for route in main_routes}
+        bbox_cfg = _cfg_get(router_cfg, "bbox", None)
+        bbox_allowed = (
+            allow_bbox
+            and bool(_cfg_get(bbox_cfg, "implementation_enabled", True))
+            and bool(_cfg_get(bbox_cfg, "allow_route_prediction", False))
+        )
+        if bbox_allowed:
+            tokens["bbox"] = str(_cfg_get(router_cfg, "pred_bbox_token", "<|pred_bbox|>"))
+        return tokens
+
+    def _single_router_token_ids(self, route_tokens: dict[str, str] | None = None) -> dict[str, int] | None:
+        route_tokens = route_tokens or self._configured_route_tokens()
         tokenizer = self.qwen_vl_interface.processor.tokenizer
-        action_ids = tokenizer(pred_action_token, add_special_tokens=False).input_ids
-        bbox_ids = tokenizer(pred_bbox_token, add_special_tokens=False).input_ids
-        if len(action_ids) != 1 or len(bbox_ids) != 1:
-            logger.warning(
-                "Router tokens must be single tokenizer ids for first-token routing. "
-                "Got %s -> %s, %s -> %s. Falling back to generate-and-parse routing.",
-                pred_action_token,
-                action_ids,
-                pred_bbox_token,
-                bbox_ids,
-            )
-            return None
-        return {"action": int(action_ids[0]), "bbox": int(bbox_ids[0])}
+        result = {}
+        for route, token in route_tokens.items():
+            token_ids = tokenizer(token, add_special_tokens=False).input_ids
+            if len(token_ids) != 1:
+                logger.warning(
+                    "Router tokens must be single tokenizer ids for first-token routing. "
+                    "Got %s -> %s. Falling back to generate-and-parse routing.",
+                    token,
+                    token_ids,
+                )
+                return None
+            result[route] = int(token_ids[0])
+        return result
 
     def _select_action_hidden_states(self, hidden_states, indices: torch.Tensor | None = None) -> list[torch.Tensor]:
         expected_layers = len(self.action_model.model.transformer_blocks)
@@ -149,6 +170,7 @@ class Qwen_PI(baseframework):
         base_hidden = vl_embs_list[-1]
         actions = [example["action"] for example in examples]
         state = [example["state"] for example in examples] if "state" in examples[0] else None
+        action_mask = [example["action_mask"] for example in examples] if "action_mask" in examples[0] else None
 
         device_type = "cuda" if base_hidden.is_cuda else "cpu"
         with torch.autocast(device_type=device_type, dtype=torch.float32, enabled=base_hidden.is_cuda):
@@ -170,7 +192,20 @@ class Qwen_PI(baseframework):
                 )
                 state_repeated = state.repeat(repeated_diffusion_steps, 1, 1)
 
-            action_loss = self.action_model(vl_embs_list_repeated, actions_target_repeated, state_repeated)
+            action_mask_repeated = None
+            if action_mask is not None:
+                action_mask = torch.tensor(
+                    np.array(action_mask), device=base_hidden.device, dtype=torch.bool
+                )
+                action_mask = action_mask[:, -(self.future_action_window_size + 1):]
+                action_mask_repeated = action_mask.repeat(repeated_diffusion_steps, 1)
+
+            action_loss = self.action_model(
+                vl_embs_list_repeated,
+                actions_target_repeated,
+                state_repeated,
+                action_mask=action_mask_repeated,
+            )
 
         return action_loss
 
@@ -367,12 +402,13 @@ class Qwen_PI(baseframework):
         continue_bbox: bool = True,
         continue_action: bool = False,
         route_confidence_threshold: float | None = None,
+        allow_bbox: bool = False,
         **generate_kwargs,
     ) -> dict:
         """Predict the router decision.
 
         Default ``route_mode="first_token"`` reads the first-token logits and
-        chooses between the two configured route tokens. This avoids waiting for
+        chooses among the configured route tokens. This avoids waiting for
         a full autoregressive answer before dispatching to the action expert.
         """
         if type(examples) is not list:
@@ -395,8 +431,8 @@ class Qwen_PI(baseframework):
             generation_kwargs.update({"temperature": temperature, "top_p": top_p})
         generation_kwargs.update(generate_kwargs)
 
-        pred_action_token, pred_bbox_token = self._router_tokens()
-        token_ids = self._single_router_token_ids()
+        route_tokens = self._configured_route_tokens(allow_bbox=allow_bbox)
+        token_ids = self._single_router_token_ids(route_tokens)
         if route_mode == "first_token" and token_ids is not None:
             with torch.autocast("cuda", dtype=torch.bfloat16):
                 qwen_output = self.qwen_vl_interface(
@@ -407,8 +443,9 @@ class Qwen_PI(baseframework):
                 )
 
             first_logits = qwen_output.logits[:, -1, :]
+            route_names = list(route_tokens)
             route_token_ids = torch.tensor(
-                [token_ids["action"], token_ids["bbox"]],
+                [token_ids[route] for route in route_names],
                 device=first_logits.device,
                 dtype=torch.long,
             )
@@ -433,16 +470,11 @@ class Qwen_PI(baseframework):
                     route_token = None
                     route_token_id = int(raw_first_ids[idx].item())
                     generated_text = raw_first_texts[idx].strip()
-                elif choice == 0:
-                    route = "action"
-                    route_token = pred_action_token
-                    route_token_id = token_ids["action"]
-                    generated_text = pred_action_token
                 else:
-                    route = "bbox"
-                    route_token = pred_bbox_token
-                    route_token_id = token_ids["bbox"]
-                    generated_text = pred_bbox_token
+                    route = route_names[choice]
+                    route_token = route_tokens[route]
+                    route_token_id = token_ids[route]
+                    generated_text = route_token
 
                 chosen_route_token_ids.append(route_token_id)
                 routes.append(
@@ -451,16 +483,18 @@ class Qwen_PI(baseframework):
                         "route_token": route_token,
                         "generated_text": generated_text,
                         "route_confidence": confidence,
-                        "route_action_prob": float(route_probs[idx, 0].item()),
-                        "route_bbox_prob": float(route_probs[idx, 1].item()),
+                        "route_probs": {
+                            name: float(route_probs[idx, route_idx].item())
+                            for route_idx, name in enumerate(route_names)
+                        },
                         "raw_first_token_id": int(raw_first_ids[idx].item()),
                         "raw_first_token_text": raw_first_texts[idx].strip(),
                     }
                 )
 
-            routes_to_continue = {"bbox"}
+            routes_to_continue = {"bbox"} if continue_bbox else set()
             if continue_action:
-                routes_to_continue.add("action")
+                routes_to_continue.update(route for route in route_names if route != "bbox")
 
             if any(item["route"] in routes_to_continue for item in routes):
                 forced_inputs = {
@@ -508,15 +542,13 @@ class Qwen_PI(baseframework):
         routes = []
         for text in texts:
             stripped = text.strip()
-            if stripped.startswith(pred_action_token):
-                route = "action"
-                route_token = pred_action_token
-            elif stripped.startswith(pred_bbox_token):
-                route = "bbox"
-                route_token = pred_bbox_token
-            else:
-                route = "unknown"
-                route_token = None
+            route = "unknown"
+            route_token = None
+            for candidate_route, candidate_token in route_tokens.items():
+                if stripped.startswith(candidate_token):
+                    route = candidate_route
+                    route_token = candidate_token
+                    break
             routes.append(
                 {
                     "route": route,
@@ -545,18 +577,146 @@ class Qwen_PI(baseframework):
             **generate_kwargs,
         )
         routes = route_output["routes"]
-        pred_action_token, _ = self._router_tokens()
-        action_indices = [idx for idx, item in enumerate(routes) if item["route"] == "action"]
+        action_indices = [idx for idx, item in enumerate(routes) if item["route"] in {"action", "nav"}]
         if action_indices:
             action_examples = [examples[idx] for idx in action_indices]
-            action_output = self.predict_action_with_route_token(
+            action_solutions = [routes[idx].get("generated_text") for idx in action_indices]
+            action_output = self.predict_action(
                 examples=action_examples,
-                route_token=pred_action_token,
+                solutions=action_solutions,
             )
             normalized_actions = action_output["normalized_actions"]
             for local_idx, sample_idx in enumerate(action_indices):
                 routes[sample_idx]["normalized_actions"] = normalized_actions[local_idx]
         return {"routes": routes}
+
+    @staticmethod
+    def _parse_subtask(text: str) -> str | None:
+        match = re.search(r"<\|subtask\|>(.*?)<\|end_subtask\|>", str(text), flags=re.DOTALL)
+        return match.group(1).strip() if match else None
+
+    @torch.inference_mode()
+    def predict_typed_action(
+        self,
+        instruction: str | None = None,
+        head_images=None,
+        wrist_image=None,
+        state=None,
+        allow_bbox: bool = False,
+        examples: List[dict] | None = None,
+        **kwargs,
+    ) -> dict:
+        """Predict a Go2 route and run the waypoint expert only for NAV."""
+        if examples is None:
+            images = []
+            if head_images is not None:
+                images.extend(head_images if isinstance(head_images, (list, tuple)) else [head_images])
+            if wrist_image is not None:
+                images.append(wrist_image)
+            example = {"image": images, "lang": str(instruction or "")}
+            if state is not None:
+                example["state"] = state
+            examples = [example]
+        elif type(examples) is not list:
+            examples = [examples]
+
+        route_output = self.predict_route(
+            examples=examples,
+            continue_action=True,
+            allow_bbox=allow_bbox,
+            **kwargs,
+        )
+        routes = route_output["routes"]
+        nav_indices = [idx for idx, item in enumerate(routes) if item["route"] == "nav"]
+        if nav_indices:
+            nav_examples = [examples[idx] for idx in nav_indices]
+            solutions = [routes[idx]["generated_text"] for idx in nav_indices]
+            action_output = self.predict_action(examples=nav_examples, solutions=solutions)
+            for local_idx, sample_idx in enumerate(nav_indices):
+                routes[sample_idx]["nav_waypoints"] = action_output["normalized_actions"][local_idx]
+
+        results = []
+        for item in routes:
+            results.append(
+                {
+                    "route": item["route"],
+                    "subtask": self._parse_subtask(item.get("generated_text", "")),
+                    "nav_waypoints": item.get("nav_waypoints"),
+                    "stop_probability": None,
+                    "target_name": None,
+                    "grasp_primitive": None,
+                    "raw_text": item.get("generated_text", ""),
+                    "route_confidence": item.get("route_confidence"),
+                    "route_probs": item.get("route_probs"),
+                }
+            )
+        return results[0] if len(results) == 1 else {"results": results}
+
+    @torch.inference_mode()
+    def predict_bbox(
+        self,
+        instruction: str,
+        head_images=None,
+        wrist_image=None,
+        max_new_tokens: int = 48,
+    ) -> dict:
+        """Run the preserved bbox text branch explicitly, independently of main routing."""
+        datasets_cfg = _cfg_get(self.config, "datasets", None)
+        router_cfg = _cfg_get(datasets_cfg, "router_data", None)
+        bbox_cfg = _cfg_get(router_cfg, "bbox", None)
+        if not bool(_cfg_get(bbox_cfg, "implementation_enabled", True)):
+            raise RuntimeError("BBox implementation is disabled by configuration.")
+
+        images = []
+        if head_images is not None:
+            images.extend(head_images if isinstance(head_images, (list, tuple)) else [head_images])
+        if wrist_image is not None:
+            images.append(wrist_image)
+        bbox_token = str(_cfg_get(router_cfg, "pred_bbox_token", "<|pred_bbox|>"))
+        prompt = (
+            f"{instruction}\nReturn the target bounding box as "
+            f"{bbox_token}<point>[x1, y1, x2, y2]</point>."
+        )
+        qwen_inputs = self.qwen_vl_interface.build_qwenvl_inputs(
+            images=[images], instructions=[prompt]
+        )
+        forced_inputs = {key: value for key, value in qwen_inputs.items() if key != "labels"}
+        token_ids = self.qwen_vl_interface.processor.tokenizer(
+            bbox_token, add_special_tokens=False
+        ).input_ids
+        if len(token_ids) != 1:
+            raise RuntimeError(f"BBox token must map to one token id, got {token_ids}")
+        input_ids = forced_inputs["input_ids"]
+        route_id = torch.full(
+            (input_ids.shape[0], 1),
+            int(token_ids[0]),
+            device=input_ids.device,
+            dtype=input_ids.dtype,
+        )
+        forced_inputs["input_ids"] = torch.cat((input_ids, route_id), dim=1)
+        if "attention_mask" in forced_inputs:
+            forced_inputs["attention_mask"] = torch.cat(
+                (forced_inputs["attention_mask"], torch.ones_like(route_id)), dim=1
+            )
+        generated = self.qwen_vl_interface.generate(
+            **forced_inputs, max_new_tokens=max_new_tokens, do_sample=False
+        )
+        sequences = generated.sequences if hasattr(generated, "sequences") else generated
+        raw_text = self.qwen_vl_interface.processor.batch_decode(
+            sequences[:, input_ids.shape[1] :], skip_special_tokens=False
+        )[0].strip()
+        match = re.search(
+            r"<point>\s*\[\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,"
+            r"\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\]\s*</point>",
+            raw_text,
+        )
+        bbox = [float(value) for value in match.groups()] if match else None
+        return {
+            "bbox": bbox,
+            "camera": "head" if head_images is not None else "wrist" if wrist_image is not None else None,
+            "parse_success": bbox is not None,
+            "raw_text": raw_text,
+        }
 
 
 

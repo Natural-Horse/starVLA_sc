@@ -1,0 +1,6482 @@
+{
+  "dataset_root": "/home/natural/pct_scene_outputs/liangzhu_0729_n200/lerobot_dataset",
+  "episodes": 130,
+  "fps": 5.0,
+  "total_frames": 30200,
+  "episode_frames": {
+    "min": 204.0,
+    "p25": 223.0,
+    "mean": 232.30769230769232,
+    "median": 231.0,
+    "p75": 242.0,
+    "max": 267.0,
+    "std": 14.538461538461538
+  },
+  "episode_duration_s": {
+    "min": 40.8,
+    "p25": 44.6,
+    "mean": 46.46153846153846,
+    "median": 46.2,
+    "p75": 48.4,
+    "max": 53.4,
+    "std": 2.9076923076923076
+  },
+  "task_stage_frame_counts": {
+    "nav_to_pick": 5151,
+    "pick": 4824,
+    "nav_to_place": 12641,
+    "place": 7584
+  },
+  "waypoint_config": {
+    "rdp_epsilon_m": 0.12,
+    "yaw_metric_scale_m_per_rad": 0.45,
+    "max_translation_m": 0.5,
+    "max_yaw_rad": 0.4363323129985824
+  },
+  "navigation": {
+    "nav_to_pick": {
+      "segments": 130,
+      "duration_s": {
+        "min": 4.0,
+        "p25": 6.8,
+        "mean": 7.924615384615385,
+        "median": 7.699999999999999,
+        "p75": 9.55,
+        "max": 12.8,
+        "std": 1.8253371253830826
+      },
+      "trajectory_length_m": {
+        "min": 0.5192360769297837,
+        "p25": 0.9933192861079065,
+        "mean": 1.2099557641047034,
+        "median": 1.1759149628620025,
+        "p75": 1.406250753793657,
+        "max": 2.2119975161260603,
+        "std": 0.33578290149932466
+      },
+      "displacement_m": {
+        "min": 0.4215114929309109,
+        "p25": 0.7655526734287744,
+        "mean": 0.972323054865149,
+        "median": 0.975603111459425,
+        "p75": 1.1603245453648334,
+        "max": 1.6441569125730706,
+        "std": 0.2725005569450541
+      },
+      "absolute_yaw_change_rad": {
+        "min": 0.265383243560791,
+        "p25": 1.4268564581871033,
+        "mean": 2.1490422339509117,
+        "median": 2.2489714344316205,
+        "p75": 2.7906757805030793,
+        "max": 4.770310997962952,
+        "std": 0.8780372131788913
+      },
+      "sparse_waypoint_count": {
+        "min": 3.0,
+        "p25": 6.0,
+        "mean": 7.161538461538462,
+        "median": 7.0,
+        "p75": 9.0,
+        "max": 13.0,
+        "std": 1.948584678303899
+      },
+      "compression_ratio": {
+        "min": 0.12,
+        "p25": 0.16666666666666666,
+        "mean": 0.1793988947821634,
+        "median": 0.18181818181818182,
+        "p75": 0.19303363074811256,
+        "max": 0.21621621621621623,
+        "std": 0.020178640554881992
+      },
+      "start_pose_distribution": {
+        "x": {
+          "min": -1.0521550178527832,
+          "p25": -0.7318672686815262,
+          "mean": -0.5766445531581457,
+          "median": -0.5856429934501648,
+          "p75": -0.41232801228761673,
+          "max": -0.021832000464200974,
+          "std": 0.21310022375117252
+        },
+        "y": {
+          "min": 4.457414150238037,
+          "p25": 4.905375123023987,
+          "mean": 5.089052878893339,
+          "median": 5.11932110786438,
+          "p75": 5.2608513832092285,
+          "max": 5.751391887664795,
+          "std": 0.2720250532726905
+        },
+        "yaw_circular_mean_rad": 1.464314314953722,
+        "yaw_circular_std_rad": 2.643835764234393
+      },
+      "end_pose_distribution": {
+        "x": {
+          "min": -1.051061987876892,
+          "p25": -0.756972998380661,
+          "mean": -0.5545376096064082,
+          "median": -0.5572769939899445,
+          "p75": -0.3789392486214638,
+          "max": -0.011380000039935112,
+          "std": 0.22999652972142545
+        },
+        "y": {
+          "min": 5.517646789550781,
+          "p25": 5.8190025091171265,
+          "mean": 6.050843532268818,
+          "median": 6.073160886764526,
+          "p75": 6.277480483055115,
+          "max": 6.523931980133057,
+          "std": 0.2726548287121656
+        },
+        "yaw_circular_mean_rad": 1.6652724839133777,
+        "yaw_circular_std_rad": 0.1553358433110594
+      }
+    },
+    "nav_to_place": {
+      "segments": 130,
+      "duration_s": {
+        "min": 15.4,
+        "p25": 18.4,
+        "mean": 19.447692307692307,
+        "median": 19.4,
+        "p75": 20.75,
+        "max": 24.8,
+        "std": 1.8787563556211813
+      },
+      "trajectory_length_m": {
+        "min": 1.7247964441646146,
+        "p25": 2.451798504046969,
+        "mean": 2.6636802889407503,
+        "median": 2.6703145148661815,
+        "p75": 2.9088769811865096,
+        "max": 3.4999855859136146,
+        "std": 0.3932471233208477
+      },
+      "displacement_m": {
+        "min": 1.2725177443337987,
+        "p25": 1.7594007147511719,
+        "mean": 2.0289146506523634,
+        "median": 2.023405014290911,
+        "p75": 2.2829638681003024,
+        "max": 2.8679082364694617,
+        "std": 0.3792027586278397
+      },
+      "absolute_yaw_change_rad": {
+        "min": 3.307666003704071,
+        "p25": 4.057187263165609,
+        "mean": 4.353210078503886,
+        "median": 4.3241208513551435,
+        "p75": 4.627599958573477,
+        "max": 5.717788283024923,
+        "std": 0.46138620470448155
+      },
+      "sparse_waypoint_count": {
+        "min": 11.0,
+        "p25": 13.0,
+        "mean": 14.153846153846153,
+        "median": 14.0,
+        "p75": 15.0,
+        "max": 18.0,
+        "std": 1.438276417540953
+      },
+      "compression_ratio": {
+        "min": 0.11711711711711711,
+        "p25": 0.1376937677950016,
+        "mean": 0.14586953907109357,
+        "median": 0.14432989690721648,
+        "p75": 0.15473122238586157,
+        "max": 0.16666666666666666,
+        "std": 0.010560156536852616
+      },
+      "start_pose_distribution": {
+        "x": {
+          "min": -1.0500819683074951,
+          "p25": -0.7568199932575226,
+          "mean": -0.5516319379783594,
+          "median": -0.5518324971199036,
+          "p75": -0.3751567602157593,
+          "max": -0.010108999907970428,
+          "std": 0.23002991440679224
+        },
+        "y": {
+          "min": 5.5279340744018555,
+          "p25": 5.830440163612366,
+          "mean": 6.052641171675462,
+          "median": 6.073662996292114,
+          "p75": 6.284859895706177,
+          "max": 6.522128105163574,
+          "std": 0.27243168669858897
+        },
+        "yaw_circular_mean_rad": 1.6656904916881672,
+        "yaw_circular_std_rad": 0.1548899230007913
+      },
+      "end_pose_distribution": {
+        "x": {
+          "min": -0.9821439981460571,
+          "p25": -0.7851084917783737,
+          "mean": -0.577946477326063,
+          "median": -0.5879870057106018,
+          "p75": -0.37144826352596283,
+          "max": -0.12598800659179688,
+          "std": 0.2313889296058473
+        },
+        "y": {
+          "min": 3.564690113067627,
+          "p25": 3.82185697555542,
+          "mean": 4.041576666098375,
+          "median": 4.002012014389038,
+          "p75": 4.26531720161438,
+          "max": 4.558467864990234,
+          "std": 0.2885595999974369
+        },
+        "yaw_circular_mean_rad": -1.5303435524428382,
+        "yaw_circular_std_rad": 0.13282489243047582
+      }
+    }
+  },
+  "segments": [
+    {
+      "episode_index": 0,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 41,
+      "frames": 41,
+      "duration_s": 8.2,
+      "trajectory_length_m": 1.1220213972101944,
+      "displacement_m": 0.5817779679643541,
+      "absolute_yaw_change_rad": 2.9632641077041626,
+      "net_yaw_change_rad": 2.444316029548645,
+      "start_xyyaw": [
+        -0.551796019077301,
+        5.253025054931641,
+        -0.9369900226593018
+      ],
+      "end_xyyaw": [
+        -0.48205599188804626,
+        5.830607891082764,
+        1.5073260068893433
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.1951219512195122
+    },
+    {
+      "episode_index": 0,
+      "stage": "nav_to_place",
+      "start_frame": 79,
+      "stop_frame_exclusive": 166,
+      "frames": 87,
+      "duration_s": 17.4,
+      "trajectory_length_m": 2.350611260861984,
+      "displacement_m": 1.623774521034529,
+      "absolute_yaw_change_rad": 3.8464534918414515,
+      "net_yaw_change_rad": 3.0991953055011194,
+      "start_xyyaw": [
+        -0.4764769971370697,
+        5.845427989959717,
+        1.5186710357666016
+      ],
+      "end_xyyaw": [
+        -0.7004820108413696,
+        4.237178802490234,
+        -1.6653189659118652
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14942528735632185
+    },
+    {
+      "episode_index": 1,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 54,
+      "frames": 54,
+      "duration_s": 10.8,
+      "trajectory_length_m": 1.0780653519674532,
+      "displacement_m": 1.0251059516453291,
+      "absolute_yaw_change_rad": 3.2294265667544764,
+      "net_yaw_change_rad": -3.0068463722812098,
+      "start_xyyaw": [
+        -0.28994399309158325,
+        5.146173000335693,
+        -1.3349889516830444
+      ],
+      "end_xyyaw": [
+        -0.5843340158462524,
+        6.128098011016846,
+        1.941349983215332
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 1,
+      "stage": "nav_to_place",
+      "start_frame": 92,
+      "stop_frame_exclusive": 188,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.6715193443136704,
+      "displacement_m": 2.0672288654965008,
+      "absolute_yaw_change_rad": 4.108307425175802,
+      "net_yaw_change_rad": 3.0102692286120813,
+      "start_xyyaw": [
+        -0.5850229859352112,
+        6.13427209854126,
+        1.937129020690918
+      ],
+      "end_xyyaw": [
+        -0.205827996134758,
+        4.102118968963623,
+        -1.335787057876587
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14583333333333334
+    },
+    {
+      "episode_index": 2,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 38,
+      "frames": 38,
+      "duration_s": 7.6,
+      "trajectory_length_m": 1.097406400358237,
+      "displacement_m": 0.5297057149680134,
+      "absolute_yaw_change_rad": 2.57897287607193,
+      "net_yaw_change_rad": 2.162013053894043,
+      "start_xyyaw": [
+        -0.07835900038480759,
+        5.673480987548828,
+        -0.35976099967956543
+      ],
+      "end_xyyaw": [
+        -0.18311400711536407,
+        6.19272518157959,
+        1.8022520542144775
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.21052631578947367
+    },
+    {
+      "episode_index": 2,
+      "stage": "nav_to_place",
+      "start_frame": 75,
+      "stop_frame_exclusive": 176,
+      "frames": 101,
+      "duration_s": 20.2,
+      "trajectory_length_m": 2.506947411605575,
+      "displacement_m": 1.6602236888462591,
+      "absolute_yaw_change_rad": 4.80789548555483,
+      "net_yaw_change_rad": 2.9595053831683558,
+      "start_xyyaw": [
+        -0.18303899466991425,
+        6.196402072906494,
+        1.8054059743881226
+      ],
+      "end_xyyaw": [
+        -0.1801069974899292,
+        4.5361809730529785,
+        -1.518273949623108
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.15841584158415842
+    },
+    {
+      "episode_index": 3,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 46,
+      "frames": 46,
+      "duration_s": 9.2,
+      "trajectory_length_m": 1.3296431939233881,
+      "displacement_m": 1.2575054662044656,
+      "absolute_yaw_change_rad": 2.5115328470813196,
+      "net_yaw_change_rad": -2.1179073492633265,
+      "start_xyyaw": [
+        -0.5453019738197327,
+        5.131195068359375,
+        -2.5500049591064453
+      ],
+      "end_xyyaw": [
+        -0.427825003862381,
+        6.3832011222839355,
+        1.6152729988098145
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.17391304347826086
+    },
+    {
+      "episode_index": 3,
+      "stage": "nav_to_place",
+      "start_frame": 82,
+      "stop_frame_exclusive": 180,
+      "frames": 98,
+      "duration_s": 19.6,
+      "trajectory_length_m": 2.8218321188285493,
+      "displacement_m": 2.1939562571819216,
+      "absolute_yaw_change_rad": 4.405895177518026,
+      "net_yaw_change_rad": 3.13871139684786,
+      "start_xyyaw": [
+        -0.4260280132293701,
+        6.396943092346191,
+        1.614941954612732
+      ],
+      "end_xyyaw": [
+        -0.4339179992675781,
+        4.203001022338867,
+        -1.5295319557189941
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 4,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 44,
+      "frames": 44,
+      "duration_s": 8.8,
+      "trajectory_length_m": 0.8073204851860764,
+      "displacement_m": 0.7033828110939782,
+      "absolute_yaw_change_rad": 2.6612293163882654,
+      "net_yaw_change_rad": -2.415177289639608,
+      "start_xyyaw": [
+        -0.8333309888839722,
+        5.416831016540527,
+        -2.370326042175293
+      ],
+      "end_xyyaw": [
+        -0.6721490025520325,
+        6.101497173309326,
+        1.497681975364685
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.18181818181818182
+    },
+    {
+      "episode_index": 4,
+      "stage": "nav_to_place",
+      "start_frame": 81,
+      "stop_frame_exclusive": 180,
+      "frames": 99,
+      "duration_s": 19.8,
+      "trajectory_length_m": 2.6880718772498304,
+      "displacement_m": 1.9837820985012995,
+      "absolute_yaw_change_rad": 4.279862467442648,
+      "net_yaw_change_rad": -3.1209189891815186,
+      "start_xyyaw": [
+        -0.6724249720573425,
+        6.100812911987305,
+        1.4987679719924927
+      ],
+      "end_xyyaw": [
+        -0.8710870146751404,
+        4.127003192901611,
+        -1.6221510171890259
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.1414141414141414
+    },
+    {
+      "episode_index": 5,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 25,
+      "frames": 25,
+      "duration_s": 5.0,
+      "trajectory_length_m": 0.818438508598626,
+      "displacement_m": 0.7627285893780273,
+      "absolute_yaw_change_rad": 0.8529748916625977,
+      "net_yaw_change_rad": -0.20775294303894043,
+      "start_xyyaw": [
+        -0.2799279987812042,
+        5.518642902374268,
+        2.0430469512939453
+      ],
+      "end_xyyaw": [
+        -0.346015989780426,
+        6.278502941131592,
+        1.8352940082550049
+      ],
+      "sparse_waypoint_count": 3,
+      "compression_ratio": 0.12
+    },
+    {
+      "episode_index": 5,
+      "stage": "nav_to_place",
+      "start_frame": 61,
+      "stop_frame_exclusive": 157,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.667770654921948,
+      "displacement_m": 2.04881635442484,
+      "absolute_yaw_change_rad": 4.244530026112692,
+      "net_yaw_change_rad": 3.0114083925830286,
+      "start_xyyaw": [
+        -0.3451560139656067,
+        6.284865856170654,
+        1.830320954322815
+      ],
+      "end_xyyaw": [
+        -0.1880909949541092,
+        4.24207878112793,
+        -1.4414559602737427
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.13541666666666666
+    },
+    {
+      "episode_index": 6,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 50,
+      "frames": 50,
+      "duration_s": 10.0,
+      "trajectory_length_m": 1.4213555678217022,
+      "displacement_m": 1.362967317178399,
+      "absolute_yaw_change_rad": 2.548014465962545,
+      "net_yaw_change_rad": -2.2531583944903772,
+      "start_xyyaw": [
+        -0.5368520021438599,
+        4.461215972900391,
+        -2.246717929840088
+      ],
+      "end_xyyaw": [
+        -0.7022200226783752,
+        5.814114093780518,
+        1.783308982849121
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.16
+    },
+    {
+      "episode_index": 6,
+      "stage": "nav_to_place",
+      "start_frame": 86,
+      "stop_frame_exclusive": 186,
+      "frames": 100,
+      "duration_s": 20.0,
+      "trajectory_length_m": 2.990548629077929,
+      "displacement_m": 2.2401071594139266,
+      "absolute_yaw_change_rad": 4.291590396557943,
+      "net_yaw_change_rad": 2.995410386716024,
+      "start_xyyaw": [
+        -0.7024160027503967,
+        5.8161301612854,
+        1.7836979627609253
+      ],
+      "end_xyyaw": [
+        -0.5563229918479919,
+        3.58079195022583,
+        -1.5040769577026367
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.15
+    },
+    {
+      "episode_index": 7,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 41,
+      "frames": 41,
+      "duration_s": 8.2,
+      "trajectory_length_m": 1.251157408930755,
+      "displacement_m": 0.7443886598628043,
+      "absolute_yaw_change_rad": 2.587651977315545,
+      "net_yaw_change_rad": 2.070266107097268,
+      "start_xyyaw": [
+        -0.36240801215171814,
+        4.907210826873779,
+        0.028442999348044395
+      ],
+      "end_xyyaw": [
+        -0.6109870076179504,
+        5.60886812210083,
+        2.0987091064453125
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.1951219512195122
+    },
+    {
+      "episode_index": 7,
+      "stage": "nav_to_place",
+      "start_frame": 77,
+      "stop_frame_exclusive": 175,
+      "frames": 98,
+      "duration_s": 19.6,
+      "trajectory_length_m": 2.6422414039450803,
+      "displacement_m": 2.002183063810644,
+      "absolute_yaw_change_rad": 4.273519698773519,
+      "net_yaw_change_rad": 2.8471654097186487,
+      "start_xyyaw": [
+        -0.6115220189094543,
+        5.612555027008057,
+        2.094327926635742
+      ],
+      "end_xyyaw": [
+        -0.26150399446487427,
+        3.6412041187286377,
+        -1.3416919708251953
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.1326530612244898
+    },
+    {
+      "episode_index": 8,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 42,
+      "frames": 42,
+      "duration_s": 8.4,
+      "trajectory_length_m": 1.4539573370995675,
+      "displacement_m": 1.066705800478086,
+      "absolute_yaw_change_rad": 2.824378192424774,
+      "net_yaw_change_rad": 1.3068260550498962,
+      "start_xyyaw": [
+        -0.861266016960144,
+        4.646757125854492,
+        0.4764789938926697
+      ],
+      "end_xyyaw": [
+        -0.9022060036659241,
+        5.712677001953125,
+        1.783305048942566
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.21428571428571427
+    },
+    {
+      "episode_index": 8,
+      "stage": "nav_to_place",
+      "start_frame": 79,
+      "stop_frame_exclusive": 172,
+      "frames": 93,
+      "duration_s": 18.6,
+      "trajectory_length_m": 2.657397120807046,
+      "displacement_m": 1.9470782776357625,
+      "absolute_yaw_change_rad": 4.340274159108297,
+      "net_yaw_change_rad": 2.9405203501330774,
+      "start_xyyaw": [
+        -0.9037100076675415,
+        5.727865219116211,
+        1.7803579568862915
+      ],
+      "end_xyyaw": [
+        -0.8891860246658325,
+        3.780841112136841,
+        -1.5623070001602173
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.15053763440860216
+    },
+    {
+      "episode_index": 9,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 40,
+      "frames": 40,
+      "duration_s": 8.0,
+      "trajectory_length_m": 1.2137221222418164,
+      "displacement_m": 0.870270587446759,
+      "absolute_yaw_change_rad": 2.251244068145752,
+      "net_yaw_change_rad": 0.9361759424209595,
+      "start_xyyaw": [
+        -0.4051760137081146,
+        4.757071018218994,
+        0.4494580030441284
+      ],
+      "end_xyyaw": [
+        -0.23891299962997437,
+        5.611311912536621,
+        1.385633945465088
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 9,
+      "stage": "nav_to_place",
+      "start_frame": 77,
+      "stop_frame_exclusive": 165,
+      "frames": 88,
+      "duration_s": 17.6,
+      "trajectory_length_m": 2.3432921746599873,
+      "displacement_m": 1.8857213711711536,
+      "absolute_yaw_change_rad": 3.748557925224304,
+      "net_yaw_change_rad": -2.919540047645569,
+      "start_xyyaw": [
+        -0.23778299987316132,
+        5.608663082122803,
+        1.385619044303894
+      ],
+      "end_xyyaw": [
+        -0.3155040144920349,
+        3.724544048309326,
+        -1.5339210033416748
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.13636363636363635
+    },
+    {
+      "episode_index": 10,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 53,
+      "frames": 53,
+      "duration_s": 10.6,
+      "trajectory_length_m": 2.0318399270843344,
+      "displacement_m": 1.4869092065127674,
+      "absolute_yaw_change_rad": 2.7417062520980835,
+      "net_yaw_change_rad": 2.4184420108795166,
+      "start_xyyaw": [
+        -0.53336501121521,
+        4.743152141571045,
+        -0.6095889806747437
+      ],
+      "end_xyyaw": [
+        -0.7821130156517029,
+        6.209106922149658,
+        1.808853030204773
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.18867924528301888
+    },
+    {
+      "episode_index": 10,
+      "stage": "nav_to_place",
+      "start_frame": 90,
+      "stop_frame_exclusive": 197,
+      "frames": 107,
+      "duration_s": 21.4,
+      "trajectory_length_m": 3.0489345747248806,
+      "displacement_m": 2.463014784067698,
+      "absolute_yaw_change_rad": 4.485163513814108,
+      "net_yaw_change_rad": 3.015527311955587,
+      "start_xyyaw": [
+        -0.7815999984741211,
+        6.210497856140137,
+        1.8066710233688354
+      ],
+      "end_xyyaw": [
+        -0.6258900165557861,
+        3.7524099349975586,
+        -1.4609869718551636
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.1308411214953271
+    },
+    {
+      "episode_index": 11,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 25,
+      "frames": 25,
+      "duration_s": 5.0,
+      "trajectory_length_m": 1.1031880595279884,
+      "displacement_m": 1.0778579489003957,
+      "absolute_yaw_change_rad": 0.3201169967651367,
+      "net_yaw_change_rad": 0.15145301818847656,
+      "start_xyyaw": [
+        -0.17312000691890717,
+        4.457414150238037,
+        1.7418919801712036
+      ],
+      "end_xyyaw": [
+        -0.36724498867988586,
+        5.517646789550781,
+        1.8933449983596802
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.16
+    },
+    {
+      "episode_index": 11,
+      "stage": "nav_to_place",
+      "start_frame": 63,
+      "stop_frame_exclusive": 163,
+      "frames": 100,
+      "duration_s": 20.0,
+      "trajectory_length_m": 2.477767386459695,
+      "displacement_m": 1.722276070179829,
+      "absolute_yaw_change_rad": 4.534517590199606,
+      "net_yaw_change_rad": 2.933237377797262,
+      "start_xyyaw": [
+        -0.3669080138206482,
+        5.5331010818481445,
+        1.8933249711990356
+      ],
+      "end_xyyaw": [
+        -0.27124300599098206,
+        3.813483953475952,
+        -1.4566229581832886
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.16
+    },
+    {
+      "episode_index": 12,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 40,
+      "frames": 40,
+      "duration_s": 8.0,
+      "trajectory_length_m": 0.9196265584794527,
+      "displacement_m": 0.8463814668029378,
+      "absolute_yaw_change_rad": 1.9500774780856531,
+      "net_yaw_change_rad": -1.7788152138339441,
+      "start_xyyaw": [
+        -0.6211540102958679,
+        5.22483491897583,
+        -2.647658109664917
+      ],
+      "end_xyyaw": [
+        -0.76425701379776,
+        6.059031009674072,
+        1.856711983680725
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.175
+    },
+    {
+      "episode_index": 12,
+      "stage": "nav_to_place",
+      "start_frame": 76,
+      "stop_frame_exclusive": 165,
+      "frames": 89,
+      "duration_s": 17.8,
+      "trajectory_length_m": 2.2004755980060096,
+      "displacement_m": 1.6335318380684023,
+      "absolute_yaw_change_rad": 4.154482547436849,
+      "net_yaw_change_rad": -3.100255012512207,
+      "start_xyyaw": [
+        -0.766851007938385,
+        6.073328971862793,
+        1.856145977973938
+      ],
+      "end_xyyaw": [
+        -0.3083469867706299,
+        4.50546407699585,
+        -1.244109034538269
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14606741573033707
+    },
+    {
+      "episode_index": 13,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 0.8543950392431787,
+      "displacement_m": 0.7519988466791281,
+      "absolute_yaw_change_rad": 1.8127448558807373,
+      "net_yaw_change_rad": -1.312777042388916,
+      "start_xyyaw": [
+        -0.5347319841384888,
+        4.994356155395508,
+        3.085555076599121
+      ],
+      "end_xyyaw": [
+        -0.5727329850196838,
+        5.745394229888916,
+        1.772778034210205
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 13,
+      "stage": "nav_to_place",
+      "start_frame": 72,
+      "stop_frame_exclusive": 167,
+      "frames": 95,
+      "duration_s": 19.0,
+      "trajectory_length_m": 2.755502816409034,
+      "displacement_m": 2.1111203739821933,
+      "absolute_yaw_change_rad": 4.30982739130129,
+      "net_yaw_change_rad": -3.1354639530181885,
+      "start_xyyaw": [
+        -0.570704996585846,
+        5.7625579833984375,
+        1.7764250040054321
+      ],
+      "end_xyyaw": [
+        -0.21501700580120087,
+        3.681617021560669,
+        -1.3590389490127563
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14736842105263157
+    },
+    {
+      "episode_index": 14,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 54,
+      "frames": 54,
+      "duration_s": 10.8,
+      "trajectory_length_m": 1.242596547664084,
+      "displacement_m": 1.1613518553781816,
+      "absolute_yaw_change_rad": 3.2962573210345667,
+      "net_yaw_change_rad": -2.9414833227740687,
+      "start_xyyaw": [
+        -0.34887900948524475,
+        4.643246173858643,
+        -1.6076819896697998
+      ],
+      "end_xyyaw": [
+        -0.34583500027656555,
+        5.804594039916992,
+        1.7340199947357178
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.18518518518518517
+    },
+    {
+      "episode_index": 14,
+      "stage": "nav_to_place",
+      "start_frame": 91,
+      "stop_frame_exclusive": 195,
+      "frames": 104,
+      "duration_s": 20.8,
+      "trajectory_length_m": 2.8370204382076825,
+      "displacement_m": 2.219225254976966,
+      "absolute_yaw_change_rad": 4.706505242978231,
+      "net_yaw_change_rad": 3.0835992733584803,
+      "start_xyyaw": [
+        -0.3449209928512573,
+        5.809988021850586,
+        1.7412840127944946
+      ],
+      "end_xyyaw": [
+        -0.1480879932641983,
+        3.5995090007781982,
+        -1.4583020210266113
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.15384615384615385
+    },
+    {
+      "episode_index": 15,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 64,
+      "frames": 64,
+      "duration_s": 12.8,
+      "trajectory_length_m": 2.2119975161260603,
+      "displacement_m": 1.505722268231892,
+      "absolute_yaw_change_rad": 4.770310997962952,
+      "net_yaw_change_rad": -3.0365082661258143,
+      "start_xyyaw": [
+        -0.6551470160484314,
+        4.52090311050415,
+        -1.4793540239334106
+      ],
+      "end_xyyaw": [
+        -0.7013890147209167,
+        6.025915145874023,
+        1.7673230171203613
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.203125
+    },
+    {
+      "episode_index": 15,
+      "stage": "nav_to_place",
+      "start_frame": 100,
+      "stop_frame_exclusive": 200,
+      "frames": 100,
+      "duration_s": 20.0,
+      "trajectory_length_m": 2.9475137807800693,
+      "displacement_m": 2.324741000422182,
+      "absolute_yaw_change_rad": 4.499635759984152,
+      "net_yaw_change_rad": 2.9929352442370813,
+      "start_xyyaw": [
+        -0.6963809728622437,
+        6.019516944885254,
+        1.7642890214920044
+      ],
+      "end_xyyaw": [
+        -0.7365469932556152,
+        3.6951229572296143,
+        -1.5259610414505005
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14
+    },
+    {
+      "episode_index": 16,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 48,
+      "frames": 48,
+      "duration_s": 9.6,
+      "trajectory_length_m": 1.679383694474872,
+      "displacement_m": 1.0853191915498746,
+      "absolute_yaw_change_rad": 2.671790897846222,
+      "net_yaw_change_rad": 2.376779019832611,
+      "start_xyyaw": [
+        -0.7533479928970337,
+        5.069386005401611,
+        -0.669251024723053
+      ],
+      "end_xyyaw": [
+        -0.7878040075302124,
+        6.154158115386963,
+        1.707527995109558
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 16,
+      "stage": "nav_to_place",
+      "start_frame": 85,
+      "stop_frame_exclusive": 176,
+      "frames": 91,
+      "duration_s": 18.2,
+      "trajectory_length_m": 2.451198061698555,
+      "displacement_m": 1.6814712129649234,
+      "absolute_yaw_change_rad": 4.686355058346884,
+      "net_yaw_change_rad": 3.07895535627474,
+      "start_xyyaw": [
+        -0.7842900156974792,
+        6.1555070877075195,
+        1.7136329412460327
+      ],
+      "end_xyyaw": [
+        -0.7626619935035706,
+        4.474174976348877,
+        -1.4905970096588135
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.16483516483516483
+    },
+    {
+      "episode_index": 17,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 28,
+      "frames": 28,
+      "duration_s": 5.6,
+      "trajectory_length_m": 0.8811626605681838,
+      "displacement_m": 0.6861702279301605,
+      "absolute_yaw_change_rad": 1.4301761388778687,
+      "net_yaw_change_rad": 0.5217519998550415,
+      "start_xyyaw": [
+        -0.589061975479126,
+        5.021890163421631,
+        1.029528021812439
+      ],
+      "end_xyyaw": [
+        -0.5720319747924805,
+        5.707849025726318,
+        1.5512800216674805
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.21428571428571427
+    },
+    {
+      "episode_index": 17,
+      "stage": "nav_to_place",
+      "start_frame": 64,
+      "stop_frame_exclusive": 148,
+      "frames": 84,
+      "duration_s": 16.8,
+      "trajectory_length_m": 2.0424790346124495,
+      "displacement_m": 1.5876012177177472,
+      "absolute_yaw_change_rad": 3.4531911611557007,
+      "net_yaw_change_rad": -2.942682981491089,
+      "start_xyyaw": [
+        -0.5715550184249878,
+        5.708527088165283,
+        1.5527679920196533
+      ],
+      "end_xyyaw": [
+        -0.3659780025482178,
+        4.134292125701904,
+        -1.3899149894714355
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 18,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 1.340020143810384,
+      "displacement_m": 1.1699053757466493,
+      "absolute_yaw_change_rad": 1.230277419090271,
+      "net_yaw_change_rad": 0.6153730154037476,
+      "start_xyyaw": [
+        -0.4849329888820648,
+        5.009359836578369,
+        1.187196969985962
+      ],
+      "end_xyyaw": [
+        -0.6268960237503052,
+        6.170619964599609,
+        1.8025699853897095
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 18,
+      "stage": "nav_to_place",
+      "start_frame": 72,
+      "stop_frame_exclusive": 174,
+      "frames": 102,
+      "duration_s": 20.4,
+      "trajectory_length_m": 2.922744353786655,
+      "displacement_m": 2.340707410281431,
+      "absolute_yaw_change_rad": 4.286212507878439,
+      "net_yaw_change_rad": 3.0711782614337366,
+      "start_xyyaw": [
+        -0.6236720085144043,
+        6.174107074737549,
+        1.801908016204834
+      ],
+      "end_xyyaw": [
+        -0.34323298931121826,
+        3.850260019302368,
+        -1.4100990295410156
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.13725490196078433
+    },
+    {
+      "episode_index": 19,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 50,
+      "frames": 50,
+      "duration_s": 10.0,
+      "trajectory_length_m": 1.8842821477572385,
+      "displacement_m": 1.342884063616024,
+      "absolute_yaw_change_rad": 2.678225040435791,
+      "net_yaw_change_rad": 2.249629020690918,
+      "start_xyyaw": [
+        -0.7908719778060913,
+        5.100592136383057,
+        -0.5540750026702881
+      ],
+      "end_xyyaw": [
+        -0.8517670035362244,
+        6.442094802856445,
+        1.6955540180206299
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.18
+    },
+    {
+      "episode_index": 19,
+      "stage": "nav_to_place",
+      "start_frame": 88,
+      "stop_frame_exclusive": 196,
+      "frames": 108,
+      "duration_s": 21.6,
+      "trajectory_length_m": 3.111346612901646,
+      "displacement_m": 2.486820446446394,
+      "absolute_yaw_change_rad": 4.936396185551779,
+      "net_yaw_change_rad": 3.0983603636371058,
+      "start_xyyaw": [
+        -0.8447110056877136,
+        6.430424213409424,
+        1.694612979888916
+      ],
+      "end_xyyaw": [
+        -0.7809969782829285,
+        3.944420099258423,
+        -1.4902119636535645
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.14814814814814814
+    },
+    {
+      "episode_index": 20,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 36,
+      "frames": 36,
+      "duration_s": 7.2,
+      "trajectory_length_m": 1.1056270449507877,
+      "displacement_m": 1.030574308859112,
+      "absolute_yaw_change_rad": 1.488987922668457,
+      "net_yaw_change_rad": -1.255690097808838,
+      "start_xyyaw": [
+        -0.6209049820899963,
+        5.184277057647705,
+        2.765958070755005
+      ],
+      "end_xyyaw": [
+        -0.4368849992752075,
+        6.198288917541504,
+        1.510267972946167
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 20,
+      "stage": "nav_to_place",
+      "start_frame": 73,
+      "stop_frame_exclusive": 171,
+      "frames": 98,
+      "duration_s": 19.6,
+      "trajectory_length_m": 2.6445765023939036,
+      "displacement_m": 1.9968021076200764,
+      "absolute_yaw_change_rad": 4.394410077725546,
+      "net_yaw_change_rad": -3.1120210886001587,
+      "start_xyyaw": [
+        -0.436271995306015,
+        6.1970062255859375,
+        1.511646032333374
+      ],
+      "end_xyyaw": [
+        -0.5868560075759888,
+        4.20589017868042,
+        -1.6003750562667847
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 21,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 32,
+      "frames": 32,
+      "duration_s": 6.4,
+      "trajectory_length_m": 0.7111108466441372,
+      "displacement_m": 0.46692996124184494,
+      "absolute_yaw_change_rad": 1.8211462497711182,
+      "net_yaw_change_rad": 0.4610300064086914,
+      "start_xyyaw": [
+        -0.6133580207824707,
+        5.122948169708252,
+        1.24126398563385
+      ],
+      "end_xyyaw": [
+        -0.6356850266456604,
+        5.589344024658203,
+        1.7022939920425415
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.1875
+    },
+    {
+      "episode_index": 21,
+      "stage": "nav_to_place",
+      "start_frame": 70,
+      "stop_frame_exclusive": 152,
+      "frames": 82,
+      "duration_s": 16.4,
+      "trajectory_length_m": 2.198769741311102,
+      "displacement_m": 1.453193037730221,
+      "absolute_yaw_change_rad": 3.929307524357931,
+      "net_yaw_change_rad": 2.9800832907306116,
+      "start_xyyaw": [
+        -0.6324669718742371,
+        5.606122970581055,
+        1.7042880058288574
+      ],
+      "end_xyyaw": [
+        -0.7864789962768555,
+        4.16111421585083,
+        -1.5988140106201172
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.15853658536585366
+    },
+    {
+      "episode_index": 22,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 49,
+      "frames": 49,
+      "duration_s": 9.8,
+      "trajectory_length_m": 1.7083260202876533,
+      "displacement_m": 1.118127475219127,
+      "absolute_yaw_change_rad": 3.2984511852264404,
+      "net_yaw_change_rad": 2.7457610368728638,
+      "start_xyyaw": [
+        -0.2641719877719879,
+        4.920668125152588,
+        -1.003100037574768
+      ],
+      "end_xyyaw": [
+        -0.28970101475715637,
+        6.038504123687744,
+        1.7426609992980957
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.1836734693877551
+    },
+    {
+      "episode_index": 22,
+      "stage": "nav_to_place",
+      "start_frame": 87,
+      "stop_frame_exclusive": 187,
+      "frames": 100,
+      "duration_s": 20.0,
+      "trajectory_length_m": 2.8055094544099215,
+      "displacement_m": 2.160562251681461,
+      "absolute_yaw_change_rad": 4.38475209871401,
+      "net_yaw_change_rad": 3.09091025987734,
+      "start_xyyaw": [
+        -0.28729599714279175,
+        6.050608158111572,
+        1.7451410293579102
+      ],
+      "end_xyyaw": [
+        -0.12598800659179688,
+        3.896075963973999,
+        -1.447134017944336
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14
+    },
+    {
+      "episode_index": 23,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 57,
+      "frames": 57,
+      "duration_s": 11.4,
+      "trajectory_length_m": 1.4588956474660868,
+      "displacement_m": 1.4189994873488463,
+      "absolute_yaw_change_rad": 3.436884347592489,
+      "net_yaw_change_rad": -3.0032443443881434,
+      "start_xyyaw": [
+        -0.3357959985733032,
+        4.784337997436523,
+        -1.4933350086212158
+      ],
+      "end_xyyaw": [
+        -0.4957450032234192,
+        6.194293975830078,
+        1.786605954170227
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.17543859649122806
+    },
+    {
+      "episode_index": 23,
+      "stage": "nav_to_place",
+      "start_frame": 94,
+      "stop_frame_exclusive": 195,
+      "frames": 101,
+      "duration_s": 20.2,
+      "trajectory_length_m": 2.9779152904231556,
+      "displacement_m": 2.3271846612185745,
+      "absolute_yaw_change_rad": 4.542653505002157,
+      "net_yaw_change_rad": 3.112151328717367,
+      "start_xyyaw": [
+        -0.49562200903892517,
+        6.2030229568481445,
+        1.7859309911727905
+      ],
+      "end_xyyaw": [
+        -0.1674180030822754,
+        3.8990979194641113,
+        -1.3851029872894287
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.13861386138613863
+    },
+    {
+      "episode_index": 24,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 32,
+      "frames": 32,
+      "duration_s": 6.4,
+      "trajectory_length_m": 1.0621025265880564,
+      "displacement_m": 0.8601153120833693,
+      "absolute_yaw_change_rad": 1.5634591579437256,
+      "net_yaw_change_rad": 0.620305061340332,
+      "start_xyyaw": [
+        -0.23758399486541748,
+        4.747759819030762,
+        1.0720809698104858
+      ],
+      "end_xyyaw": [
+        -0.2734229862689972,
+        5.607128143310547,
+        1.6923860311508179
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.1875
+    },
+    {
+      "episode_index": 24,
+      "stage": "nav_to_place",
+      "start_frame": 69,
+      "stop_frame_exclusive": 156,
+      "frames": 87,
+      "duration_s": 17.4,
+      "trajectory_length_m": 2.0190344330474552,
+      "displacement_m": 1.3704603340048431,
+      "absolute_yaw_change_rad": 4.324400846158163,
+      "net_yaw_change_rad": 3.0626272598849695,
+      "start_xyyaw": [
+        -0.27236300706863403,
+        5.611176013946533,
+        1.6936990022659302
+      ],
+      "end_xyyaw": [
+        -0.24858500063419342,
+        4.240921974182129,
+        -1.5268590450286865
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.16091954022988506
+    },
+    {
+      "episode_index": 25,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 50,
+      "frames": 50,
+      "duration_s": 10.0,
+      "trajectory_length_m": 0.9923540572476535,
+      "displacement_m": 0.9144737965528199,
+      "absolute_yaw_change_rad": 3.1428114811526697,
+      "net_yaw_change_rad": -2.989405337964193,
+      "start_xyyaw": [
+        -0.7535920143127441,
+        5.034933090209961,
+        -1.587283968925476
+      ],
+      "end_xyyaw": [
+        -0.7792080044746399,
+        5.949048042297363,
+        1.706496000289917
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.18
+    },
+    {
+      "episode_index": 25,
+      "stage": "nav_to_place",
+      "start_frame": 86,
+      "stop_frame_exclusive": 171,
+      "frames": 85,
+      "duration_s": 17.0,
+      "trajectory_length_m": 2.1608116686845396,
+      "displacement_m": 1.4971571081826451,
+      "absolute_yaw_change_rad": 3.8226667086230677,
+      "net_yaw_change_rad": 2.9874122778521937,
+      "start_xyyaw": [
+        -0.7780010104179382,
+        5.959819793701172,
+        1.7041029930114746
+      ],
+      "end_xyyaw": [
+        -0.8955039978027344,
+        4.467280864715576,
+        -1.591670036315918
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.1411764705882353
+    },
+    {
+      "episode_index": 26,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 47,
+      "frames": 47,
+      "duration_s": 9.4,
+      "trajectory_length_m": 1.658970975979575,
+      "displacement_m": 1.090972074817653,
+      "absolute_yaw_change_rad": 3.08695787191391,
+      "net_yaw_change_rad": 2.3934019207954407,
+      "start_xyyaw": [
+        -0.5766919851303101,
+        4.838068008422852,
+        -0.9481629729270935
+      ],
+      "end_xyyaw": [
+        -0.25115498900413513,
+        5.879339218139648,
+        1.4452389478683472
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.19148936170212766
+    },
+    {
+      "episode_index": 26,
+      "stage": "nav_to_place",
+      "start_frame": 85,
+      "stop_frame_exclusive": 181,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.7597249308516263,
+      "displacement_m": 2.0429413995167938,
+      "absolute_yaw_change_rad": 4.548227731381552,
+      "net_yaw_change_rad": 3.1197373310672205,
+      "start_xyyaw": [
+        -0.24952900409698486,
+        5.868070125579834,
+        1.4382959604263306
+      ],
+      "end_xyyaw": [
+        -0.6637279987335205,
+        3.867558002471924,
+        -1.7251520156860352
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.15625
+    },
+    {
+      "episode_index": 27,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 45,
+      "frames": 45,
+      "duration_s": 9.0,
+      "trajectory_length_m": 1.5816176902034644,
+      "displacement_m": 1.1987418775425305,
+      "absolute_yaw_change_rad": 3.037007987499237,
+      "net_yaw_change_rad": 1.3368679881095886,
+      "start_xyyaw": [
+        -0.25410300493240356,
+        4.651014804840088,
+        0.5390229821205139
+      ],
+      "end_xyyaw": [
+        -0.4051760137081146,
+        5.840198993682861,
+        1.8758909702301025
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 27,
+      "stage": "nav_to_place",
+      "start_frame": 81,
+      "stop_frame_exclusive": 173,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.562455156624073,
+      "displacement_m": 1.9201409786802002,
+      "absolute_yaw_change_rad": 4.3134862820254725,
+      "net_yaw_change_rad": 2.9815842548953455,
+      "start_xyyaw": [
+        -0.40509599447250366,
+        5.845219135284424,
+        1.8686439990997314
+      ],
+      "end_xyyaw": [
+        -0.2543700039386749,
+        3.9310030937194824,
+        -1.4329570531845093
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.16304347826086957
+    },
+    {
+      "episode_index": 28,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 43,
+      "frames": 43,
+      "duration_s": 8.6,
+      "trajectory_length_m": 0.5192360769297837,
+      "displacement_m": 0.43392830315685943,
+      "absolute_yaw_change_rad": 2.8755494991885584,
+      "net_yaw_change_rad": -2.82584518591036,
+      "start_xyyaw": [
+        -0.8927279710769653,
+        5.223761081695557,
+        -2.0207650661468506
+      ],
+      "end_xyyaw": [
+        -0.7878080010414124,
+        5.6448140144348145,
+        1.4365750551223755
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.16279069767441862
+    },
+    {
+      "episode_index": 28,
+      "stage": "nav_to_place",
+      "start_frame": 81,
+      "stop_frame_exclusive": 160,
+      "frames": 79,
+      "duration_s": 15.8,
+      "trajectory_length_m": 1.7247964441646146,
+      "displacement_m": 1.2725177443337987,
+      "absolute_yaw_change_rad": 3.3427518606185913,
+      "net_yaw_change_rad": -3.004009962081909,
+      "start_xyyaw": [
+        -0.7810819745063782,
+        5.656743049621582,
+        1.4380899667739868
+      ],
+      "end_xyyaw": [
+        -0.8644199967384338,
+        4.386957168579102,
+        -1.5659199953079224
+      ],
+      "sparse_waypoint_count": 11,
+      "compression_ratio": 0.13924050632911392
+    },
+    {
+      "episode_index": 29,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 32,
+      "frames": 32,
+      "duration_s": 6.4,
+      "trajectory_length_m": 1.2274302991793842,
+      "displacement_m": 1.0402434320892036,
+      "absolute_yaw_change_rad": 1.3762799501419067,
+      "net_yaw_change_rad": 0.5792819261550903,
+      "start_xyyaw": [
+        -0.7809470295906067,
+        5.295966148376465,
+        1.065147042274475
+      ],
+      "end_xyyaw": [
+        -0.7348759770393372,
+        6.335188865661621,
+        1.6444289684295654
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.1875
+    },
+    {
+      "episode_index": 29,
+      "stage": "nav_to_place",
+      "start_frame": 69,
+      "stop_frame_exclusive": 165,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.562701764820106,
+      "displacement_m": 2.1053872758538974,
+      "absolute_yaw_change_rad": 4.094941973686218,
+      "net_yaw_change_rad": -3.0864200592041016,
+      "start_xyyaw": [
+        -0.7349029779434204,
+        6.342574119567871,
+        1.6451690196990967
+      ],
+      "end_xyyaw": [
+        -0.5751299858093262,
+        4.243257999420166,
+        -1.4412510395050049
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.15625
+    },
+    {
+      "episode_index": 30,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 41,
+      "frames": 41,
+      "duration_s": 8.2,
+      "trajectory_length_m": 0.9987798284911208,
+      "displacement_m": 0.9489776982030317,
+      "absolute_yaw_change_rad": 2.063717309628622,
+      "net_yaw_change_rad": -1.9333273808108729,
+      "start_xyyaw": [
+        -0.5872169733047485,
+        5.165297031402588,
+        -2.4154839515686035
+      ],
+      "end_xyyaw": [
+        -0.8153380155563354,
+        6.0864481925964355,
+        1.9343739748001099
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.17073170731707318
+    },
+    {
+      "episode_index": 30,
+      "stage": "nav_to_place",
+      "start_frame": 77,
+      "stop_frame_exclusive": 178,
+      "frames": 101,
+      "duration_s": 20.2,
+      "trajectory_length_m": 2.8807554512033344,
+      "displacement_m": 2.2754254036864037,
+      "absolute_yaw_change_rad": 4.247416321431295,
+      "net_yaw_change_rad": 3.0584502855883997,
+      "start_xyyaw": [
+        -0.8071119785308838,
+        6.068653106689453,
+        1.9353890419006348
+      ],
+      "end_xyyaw": [
+        -0.2826879918575287,
+        3.854485034942627,
+        -1.2893459796905518
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.13861386138613863
+    },
+    {
+      "episode_index": 31,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 37,
+      "frames": 37,
+      "duration_s": 7.4,
+      "trajectory_length_m": 1.276831152551671,
+      "displacement_m": 1.2357838970500743,
+      "absolute_yaw_change_rad": 1.3983912467956543,
+      "net_yaw_change_rad": -1.0161750316619873,
+      "start_xyyaw": [
+        -0.9492070078849792,
+        5.098258018493652,
+        2.6366770267486572
+      ],
+      "end_xyyaw": [
+        -0.8700159788131714,
+        6.3315019607543945,
+        1.62050199508667
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.1891891891891892
+    },
+    {
+      "episode_index": 31,
+      "stage": "nav_to_place",
+      "start_frame": 75,
+      "stop_frame_exclusive": 184,
+      "frames": 109,
+      "duration_s": 21.8,
+      "trajectory_length_m": 3.398275009724908,
+      "displacement_m": 2.748564272261089,
+      "absolute_yaw_change_rad": 4.659718457852499,
+      "net_yaw_change_rad": 3.1127283016787928,
+      "start_xyyaw": [
+        -0.8662800192832947,
+        6.330294132232666,
+        1.6223289966583252
+      ],
+      "end_xyyaw": [
+        -0.9544060230255127,
+        3.5831429958343506,
+        -1.5481280088424683
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.14678899082568808
+    },
+    {
+      "episode_index": 32,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 35,
+      "frames": 35,
+      "duration_s": 7.0,
+      "trajectory_length_m": 1.193395759234424,
+      "displacement_m": 0.8622314539399513,
+      "absolute_yaw_change_rad": 2.2533870339393616,
+      "net_yaw_change_rad": 0.9041250348091125,
+      "start_xyyaw": [
+        -0.9155160188674927,
+        5.324120044708252,
+        0.510574996471405
+      ],
+      "end_xyyaw": [
+        -0.8584949970245361,
+        6.184463977813721,
+        1.4147000312805176
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 32,
+      "stage": "nav_to_place",
+      "start_frame": 72,
+      "stop_frame_exclusive": 171,
+      "frames": 99,
+      "duration_s": 19.8,
+      "trajectory_length_m": 2.774405770129506,
+      "displacement_m": 2.3610520648412967,
+      "absolute_yaw_change_rad": 3.9718576669692993,
+      "net_yaw_change_rad": -2.928083896636963,
+      "start_xyyaw": [
+        -0.8554450273513794,
+        6.197268962860107,
+        1.4157079458236694
+      ],
+      "end_xyyaw": [
+        -0.8452060222625732,
+        3.8362390995025635,
+        -1.5123759508132935
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.1414141414141414
+    },
+    {
+      "episode_index": 33,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 55,
+      "frames": 55,
+      "duration_s": 11.0,
+      "trajectory_length_m": 1.4144229832115855,
+      "displacement_m": 1.3396640089448733,
+      "absolute_yaw_change_rad": 3.1583208481418055,
+      "net_yaw_change_rad": -2.869151298199789,
+      "start_xyyaw": [
+        -0.45270898938179016,
+        4.573268890380859,
+        -1.9326109886169434
+      ],
+      "end_xyyaw": [
+        -0.14602699875831604,
+        5.877357006072998,
+        1.481423020362854
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.18181818181818182
+    },
+    {
+      "episode_index": 33,
+      "stage": "nav_to_place",
+      "start_frame": 93,
+      "stop_frame_exclusive": 188,
+      "frames": 95,
+      "duration_s": 19.0,
+      "trajectory_length_m": 2.811734652182833,
+      "displacement_m": 2.137688029746571,
+      "absolute_yaw_change_rad": 4.263479534779684,
+      "net_yaw_change_rad": 2.998753372822897,
+      "start_xyyaw": [
+        -0.1412689983844757,
+        5.8758721351623535,
+        1.4841079711914062
+      ],
+      "end_xyyaw": [
+        -0.7513589859008789,
+        3.827091932296753,
+        -1.8003239631652832
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14736842105263157
+    },
+    {
+      "episode_index": 34,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 53,
+      "frames": 53,
+      "duration_s": 10.6,
+      "trajectory_length_m": 1.855760419044584,
+      "displacement_m": 1.358134475668203,
+      "absolute_yaw_change_rad": 3.6081707179546356,
+      "net_yaw_change_rad": 1.374959021806717,
+      "start_xyyaw": [
+        -0.7596960067749023,
+        5.086266994476318,
+        0.14335200190544128
+      ],
+      "end_xyyaw": [
+        -0.5009599924087524,
+        6.419528007507324,
+        1.5183110237121582
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.18867924528301888
+    },
+    {
+      "episode_index": 34,
+      "stage": "nav_to_place",
+      "start_frame": 91,
+      "stop_frame_exclusive": 205,
+      "frames": 114,
+      "duration_s": 22.8,
+      "trajectory_length_m": 3.484364151696711,
+      "displacement_m": 2.797841360315745,
+      "absolute_yaw_change_rad": 4.897474233304159,
+      "net_yaw_change_rad": 3.105132285748617,
+      "start_xyyaw": [
+        -0.49572399258613586,
+        6.410752773284912,
+        1.514451026916504
+      ],
+      "end_xyyaw": [
+        -0.8704410195350647,
+        3.638118028640747,
+        -1.6636019945144653
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.14035087719298245
+    },
+    {
+      "episode_index": 35,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 43,
+      "frames": 43,
+      "duration_s": 8.6,
+      "trajectory_length_m": 1.2656259223727881,
+      "displacement_m": 0.8052480490106099,
+      "absolute_yaw_change_rad": 2.7805591328069568,
+      "net_yaw_change_rad": 1.2911389535292983,
+      "start_xyyaw": [
+        -0.6169959902763367,
+        5.452731132507324,
+        0.015235000289976597
+      ],
+      "end_xyyaw": [
+        -0.2653830051422119,
+        6.177156925201416,
+        1.306373953819275
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.18604651162790697
+    },
+    {
+      "episode_index": 35,
+      "stage": "nav_to_place",
+      "start_frame": 78,
+      "stop_frame_exclusive": 168,
+      "frames": 90,
+      "duration_s": 18.0,
+      "trajectory_length_m": 2.453599831092212,
+      "displacement_m": 1.8303076222736812,
+      "absolute_yaw_change_rad": 4.056958619748251,
+      "net_yaw_change_rad": -3.1282910108566284,
+      "start_xyyaw": [
+        -0.2634359896183014,
+        6.181865215301514,
+        1.3068130016326904
+      ],
+      "end_xyyaw": [
+        -0.8435310125350952,
+        4.445917129516602,
+        -1.821478009223938
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14444444444444443
+    },
+    {
+      "episode_index": 36,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 40,
+      "frames": 40,
+      "duration_s": 8.0,
+      "trajectory_length_m": 0.5955226917678081,
+      "displacement_m": 0.4877270337866121,
+      "absolute_yaw_change_rad": 2.2495326439486902,
+      "net_yaw_change_rad": -2.107372228299276,
+      "start_xyyaw": [
+        -1.0521550178527832,
+        5.297628879547119,
+        -2.5336060523986816
+      ],
+      "end_xyyaw": [
+        -1.0024440288543701,
+        5.782815933227539,
+        1.6422070264816284
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.15
+    },
+    {
+      "episode_index": 36,
+      "stage": "nav_to_place",
+      "start_frame": 76,
+      "stop_frame_exclusive": 155,
+      "frames": 79,
+      "duration_s": 15.8,
+      "trajectory_length_m": 1.7621370988708553,
+      "displacement_m": 1.3065144133651123,
+      "absolute_yaw_change_rad": 3.307666003704071,
+      "net_yaw_change_rad": -3.045400023460388,
+      "start_xyyaw": [
+        -1.000648021697998,
+        5.777036190032959,
+        1.6461009979248047
+      ],
+      "end_xyyaw": [
+        -0.8660749793052673,
+        4.477470874786377,
+        -1.3992990255355835
+      ],
+      "sparse_waypoint_count": 11,
+      "compression_ratio": 0.13924050632911392
+    },
+    {
+      "episode_index": 37,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 24,
+      "frames": 24,
+      "duration_s": 4.8,
+      "trajectory_length_m": 1.0365024995343401,
+      "displacement_m": 0.9748981705030628,
+      "absolute_yaw_change_rad": 0.8453679084777832,
+      "net_yaw_change_rad": -0.2537879943847656,
+      "start_xyyaw": [
+        -0.6678709983825684,
+        5.266791820526123,
+        1.9190850257873535
+      ],
+      "end_xyyaw": [
+        -0.6729410290718079,
+        6.2416768074035645,
+        1.665297031402588
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 37,
+      "stage": "nav_to_place",
+      "start_frame": 62,
+      "stop_frame_exclusive": 166,
+      "frames": 104,
+      "duration_s": 20.8,
+      "trajectory_length_m": 3.047433806901014,
+      "displacement_m": 2.324772872864162,
+      "absolute_yaw_change_rad": 5.057740275059835,
+      "net_yaw_change_rad": 3.1042502562152308,
+      "start_xyyaw": [
+        -0.6638659834861755,
+        6.239316940307617,
+        1.6655420064926147
+      ],
+      "end_xyyaw": [
+        -0.7063350081443787,
+        3.9149320125579834,
+        -1.5133930444717407
+      ],
+      "sparse_waypoint_count": 17,
+      "compression_ratio": 0.16346153846153846
+    },
+    {
+      "episode_index": 38,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 48,
+      "frames": 48,
+      "duration_s": 9.6,
+      "trajectory_length_m": 1.0720754650186652,
+      "displacement_m": 0.9767267427376796,
+      "absolute_yaw_change_rad": 2.779920999203817,
+      "net_yaw_change_rad": -2.57419723669161,
+      "start_xyyaw": [
+        -0.4724400043487549,
+        5.266962051391602,
+        -2.1915700435638428
+      ],
+      "end_xyyaw": [
+        -0.30442699790000916,
+        6.229129791259766,
+        1.5174180269241333
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 38,
+      "stage": "nav_to_place",
+      "start_frame": 86,
+      "stop_frame_exclusive": 182,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.7866637040570756,
+      "displacement_m": 2.252217535417056,
+      "absolute_yaw_change_rad": 4.255486075078146,
+      "net_yaw_change_rad": 3.013484303151266,
+      "start_xyyaw": [
+        -0.299578994512558,
+        6.240602970123291,
+        1.5167319774627686
+      ],
+      "end_xyyaw": [
+        -0.8343420028686523,
+        4.052793025970459,
+        -1.7529690265655518
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.13541666666666666
+    },
+    {
+      "episode_index": 39,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 0.9420878341594981,
+      "displacement_m": 0.44012036944953953,
+      "absolute_yaw_change_rad": 2.2454702258110046,
+      "net_yaw_change_rad": 1.5444299578666687,
+      "start_xyyaw": [
+        -0.6719759702682495,
+        5.470489978790283,
+        0.38863199949264526
+      ],
+      "end_xyyaw": [
+        -0.8094040155410767,
+        5.888604164123535,
+        1.933061957359314
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 39,
+      "stage": "nav_to_place",
+      "start_frame": 72,
+      "stop_frame_exclusive": 159,
+      "frames": 87,
+      "duration_s": 17.4,
+      "trajectory_length_m": 2.043429578070011,
+      "displacement_m": 1.4594775950437235,
+      "absolute_yaw_change_rad": 4.222456280385153,
+      "net_yaw_change_rad": 3.1214783827411097,
+      "start_xyyaw": [
+        -0.8035129904747009,
+        5.895398139953613,
+        1.9362499713897705
+      ],
+      "end_xyyaw": [
+        -0.3513610064983368,
+        4.507726192474365,
+        -1.225456953048706
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14942528735632185
+    },
+    {
+      "episode_index": 40,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 51,
+      "frames": 51,
+      "duration_s": 10.2,
+      "trajectory_length_m": 1.432774142208505,
+      "displacement_m": 1.3119918206002261,
+      "absolute_yaw_change_rad": 2.7744967381106775,
+      "net_yaw_change_rad": -2.4248823563205164,
+      "start_xyyaw": [
+        -0.9947530031204224,
+        4.810503005981445,
+        -2.1224029064178467
+      ],
+      "end_xyyaw": [
+        -1.051061987876892,
+        6.121285915374756,
+        1.7359000444412231
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 40,
+      "stage": "nav_to_place",
+      "start_frame": 87,
+      "stop_frame_exclusive": 184,
+      "frames": 97,
+      "duration_s": 19.4,
+      "trajectory_length_m": 2.6777114616768403,
+      "displacement_m": 2.032165169994621,
+      "absolute_yaw_change_rad": 4.226356093083517,
+      "net_yaw_change_rad": 3.044898335133688,
+      "start_xyyaw": [
+        -1.0500819683074951,
+        6.129960060119629,
+        1.7374249696731567
+      ],
+      "end_xyyaw": [
+        -0.9821439981460571,
+        4.098930835723877,
+        -1.5008620023727417
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14432989690721648
+    },
+    {
+      "episode_index": 41,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 54,
+      "frames": 54,
+      "duration_s": 10.8,
+      "trajectory_length_m": 1.8185093785790307,
+      "displacement_m": 1.2123594763018881,
+      "absolute_yaw_change_rad": 3.159075975418091,
+      "net_yaw_change_rad": 2.8100860118865967,
+      "start_xyyaw": [
+        -0.4566130042076111,
+        5.219114780426025,
+        -1.0778980255126953
+      ],
+      "end_xyyaw": [
+        -0.5751360058784485,
+        6.425666809082031,
+        1.7321879863739014
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.18518518518518517
+    },
+    {
+      "episode_index": 41,
+      "stage": "nav_to_place",
+      "start_frame": 92,
+      "stop_frame_exclusive": 197,
+      "frames": 105,
+      "duration_s": 21.0,
+      "trajectory_length_m": 2.8169466200913336,
+      "displacement_m": 1.9602203801770894,
+      "absolute_yaw_change_rad": 5.330001656209127,
+      "net_yaw_change_rad": 3.0276653210269373,
+      "start_xyyaw": [
+        -0.5696840286254883,
+        6.41691780090332,
+        1.730407953262329
+      ],
+      "end_xyyaw": [
+        -0.6172230243682861,
+        4.457273960113525,
+        -1.5251120328903198
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.13333333333333333
+    },
+    {
+      "episode_index": 42,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 49,
+      "frames": 49,
+      "duration_s": 9.8,
+      "trajectory_length_m": 1.7438992901865253,
+      "displacement_m": 1.1864241885977416,
+      "absolute_yaw_change_rad": 2.7005212903022766,
+      "net_yaw_change_rad": 2.473578989505768,
+      "start_xyyaw": [
+        -0.22073300182819366,
+        4.52152681350708,
+        -0.908240020275116
+      ],
+      "end_xyyaw": [
+        -0.08923500031232834,
+        5.70064115524292,
+        1.5653389692306519
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.1836734693877551
+    },
+    {
+      "episode_index": 42,
+      "stage": "nav_to_place",
+      "start_frame": 86,
+      "stop_frame_exclusive": 184,
+      "frames": 98,
+      "duration_s": 19.6,
+      "trajectory_length_m": 2.773405834150921,
+      "displacement_m": 2.1125136910717326,
+      "absolute_yaw_change_rad": 4.335606638585226,
+      "net_yaw_change_rad": 3.00247031847109,
+      "start_xyyaw": [
+        -0.08429799973964691,
+        5.710765838623047,
+        1.566362977027893
+      ],
+      "end_xyyaw": [
+        -0.49240899085998535,
+        3.638047933578491,
+        -1.714352011680603
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 43,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 38,
+      "frames": 38,
+      "duration_s": 7.6,
+      "trajectory_length_m": 1.308988125382267,
+      "displacement_m": 1.2437826368522116,
+      "absolute_yaw_change_rad": 1.4059853553771973,
+      "net_yaw_change_rad": -1.1556010246276855,
+      "start_xyyaw": [
+        -0.6258860230445862,
+        5.114205837249756,
+        2.940325975418091
+      ],
+      "end_xyyaw": [
+        -0.7777389883995056,
+        6.348683834075928,
+        1.7847249507904053
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.18421052631578946
+    },
+    {
+      "episode_index": 43,
+      "stage": "nav_to_place",
+      "start_frame": 74,
+      "stop_frame_exclusive": 174,
+      "frames": 100,
+      "duration_s": 20.0,
+      "trajectory_length_m": 2.835502650715851,
+      "displacement_m": 2.1235357468248264,
+      "absolute_yaw_change_rad": 4.800523106251852,
+      "net_yaw_change_rad": 3.075461212788717,
+      "start_xyyaw": [
+        -0.7783079743385315,
+        6.362497806549072,
+        1.7853480577468872
+      ],
+      "end_xyyaw": [
+        -0.5726540088653564,
+        4.24894380569458,
+        -1.422376036643982
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.16
+    },
+    {
+      "episode_index": 44,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 41,
+      "frames": 41,
+      "duration_s": 8.2,
+      "trajectory_length_m": 1.2196979196850442,
+      "displacement_m": 0.835810902103248,
+      "absolute_yaw_change_rad": 2.5768178701400757,
+      "net_yaw_change_rad": 1.1015360355377197,
+      "start_xyyaw": [
+        -0.6929810047149658,
+        5.291987895965576,
+        0.6922039985656738
+      ],
+      "end_xyyaw": [
+        -0.7126719951629639,
+        6.127566814422607,
+        1.7937400341033936
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.1951219512195122
+    },
+    {
+      "episode_index": 44,
+      "stage": "nav_to_place",
+      "start_frame": 78,
+      "stop_frame_exclusive": 174,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.6151403310928076,
+      "displacement_m": 2.0242007889583977,
+      "absolute_yaw_change_rad": 4.415162269269125,
+      "net_yaw_change_rad": 3.107442323361532,
+      "start_xyyaw": [
+        -0.7050690054893494,
+        6.115480899810791,
+        1.7970750331878662
+      ],
+      "end_xyyaw": [
+        -0.4405440092086792,
+        4.108638763427734,
+        -1.378667950630188
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.15625
+    },
+    {
+      "episode_index": 45,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 28,
+      "frames": 28,
+      "duration_s": 5.6,
+      "trajectory_length_m": 0.8099630077262908,
+      "displacement_m": 0.6148231664198677,
+      "absolute_yaw_change_rad": 1.29408198595047,
+      "net_yaw_change_rad": 0.7659199833869934,
+      "start_xyyaw": [
+        -0.44499701261520386,
+        5.031650066375732,
+        0.8775200247764587
+      ],
+      "end_xyyaw": [
+        -0.38693898916244507,
+        5.643725872039795,
+        1.6434400081634521
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.17857142857142858
+    },
+    {
+      "episode_index": 45,
+      "stage": "nav_to_place",
+      "start_frame": 66,
+      "stop_frame_exclusive": 154,
+      "frames": 88,
+      "duration_s": 17.6,
+      "trajectory_length_m": 2.0843462001938375,
+      "displacement_m": 1.418982838590378,
+      "absolute_yaw_change_rad": 4.306262199078695,
+      "net_yaw_change_rad": -3.136860966682434,
+      "start_xyyaw": [
+        -0.3823460042476654,
+        5.645793914794922,
+        1.6471920013427734
+      ],
+      "end_xyyaw": [
+        -0.3596790134906769,
+        4.226992130279541,
+        -1.4896689653396606
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.1590909090909091
+    },
+    {
+      "episode_index": 46,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 37,
+      "frames": 37,
+      "duration_s": 7.4,
+      "trajectory_length_m": 0.6063641628095398,
+      "displacement_m": 0.5629152701133541,
+      "absolute_yaw_change_rad": 2.5127435366259974,
+      "net_yaw_change_rad": -2.1523993651019495,
+      "start_xyyaw": [
+        -0.5250740051269531,
+        4.975696086883545,
+        -2.3552839756011963
+      ],
+      "end_xyyaw": [
+        -0.5277040004730225,
+        5.538605213165283,
+        1.7755019664764404
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.21621621621621623
+    },
+    {
+      "episode_index": 46,
+      "stage": "nav_to_place",
+      "start_frame": 75,
+      "stop_frame_exclusive": 167,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.3722141610821366,
+      "displacement_m": 1.5477874592295238,
+      "absolute_yaw_change_rad": 4.494274679814474,
+      "net_yaw_change_rad": 2.8105862776385706,
+      "start_xyyaw": [
+        -0.5251510143280029,
+        5.5279340744018555,
+        1.7798269987106323
+      ],
+      "end_xyyaw": [
+        -0.8037300109863281,
+        4.005423069000244,
+        -1.6927720308303833
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.16304347826086957
+    },
+    {
+      "episode_index": 47,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 32,
+      "frames": 32,
+      "duration_s": 6.4,
+      "trajectory_length_m": 1.581999218826231,
+      "displacement_m": 1.54865286791405,
+      "absolute_yaw_change_rad": 0.4631228446960449,
+      "net_yaw_change_rad": 0.16242098808288574,
+      "start_xyyaw": [
+        -0.4909990131855011,
+        4.550000190734863,
+        1.5656570196151733
+      ],
+      "end_xyyaw": [
+        -0.5229769945144653,
+        6.098322868347168,
+        1.728078007698059
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.125
+    },
+    {
+      "episode_index": 47,
+      "stage": "nav_to_place",
+      "start_frame": 69,
+      "stop_frame_exclusive": 173,
+      "frames": 104,
+      "duration_s": 20.8,
+      "trajectory_length_m": 2.9548731475201215,
+      "displacement_m": 2.4377240237020503,
+      "absolute_yaw_change_rad": 4.226772848759786,
+      "net_yaw_change_rad": 3.081024233494894,
+      "start_xyyaw": [
+        -0.5227469801902771,
+        6.101294994354248,
+        1.727715015411377
+      ],
+      "end_xyyaw": [
+        -0.3962160050868988,
+        3.6668570041656494,
+        -1.4744460582733154
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.1346153846153846
+    },
+    {
+      "episode_index": 48,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 37,
+      "frames": 37,
+      "duration_s": 7.4,
+      "trajectory_length_m": 1.2345213603889789,
+      "displacement_m": 1.1660395268973531,
+      "absolute_yaw_change_rad": 1.869408369064331,
+      "net_yaw_change_rad": -0.9992160797119141,
+      "start_xyyaw": [
+        -0.833666980266571,
+        4.798797130584717,
+        2.655872106552124
+      ],
+      "end_xyyaw": [
+        -0.7544119954109192,
+        5.962140083312988,
+        1.65665602684021
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.16216216216216217
+    },
+    {
+      "episode_index": 48,
+      "stage": "nav_to_place",
+      "start_frame": 73,
+      "stop_frame_exclusive": 166,
+      "frames": 93,
+      "duration_s": 18.6,
+      "trajectory_length_m": 2.744351845068109,
+      "displacement_m": 2.109779373659831,
+      "absolute_yaw_change_rad": 3.9985682407962244,
+      "net_yaw_change_rad": 3.073624316846029,
+      "start_xyyaw": [
+        -0.7539200186729431,
+        5.961664199829102,
+        1.658031940460205
+      ],
+      "end_xyyaw": [
+        -0.7112730145454407,
+        3.852315902709961,
+        -1.551529049873352
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.12903225806451613
+    },
+    {
+      "episode_index": 49,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 39,
+      "frames": 39,
+      "duration_s": 7.8,
+      "trajectory_length_m": 1.0378121009624344,
+      "displacement_m": 0.467653473671116,
+      "absolute_yaw_change_rad": 2.6602582931518555,
+      "net_yaw_change_rad": 2.5274699926376343,
+      "start_xyyaw": [
+        -0.7485259771347046,
+        5.1796112060546875,
+        -0.5632439851760864
+      ],
+      "end_xyyaw": [
+        -0.8599849939346313,
+        5.633788108825684,
+        1.9642260074615479
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.1794871794871795
+    },
+    {
+      "episode_index": 49,
+      "stage": "nav_to_place",
+      "start_frame": 76,
+      "stop_frame_exclusive": 158,
+      "frames": 82,
+      "duration_s": 16.4,
+      "trajectory_length_m": 2.107816010641843,
+      "displacement_m": 1.3834348086273303,
+      "absolute_yaw_change_rad": 3.8996122519122522,
+      "net_yaw_change_rad": -3.128952980041504,
+      "start_xyyaw": [
+        -0.8641629815101624,
+        5.65058708190918,
+        1.9711040258407593
+      ],
+      "end_xyyaw": [
+        -0.3598189949989319,
+        4.362360000610352,
+        -1.1578489542007446
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.15853658536585366
+    },
+    {
+      "episode_index": 50,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 53,
+      "frames": 53,
+      "duration_s": 10.6,
+      "trajectory_length_m": 1.266006315054275,
+      "displacement_m": 1.1572426153247886,
+      "absolute_yaw_change_rad": 2.9124996105777186,
+      "net_yaw_change_rad": -2.691717330609457,
+      "start_xyyaw": [
+        -0.6249459981918335,
+        5.190659046173096,
+        -1.9771150350570679
+      ],
+      "end_xyyaw": [
+        -0.5408229827880859,
+        6.344840049743652,
+        1.6143529415130615
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.16981132075471697
+    },
+    {
+      "episode_index": 50,
+      "stage": "nav_to_place",
+      "start_frame": 89,
+      "stop_frame_exclusive": 194,
+      "frames": 105,
+      "duration_s": 21.0,
+      "trajectory_length_m": 2.637158066252625,
+      "displacement_m": 1.9283623787951951,
+      "absolute_yaw_change_rad": 4.785327378903524,
+      "net_yaw_change_rad": 3.002715293561117,
+      "start_xyyaw": [
+        -0.5387560129165649,
+        6.3440680503845215,
+        1.6164970397949219
+      ],
+      "end_xyyaw": [
+        -0.8231549859046936,
+        4.436792850494385,
+        -1.6639729738235474
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.1523809523809524
+    },
+    {
+      "episode_index": 51,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 37,
+      "frames": 37,
+      "duration_s": 7.4,
+      "trajectory_length_m": 1.1798027686341936,
+      "displacement_m": 1.0934474623598998,
+      "absolute_yaw_change_rad": 1.208824872970581,
+      "net_yaw_change_rad": -0.9963710308074951,
+      "start_xyyaw": [
+        -0.6086099743843079,
+        5.228066921234131,
+        2.7679200172424316
+      ],
+      "end_xyyaw": [
+        -0.7574290037155151,
+        6.311339855194092,
+        1.7715489864349365
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.13513513513513514
+    },
+    {
+      "episode_index": 51,
+      "stage": "nav_to_place",
+      "start_frame": 74,
+      "stop_frame_exclusive": 168,
+      "frames": 94,
+      "duration_s": 18.8,
+      "trajectory_length_m": 2.277365755005842,
+      "displacement_m": 1.8520262256615465,
+      "absolute_yaw_change_rad": 3.936520040035248,
+      "net_yaw_change_rad": -3.0718259811401367,
+      "start_xyyaw": [
+        -0.7577739953994751,
+        6.313237190246582,
+        1.7689549922943115
+      ],
+      "end_xyyaw": [
+        -0.35644999146461487,
+        4.505216121673584,
+        -1.3028709888458252
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14893617021276595
+    },
+    {
+      "episode_index": 52,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 44,
+      "frames": 44,
+      "duration_s": 8.8,
+      "trajectory_length_m": 1.3335615539413228,
+      "displacement_m": 1.0780574946728707,
+      "absolute_yaw_change_rad": 2.842336893081665,
+      "net_yaw_change_rad": 0.48197102546691895,
+      "start_xyyaw": [
+        -0.5545639991760254,
+        4.831100940704346,
+        1.4149359464645386
+      ],
+      "end_xyyaw": [
+        -0.6995009779930115,
+        5.899371147155762,
+        1.8969069719314575
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.20454545454545456
+    },
+    {
+      "episode_index": 52,
+      "stage": "nav_to_place",
+      "start_frame": 80,
+      "stop_frame_exclusive": 172,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.5445644277598145,
+      "displacement_m": 1.9096725332654534,
+      "absolute_yaw_change_rad": 3.9212061802493494,
+      "net_yaw_change_rad": 3.0972523132907313,
+      "start_xyyaw": [
+        -0.6999379992485046,
+        5.894276142120361,
+        1.8685330152511597
+      ],
+      "end_xyyaw": [
+        -0.30803200602531433,
+        4.02524995803833,
+        -1.3173999786376953
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14130434782608695
+    },
+    {
+      "episode_index": 53,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 30,
+      "frames": 30,
+      "duration_s": 6.0,
+      "trajectory_length_m": 0.6597369839885802,
+      "displacement_m": 0.5831314856937746,
+      "absolute_yaw_change_rad": 1.39111328125,
+      "net_yaw_change_rad": -1.152972936630249,
+      "start_xyyaw": [
+        -0.6081590056419373,
+        5.174736976623535,
+        2.709336996078491
+      ],
+      "end_xyyaw": [
+        -0.48341700434684753,
+        5.744369983673096,
+        1.5563640594482422
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 53,
+      "stage": "nav_to_place",
+      "start_frame": 67,
+      "stop_frame_exclusive": 159,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.4537003028957223,
+      "displacement_m": 1.7298735178443823,
+      "absolute_yaw_change_rad": 4.225289050732748,
+      "net_yaw_change_rad": -3.104632019996643,
+      "start_xyyaw": [
+        -0.48180699348449707,
+        5.747399806976318,
+        1.5476109981536865
+      ],
+      "end_xyyaw": [
+        -0.5478360056877136,
+        4.018786907196045,
+        -1.5570210218429565
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.15217391304347827
+    },
+    {
+      "episode_index": 54,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 35,
+      "frames": 35,
+      "duration_s": 7.0,
+      "trajectory_length_m": 1.1597840852238221,
+      "displacement_m": 1.0609690945147257,
+      "absolute_yaw_change_rad": 1.1808507442474365,
+      "net_yaw_change_rad": -0.7061729431152344,
+      "start_xyyaw": [
+        -0.5176540017127991,
+        5.345740795135498,
+        2.339509963989258
+      ],
+      "end_xyyaw": [
+        -0.45298200845718384,
+        6.4047369956970215,
+        1.6333370208740234
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 54,
+      "stage": "nav_to_place",
+      "start_frame": 71,
+      "stop_frame_exclusive": 176,
+      "frames": 105,
+      "duration_s": 21.0,
+      "trajectory_length_m": 3.0494990028365048,
+      "displacement_m": 2.429909417014176,
+      "absolute_yaw_change_rad": 4.591371361409323,
+      "net_yaw_change_rad": 2.9679492155658167,
+      "start_xyyaw": [
+        -0.447037011384964,
+        6.388064861297607,
+        1.6335400342941284
+      ],
+      "end_xyyaw": [
+        -0.7923449873924255,
+        3.982815980911255,
+        -1.6816960573196411
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 55,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 55,
+      "frames": 55,
+      "duration_s": 11.0,
+      "trajectory_length_m": 2.080973919348974,
+      "displacement_m": 1.4861009127496945,
+      "absolute_yaw_change_rad": 2.824183940887451,
+      "net_yaw_change_rad": 2.492203950881958,
+      "start_xyyaw": [
+        -0.9962080121040344,
+        5.0432939529418945,
+        -1.0313509702682495
+      ],
+      "end_xyyaw": [
+        -0.7074990272521973,
+        6.5010809898376465,
+        1.4608529806137085
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.18181818181818182
+    },
+    {
+      "episode_index": 55,
+      "stage": "nav_to_place",
+      "start_frame": 91,
+      "stop_frame_exclusive": 199,
+      "frames": 108,
+      "duration_s": 21.6,
+      "trajectory_length_m": 3.1067928989699873,
+      "displacement_m": 2.6794417400342767,
+      "absolute_yaw_change_rad": 4.323840856552124,
+      "net_yaw_change_rad": -3.093588948249817,
+      "start_xyyaw": [
+        -0.706242024898529,
+        6.496893882751465,
+        1.4601249694824219
+      ],
+      "end_xyyaw": [
+        -0.9750909805297852,
+        3.8309741020202637,
+        -1.633463978767395
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.12962962962962962
+    },
+    {
+      "episode_index": 56,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 24,
+      "frames": 24,
+      "duration_s": 4.8,
+      "trajectory_length_m": 0.7530190348000635,
+      "displacement_m": 0.6633305932166698,
+      "absolute_yaw_change_rad": 0.8478970527648926,
+      "net_yaw_change_rad": -0.33199286460876465,
+      "start_xyyaw": [
+        -0.4133090078830719,
+        5.751391887664795,
+        2.102531909942627
+      ],
+      "end_xyyaw": [
+        -0.4267610013484955,
+        6.414586067199707,
+        1.7705390453338623
+      ],
+      "sparse_waypoint_count": 3,
+      "compression_ratio": 0.125
+    },
+    {
+      "episode_index": 56,
+      "stage": "nav_to_place",
+      "start_frame": 60,
+      "stop_frame_exclusive": 171,
+      "frames": 111,
+      "duration_s": 22.2,
+      "trajectory_length_m": 2.6691096854186926,
+      "displacement_m": 1.9091334310906571,
+      "absolute_yaw_change_rad": 4.91533345380892,
+      "net_yaw_change_rad": 2.881549302731649,
+      "start_xyyaw": [
+        -0.42625901103019714,
+        6.41698694229126,
+        1.7704700231552124
+      ],
+      "end_xyyaw": [
+        -0.6341400146484375,
+        4.519205093383789,
+        -1.6311659812927246
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.14414414414414414
+    },
+    {
+      "episode_index": 57,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 0.8793881016381082,
+      "displacement_m": 0.8325037871520025,
+      "absolute_yaw_change_rad": 1.5984121561050415,
+      "net_yaw_change_rad": -1.2841020822525024,
+      "start_xyyaw": [
+        -0.549930989742279,
+        4.739943981170654,
+        2.8125030994415283
+      ],
+      "end_xyyaw": [
+        -0.3461039960384369,
+        5.547110080718994,
+        1.5284010171890259
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 57,
+      "stage": "nav_to_place",
+      "start_frame": 72,
+      "stop_frame_exclusive": 170,
+      "frames": 98,
+      "duration_s": 19.6,
+      "trajectory_length_m": 2.5073170161395,
+      "displacement_m": 1.7811221976751543,
+      "absolute_yaw_change_rad": 4.75373620191683,
+      "net_yaw_change_rad": 3.0564762989627283,
+      "start_xyyaw": [
+        -0.3430289924144745,
+        5.534179210662842,
+        1.5260579586029053
+      ],
+      "end_xyyaw": [
+        -0.6851329803466797,
+        3.786220073699951,
+        -1.7006510496139526
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.16326530612244897
+    },
+    {
+      "episode_index": 58,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 33,
+      "frames": 33,
+      "duration_s": 6.6,
+      "trajectory_length_m": 1.2589682103235713,
+      "displacement_m": 1.1825694730011553,
+      "absolute_yaw_change_rad": 2.1172409057617188,
+      "net_yaw_change_rad": -0.2894589900970459,
+      "start_xyyaw": [
+        -0.8808299899101257,
+        5.025597095489502,
+        1.9056650400161743
+      ],
+      "end_xyyaw": [
+        -0.7912539839744568,
+        6.204769134521484,
+        1.6162060499191284
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.18181818181818182
+    },
+    {
+      "episode_index": 58,
+      "stage": "nav_to_place",
+      "start_frame": 67,
+      "stop_frame_exclusive": 165,
+      "frames": 98,
+      "duration_s": 19.6,
+      "trajectory_length_m": 2.6554967849446593,
+      "displacement_m": 2.018501707501485,
+      "absolute_yaw_change_rad": 4.546798888836996,
+      "net_yaw_change_rad": 3.0814873615847986,
+      "start_xyyaw": [
+        -0.7912070155143738,
+        6.204136848449707,
+        1.6175869703292847
+      ],
+      "end_xyyaw": [
+        -0.8921340107917786,
+        4.188159942626953,
+        -1.584110975265503
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 59,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 48,
+      "frames": 48,
+      "duration_s": 9.6,
+      "trajectory_length_m": 1.6418418302969255,
+      "displacement_m": 1.1891600032902268,
+      "absolute_yaw_change_rad": 3.0218869745731354,
+      "net_yaw_change_rad": 1.1867030262947083,
+      "start_xyyaw": [
+        -0.8027099967002869,
+        5.321382999420166,
+        0.19620400667190552
+      ],
+      "end_xyyaw": [
+        -0.5598289966583252,
+        6.485475063323975,
+        1.3829070329666138
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.20833333333333334
+    },
+    {
+      "episode_index": 59,
+      "stage": "nav_to_place",
+      "start_frame": 85,
+      "stop_frame_exclusive": 196,
+      "frames": 111,
+      "duration_s": 22.2,
+      "trajectory_length_m": 3.0188392416222993,
+      "displacement_m": 2.590143237615275,
+      "absolute_yaw_change_rad": 4.026365876197815,
+      "net_yaw_change_rad": -3.06576406955719,
+      "start_xyyaw": [
+        -0.559220016002655,
+        6.486219882965088,
+        1.381803035736084
+      ],
+      "end_xyyaw": [
+        -0.9804189801216125,
+        3.9305529594421387,
+        -1.683961033821106
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.11711711711711711
+    },
+    {
+      "episode_index": 60,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 48,
+      "frames": 48,
+      "duration_s": 9.6,
+      "trajectory_length_m": 1.6886175305821969,
+      "displacement_m": 1.2337893691340271,
+      "absolute_yaw_change_rad": 3.4293529838323593,
+      "net_yaw_change_rad": 1.595282956957817,
+      "start_xyyaw": [
+        -0.49217599630355835,
+        4.940773010253906,
+        0.13722200691699982
+      ],
+      "end_xyyaw": [
+        -0.4940049946308136,
+        6.174561023712158,
+        1.732504963874817
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.20833333333333334
+    },
+    {
+      "episode_index": 60,
+      "stage": "nav_to_place",
+      "start_frame": 84,
+      "stop_frame_exclusive": 183,
+      "frames": 99,
+      "duration_s": 19.8,
+      "trajectory_length_m": 2.788492001516765,
+      "displacement_m": 2.2146198819830363,
+      "absolute_yaw_change_rad": 4.196212236081259,
+      "net_yaw_change_rad": 3.0172523895846766,
+      "start_xyyaw": [
+        -0.4872809946537018,
+        6.166076183319092,
+        1.72666597366333
+      ],
+      "end_xyyaw": [
+        -0.5626450181007385,
+        3.9527390003204346,
+        -1.5392669439315796
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.1414141414141414
+    },
+    {
+      "episode_index": 61,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 51,
+      "frames": 51,
+      "duration_s": 10.2,
+      "trajectory_length_m": 1.6438570626746318,
+      "displacement_m": 0.9862559071973034,
+      "absolute_yaw_change_rad": 3.434329867362976,
+      "net_yaw_change_rad": 3.0552719831466675,
+      "start_xyyaw": [
+        -0.610929012298584,
+        5.358549118041992,
+        -1.4876840114593506
+      ],
+      "end_xyyaw": [
+        -0.515159010887146,
+        6.340144157409668,
+        1.567587971687317
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.19607843137254902
+    },
+    {
+      "episode_index": 61,
+      "stage": "nav_to_place",
+      "start_frame": 88,
+      "stop_frame_exclusive": 189,
+      "frames": 101,
+      "duration_s": 20.2,
+      "trajectory_length_m": 2.618460159421756,
+      "displacement_m": 2.0454399212316714,
+      "absolute_yaw_change_rad": 4.753893081341879,
+      "net_yaw_change_rad": 3.08892530599703,
+      "start_xyyaw": [
+        -0.510998010635376,
+        6.335795879364014,
+        1.569187045097351
+      ],
+      "end_xyyaw": [
+        -0.7295759916305542,
+        4.30206823348999,
+        -1.625072956085205
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.1485148514851485
+    },
+    {
+      "episode_index": 62,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 1.2579498082357523,
+      "displacement_m": 1.190396984854857,
+      "absolute_yaw_change_rad": 1.3262903690338135,
+      "net_yaw_change_rad": -0.6764578819274902,
+      "start_xyyaw": [
+        -0.6199859976768494,
+        4.872257232666016,
+        2.2946949005126953
+      ],
+      "end_xyyaw": [
+        -0.48451998829841614,
+        6.0549211502075195,
+        1.618237018585205
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 62,
+      "stage": "nav_to_place",
+      "start_frame": 71,
+      "stop_frame_exclusive": 173,
+      "frames": 102,
+      "duration_s": 20.4,
+      "trajectory_length_m": 2.941595105101987,
+      "displacement_m": 2.355009463598279,
+      "absolute_yaw_change_rad": 4.346517984067098,
+      "net_yaw_change_rad": 3.0034982601748865,
+      "start_xyyaw": [
+        -0.4823629856109619,
+        6.065340995788574,
+        1.6195570230484009
+      ],
+      "end_xyyaw": [
+        -0.7959790229797363,
+        3.731307029724121,
+        -1.6601300239562988
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.13725490196078433
+    },
+    {
+      "episode_index": 63,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 35,
+      "frames": 35,
+      "duration_s": 7.0,
+      "trajectory_length_m": 0.9591772219336597,
+      "displacement_m": 0.9246749232920686,
+      "absolute_yaw_change_rad": 1.573790192604065,
+      "net_yaw_change_rad": -1.1830040216445923,
+      "start_xyyaw": [
+        -0.5373089909553528,
+        5.1468658447265625,
+        2.8002190589904785
+      ],
+      "end_xyyaw": [
+        -0.43873700499534607,
+        6.066271781921387,
+        1.6172150373458862
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.17142857142857143
+    },
+    {
+      "episode_index": 63,
+      "stage": "nav_to_place",
+      "start_frame": 71,
+      "stop_frame_exclusive": 167,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.664363716746573,
+      "displacement_m": 2.0766128662745555,
+      "absolute_yaw_change_rad": 4.13644510904421,
+      "net_yaw_change_rad": -3.0986199378967285,
+      "start_xyyaw": [
+        -0.4365299940109253,
+        6.0739970207214355,
+        1.6162409782409668
+      ],
+      "end_xyyaw": [
+        -0.34737101197242737,
+        3.9992990493774414,
+        -1.4823789596557617
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.13541666666666666
+    },
+    {
+      "episode_index": 64,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 1.466212649317049,
+      "displacement_m": 1.396528771779441,
+      "absolute_yaw_change_rad": 0.8699959516525269,
+      "net_yaw_change_rad": -0.47265803813934326,
+      "start_xyyaw": [
+        -0.7345460057258606,
+        4.925160884857178,
+        1.909613013267517
+      ],
+      "end_xyyaw": [
+        -0.3742530047893524,
+        6.274413108825684,
+        1.4369549751281738
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 64,
+      "stage": "nav_to_place",
+      "start_frame": 72,
+      "stop_frame_exclusive": 183,
+      "frames": 111,
+      "duration_s": 22.2,
+      "trajectory_length_m": 3.3615514616410165,
+      "displacement_m": 2.7398668610579877,
+      "absolute_yaw_change_rad": 4.526595775281088,
+      "net_yaw_change_rad": 3.1290993134128016,
+      "start_xyyaw": [
+        -0.3679260015487671,
+        6.284842014312744,
+        1.442181944847107
+      ],
+      "end_xyyaw": [
+        -0.8711420297622681,
+        3.591583013534546,
+        -1.7119040489196777
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.13513513513513514
+    },
+    {
+      "episode_index": 65,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 33,
+      "frames": 33,
+      "duration_s": 6.6,
+      "trajectory_length_m": 0.6495323451602208,
+      "displacement_m": 0.5386562026987484,
+      "absolute_yaw_change_rad": 1.5881819168673914,
+      "net_yaw_change_rad": -1.3440243641482752,
+      "start_xyyaw": [
+        -0.584069013595581,
+        5.514977931976318,
+        -3.1169919967651367
+      ],
+      "end_xyyaw": [
+        -0.628445029258728,
+        6.051803112030029,
+        1.8221689462661743
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.18181818181818182
+    },
+    {
+      "episode_index": 65,
+      "stage": "nav_to_place",
+      "start_frame": 71,
+      "stop_frame_exclusive": 148,
+      "frames": 77,
+      "duration_s": 15.4,
+      "trajectory_length_m": 2.1412206132840974,
+      "displacement_m": 1.583100203012929,
+      "absolute_yaw_change_rad": 3.560369078313009,
+      "net_yaw_change_rad": 2.8856173197375696,
+      "start_xyyaw": [
+        -0.6187639832496643,
+        6.0393548011779785,
+        1.818037986755371
+      ],
+      "end_xyyaw": [
+        -0.7360489964485168,
+        4.460605144500732,
+        -1.5795300006866455
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.15584415584415584
+    },
+    {
+      "episode_index": 66,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 45,
+      "frames": 45,
+      "duration_s": 9.0,
+      "trajectory_length_m": 0.8180327665922025,
+      "displacement_m": 0.7376202107346645,
+      "absolute_yaw_change_rad": 2.855980102215902,
+      "net_yaw_change_rad": -2.613236371670858,
+      "start_xyyaw": [
+        -0.6899200081825256,
+        5.1735358238220215,
+        -1.9505219459533691
+      ],
+      "end_xyyaw": [
+        -0.6840670108795166,
+        5.9111328125,
+        1.7194269895553589
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.17777777777777778
+    },
+    {
+      "episode_index": 66,
+      "stage": "nav_to_place",
+      "start_frame": 81,
+      "stop_frame_exclusive": 189,
+      "frames": 108,
+      "duration_s": 21.6,
+      "trajectory_length_m": 2.970376414476009,
+      "displacement_m": 2.0547920822269834,
+      "absolute_yaw_change_rad": 4.981445495282308,
+      "net_yaw_change_rad": 2.9584593216525477,
+      "start_xyyaw": [
+        -0.6836310029029846,
+        5.921982765197754,
+        1.7191330194473267
+      ],
+      "end_xyyaw": [
+        -0.8587660193443298,
+        3.8746678829193115,
+        -1.605592966079712
+      ],
+      "sparse_waypoint_count": 17,
+      "compression_ratio": 0.1574074074074074
+    },
+    {
+      "episode_index": 67,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 39,
+      "frames": 39,
+      "duration_s": 7.8,
+      "trajectory_length_m": 1.2080867308123842,
+      "displacement_m": 0.7311395976228113,
+      "absolute_yaw_change_rad": 2.4166190177202225,
+      "net_yaw_change_rad": 1.8610609620809555,
+      "start_xyyaw": [
+        -0.4417330026626587,
+        5.227322101593018,
+        -0.1613910049200058
+      ],
+      "end_xyyaw": [
+        -0.418612003326416,
+        5.958096027374268,
+        1.6996699571609497
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.20512820512820512
+    },
+    {
+      "episode_index": 67,
+      "stage": "nav_to_place",
+      "start_frame": 77,
+      "stop_frame_exclusive": 170,
+      "frames": 93,
+      "duration_s": 18.6,
+      "trajectory_length_m": 2.663374047636674,
+      "displacement_m": 1.9479546929324985,
+      "absolute_yaw_change_rad": 4.001957122479574,
+      "net_yaw_change_rad": 3.041411344205038,
+      "start_xyyaw": [
+        -0.4119180142879486,
+        5.967968940734863,
+        1.7025549411773682
+      ],
+      "end_xyyaw": [
+        -0.4511849880218506,
+        4.020410060882568,
+        -1.5392190217971802
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.15053763440860216
+    },
+    {
+      "episode_index": 68,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 31,
+      "frames": 31,
+      "duration_s": 6.2,
+      "trajectory_length_m": 1.320236535386816,
+      "displacement_m": 1.2597981821853155,
+      "absolute_yaw_change_rad": 1.3598191738128662,
+      "net_yaw_change_rad": -0.338407039642334,
+      "start_xyyaw": [
+        -0.3623349964618683,
+        5.200520992279053,
+        1.8158090114593506
+      ],
+      "end_xyyaw": [
+        -0.14655399322509766,
+        6.441701889038086,
+        1.4774019718170166
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.16129032258064516
+    },
+    {
+      "episode_index": 68,
+      "stage": "nav_to_place",
+      "start_frame": 67,
+      "stop_frame_exclusive": 173,
+      "frames": 106,
+      "duration_s": 21.2,
+      "trajectory_length_m": 3.183035110733667,
+      "displacement_m": 2.4881208719329306,
+      "absolute_yaw_change_rad": 4.437293354664938,
+      "net_yaw_change_rad": 3.017099205647604,
+      "start_xyyaw": [
+        -0.1413169950246811,
+        6.454413890838623,
+        1.4800200462341309
+      ],
+      "end_xyyaw": [
+        -0.790145993232727,
+        4.052380084991455,
+        -1.7860660552978516
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.1320754716981132
+    },
+    {
+      "episode_index": 69,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 36,
+      "frames": 36,
+      "duration_s": 7.2,
+      "trajectory_length_m": 1.0797528717365357,
+      "displacement_m": 0.6713051085410565,
+      "absolute_yaw_change_rad": 2.2291721999645233,
+      "net_yaw_change_rad": 1.0752420127391815,
+      "start_xyyaw": [
+        -0.7131879925727844,
+        5.203516960144043,
+        0.26512399315834045
+      ],
+      "end_xyyaw": [
+        -0.6552129983901978,
+        5.872313976287842,
+        1.340366005897522
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.19444444444444445
+    },
+    {
+      "episode_index": 69,
+      "stage": "nav_to_place",
+      "start_frame": 74,
+      "stop_frame_exclusive": 151,
+      "frames": 77,
+      "duration_s": 15.4,
+      "trajectory_length_m": 1.745572328186739,
+      "displacement_m": 1.3556779096184037,
+      "absolute_yaw_change_rad": 3.3779499530792236,
+      "net_yaw_change_rad": -2.84922194480896,
+      "start_xyyaw": [
+        -0.6549869775772095,
+        5.853361129760742,
+        1.3385519981384277
+      ],
+      "end_xyyaw": [
+        -0.6617749929428101,
+        4.497700214385986,
+        -1.5106699466705322
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.15584415584415584
+    },
+    {
+      "episode_index": 70,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 48,
+      "frames": 48,
+      "duration_s": 9.6,
+      "trajectory_length_m": 1.6914055178883227,
+      "displacement_m": 1.6441569125730706,
+      "absolute_yaw_change_rad": 2.177616302167074,
+      "net_yaw_change_rad": -1.632438365613119,
+      "start_xyyaw": [
+        -0.2804110050201416,
+        4.711389064788818,
+        -3.046433925628662
+      ],
+      "end_xyyaw": [
+        -0.12764999270439148,
+        6.348433971405029,
+        1.6043130159378052
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 70,
+      "stage": "nav_to_place",
+      "start_frame": 84,
+      "stop_frame_exclusive": 201,
+      "frames": 117,
+      "duration_s": 23.4,
+      "trajectory_length_m": 3.497937828476329,
+      "displacement_m": 2.8206830219823567,
+      "absolute_yaw_change_rad": 4.927261177693502,
+      "net_yaw_change_rad": 2.9805713335620325,
+      "start_xyyaw": [
+        -0.12169399857521057,
+        6.346006870269775,
+        1.59716796875
+      ],
+      "end_xyyaw": [
+        -0.5913000106811523,
+        3.564690113067627,
+        -1.7054460048675537
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.13675213675213677
+    },
+    {
+      "episode_index": 71,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 43,
+      "frames": 43,
+      "duration_s": 8.6,
+      "trajectory_length_m": 1.2523700169150613,
+      "displacement_m": 1.1541009518035283,
+      "absolute_yaw_change_rad": 2.067781392727987,
+      "net_yaw_change_rad": -1.7868892590152186,
+      "start_xyyaw": [
+        -0.6200510263442993,
+        5.2502760887146,
+        -2.9387331008911133
+      ],
+      "end_xyyaw": [
+        -0.47382301092147827,
+        6.395075798034668,
+        1.5575629472732544
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.18604651162790697
+    },
+    {
+      "episode_index": 71,
+      "stage": "nav_to_place",
+      "start_frame": 80,
+      "stop_frame_exclusive": 184,
+      "frames": 104,
+      "duration_s": 20.8,
+      "trajectory_length_m": 3.0967148131319053,
+      "displacement_m": 2.4208080714768996,
+      "absolute_yaw_change_rad": 4.629900399838583,
+      "net_yaw_change_rad": 3.0149843136416834,
+      "start_xyyaw": [
+        -0.4708389937877655,
+        6.407249927520752,
+        1.5591150522232056
+      ],
+      "end_xyyaw": [
+        -0.9140110015869141,
+        4.027352809906006,
+        -1.7090859413146973
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.14423076923076922
+    },
+    {
+      "episode_index": 72,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 43,
+      "frames": 43,
+      "duration_s": 8.6,
+      "trajectory_length_m": 0.9962149726886658,
+      "displacement_m": 0.87634934535518,
+      "absolute_yaw_change_rad": 2.3245530764209192,
+      "net_yaw_change_rad": -2.1425212065326136,
+      "start_xyyaw": [
+        -0.7002210021018982,
+        4.949131965637207,
+        -2.3055450916290283
+      ],
+      "end_xyyaw": [
+        -0.8431400060653687,
+        5.813748836517334,
+        1.8351190090179443
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.16279069767441862
+    },
+    {
+      "episode_index": 72,
+      "stage": "nav_to_place",
+      "start_frame": 81,
+      "stop_frame_exclusive": 173,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.4752259275055546,
+      "displacement_m": 1.8345780314985738,
+      "absolute_yaw_change_rad": 4.327916328107015,
+      "net_yaw_change_rad": -3.11946702003479,
+      "start_xyyaw": [
+        -0.8414649963378906,
+        5.820915222167969,
+        1.8375990390777588
+      ],
+      "end_xyyaw": [
+        -0.4111500084400177,
+        4.03751802444458,
+        -1.2818679809570312
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.15217391304347827
+    },
+    {
+      "episode_index": 73,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 1.4202369857215869,
+      "displacement_m": 1.3095905430279673,
+      "absolute_yaw_change_rad": 1.8644051551818848,
+      "net_yaw_change_rad": 0.5305249691009521,
+      "start_xyyaw": [
+        -0.7710250020027161,
+        4.782930850982666,
+        1.0208810567855835
+      ],
+      "end_xyyaw": [
+        -0.5441740155220032,
+        6.072723865509033,
+        1.5514060258865356
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.20588235294117646
+    },
+    {
+      "episode_index": 73,
+      "stage": "nav_to_place",
+      "start_frame": 72,
+      "stop_frame_exclusive": 169,
+      "frames": 97,
+      "duration_s": 19.4,
+      "trajectory_length_m": 2.8673614725105594,
+      "displacement_m": 2.1674136657295637,
+      "absolute_yaw_change_rad": 4.226178352032797,
+      "net_yaw_change_rad": 3.127952281628744,
+      "start_xyyaw": [
+        -0.5354080200195312,
+        6.056046962738037,
+        1.5528500080108643
+      ],
+      "end_xyyaw": [
+        -0.7077479958534241,
+        3.895495891571045,
+        -1.602383017539978
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.13402061855670103
+    },
+    {
+      "episode_index": 74,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 35,
+      "frames": 35,
+      "duration_s": 7.0,
+      "trajectory_length_m": 1.0915327016584873,
+      "displacement_m": 0.708314527446325,
+      "absolute_yaw_change_rad": 2.248410224914551,
+      "net_yaw_change_rad": 1.0112440586090088,
+      "start_xyyaw": [
+        -0.7255250215530396,
+        5.249265193939209,
+        0.6424009799957275
+      ],
+      "end_xyyaw": [
+        -0.8694379925727844,
+        5.942805767059326,
+        1.6536450386047363
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 74,
+      "stage": "nav_to_place",
+      "start_frame": 72,
+      "stop_frame_exclusive": 173,
+      "frames": 101,
+      "duration_s": 20.2,
+      "trajectory_length_m": 2.874080028077617,
+      "displacement_m": 2.131742425910547,
+      "absolute_yaw_change_rad": 4.280432764683859,
+      "net_yaw_change_rad": -3.099299907684326,
+      "start_xyyaw": [
+        -0.8644819855690002,
+        5.927270889282227,
+        1.6482019424438477
+      ],
+      "end_xyyaw": [
+        -0.705847978591919,
+        3.801439046859741,
+        -1.4510979652404785
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.15841584158415842
+    },
+    {
+      "episode_index": 75,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 25,
+      "frames": 25,
+      "duration_s": 5.0,
+      "trajectory_length_m": 1.0796847850691633,
+      "displacement_m": 1.0391565868071317,
+      "absolute_yaw_change_rad": 0.28763437271118164,
+      "net_yaw_change_rad": 0.08528995513916016,
+      "start_xyyaw": [
+        -0.40442198514938354,
+        4.94169282913208,
+        1.7346030473709106
+      ],
+      "end_xyyaw": [
+        -0.49838998913764954,
+        5.976592063903809,
+        1.8198930025100708
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.16
+    },
+    {
+      "episode_index": 75,
+      "stage": "nav_to_place",
+      "start_frame": 63,
+      "stop_frame_exclusive": 151,
+      "frames": 88,
+      "duration_s": 17.6,
+      "trajectory_length_m": 2.263439446935445,
+      "displacement_m": 1.6195176360211463,
+      "absolute_yaw_change_rad": 4.057873193417684,
+      "net_yaw_change_rad": 3.11264938512911,
+      "start_xyyaw": [
+        -0.49846699833869934,
+        5.992653846740723,
+        1.8263349533081055
+      ],
+      "end_xyyaw": [
+        -0.2073179930448532,
+        4.399521827697754,
+        -1.3442009687423706
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14772727272727273
+    },
+    {
+      "episode_index": 76,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 24,
+      "frames": 24,
+      "duration_s": 4.8,
+      "trajectory_length_m": 1.0368585519888218,
+      "displacement_m": 0.9664215676388412,
+      "absolute_yaw_change_rad": 0.265383243560791,
+      "net_yaw_change_rad": 0.09376096725463867,
+      "start_xyyaw": [
+        -0.7178410291671753,
+        5.410511016845703,
+        1.4191110134124756
+      ],
+      "end_xyyaw": [
+        -0.5646010041236877,
+        6.364706039428711,
+        1.5128719806671143
+      ],
+      "sparse_waypoint_count": 3,
+      "compression_ratio": 0.125
+    },
+    {
+      "episode_index": 76,
+      "stage": "nav_to_place",
+      "start_frame": 61,
+      "stop_frame_exclusive": 173,
+      "frames": 112,
+      "duration_s": 22.4,
+      "trajectory_length_m": 3.131008980704133,
+      "displacement_m": 2.5389833175001337,
+      "absolute_yaw_change_rad": 4.994390074406759,
+      "net_yaw_change_rad": 3.1042643229113978,
+      "start_xyyaw": [
+        -0.5555980205535889,
+        6.370384216308594,
+        1.5068730115890503
+      ],
+      "end_xyyaw": [
+        -0.9120299816131592,
+        3.856544017791748,
+        -1.6720479726791382
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 77,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 37,
+      "frames": 37,
+      "duration_s": 7.4,
+      "trajectory_length_m": 1.0470576914991696,
+      "displacement_m": 0.6234625647895792,
+      "absolute_yaw_change_rad": 2.409219816327095,
+      "net_yaw_change_rad": 1.4511340409517288,
+      "start_xyyaw": [
+        -0.48985201120376587,
+        4.957180976867676,
+        -0.2321069985628128
+      ],
+      "end_xyyaw": [
+        -0.31034600734710693,
+        5.554243087768555,
+        1.219027042388916
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.1891891891891892
+    },
+    {
+      "episode_index": 77,
+      "stage": "nav_to_place",
+      "start_frame": 74,
+      "stop_frame_exclusive": 155,
+      "frames": 81,
+      "duration_s": 16.2,
+      "trajectory_length_m": 2.087415911225784,
+      "displacement_m": 1.6805738904267686,
+      "absolute_yaw_change_rad": 3.6858969926834106,
+      "net_yaw_change_rad": -2.9089590311050415,
+      "start_xyyaw": [
+        -0.3107469975948334,
+        5.543365955352783,
+        1.220352053642273
+      ],
+      "end_xyyaw": [
+        -0.6539819836616516,
+        3.8982160091400146,
+        -1.6886069774627686
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.16049382716049382
+    },
+    {
+      "episode_index": 78,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 44,
+      "frames": 44,
+      "duration_s": 8.8,
+      "trajectory_length_m": 1.1123431055787696,
+      "displacement_m": 1.05774524614579,
+      "absolute_yaw_change_rad": 2.3187266031848353,
+      "net_yaw_change_rad": -2.098422352467672,
+      "start_xyyaw": [
+        -0.5412449836730957,
+        4.633469104766846,
+        -2.3415699005126953
+      ],
+      "end_xyyaw": [
+        -0.6941530108451843,
+        5.680103778839111,
+        1.8431930541992188
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.1590909090909091
+    },
+    {
+      "episode_index": 78,
+      "stage": "nav_to_place",
+      "start_frame": 82,
+      "stop_frame_exclusive": 174,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.7022865576867763,
+      "displacement_m": 1.9904929404181777,
+      "absolute_yaw_change_rad": 4.135421697293417,
+      "net_yaw_change_rad": 3.1101693550692957,
+      "start_xyyaw": [
+        -0.6868789792060852,
+        5.669670104980469,
+        1.8451189994812012
+      ],
+      "end_xyyaw": [
+        -0.30270299315452576,
+        3.7166030406951904,
+        -1.3278969526290894
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.16304347826086957
+    },
+    {
+      "episode_index": 79,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 45,
+      "frames": 45,
+      "duration_s": 9.0,
+      "trajectory_length_m": 1.3517122618395996,
+      "displacement_m": 0.7085230630388026,
+      "absolute_yaw_change_rad": 3.0384408235549927,
+      "net_yaw_change_rad": 2.7581249475479126,
+      "start_xyyaw": [
+        -0.44233599305152893,
+        5.39686918258667,
+        -0.9370499849319458
+      ],
+      "end_xyyaw": [
+        -0.5615739822387695,
+        6.095286846160889,
+        1.8210749626159668
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 79,
+      "stage": "nav_to_place",
+      "start_frame": 83,
+      "stop_frame_exclusive": 191,
+      "frames": 108,
+      "duration_s": 21.6,
+      "trajectory_length_m": 2.808214094335475,
+      "displacement_m": 2.098224264810901,
+      "absolute_yaw_change_rad": 5.044571701680319,
+      "net_yaw_change_rad": 3.018201295529501,
+      "start_xyyaw": [
+        -0.5582659840583801,
+        6.101836204528809,
+        1.823762059211731
+      ],
+      "end_xyyaw": [
+        -0.39792901277542114,
+        4.00974702835083,
+        -1.4412219524383545
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.1388888888888889
+    },
+    {
+      "episode_index": 80,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 24,
+      "frames": 24,
+      "duration_s": 4.8,
+      "trajectory_length_m": 0.9817862215778883,
+      "displacement_m": 0.9299907209209479,
+      "absolute_yaw_change_rad": 0.8460817337036133,
+      "net_yaw_change_rad": -0.20674610137939453,
+      "start_xyyaw": [
+        -0.7593700289726257,
+        5.001730918884277,
+        2.057723045349121
+      ],
+      "end_xyyaw": [
+        -0.9085909724235535,
+        5.919672012329102,
+        1.8509769439697266
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 80,
+      "stage": "nav_to_place",
+      "start_frame": 60,
+      "stop_frame_exclusive": 150,
+      "frames": 90,
+      "duration_s": 18.0,
+      "trajectory_length_m": 2.1190396557770477,
+      "displacement_m": 1.6348002008776636,
+      "absolute_yaw_change_rad": 3.457534074783325,
+      "net_yaw_change_rad": -3.0830079317092896,
+      "start_xyyaw": [
+        -0.9074239730834961,
+        5.919528961181641,
+        1.8532569408416748
+      ],
+      "end_xyyaw": [
+        -0.43469899892807007,
+        4.354568004608154,
+        -1.2297509908676147
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.13333333333333333
+    },
+    {
+      "episode_index": 81,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 51,
+      "frames": 51,
+      "duration_s": 10.2,
+      "trajectory_length_m": 0.9868871854735575,
+      "displacement_m": 0.8740408352870904,
+      "absolute_yaw_change_rad": 2.977803651486532,
+      "net_yaw_change_rad": -2.7917372624026697,
+      "start_xyyaw": [
+        -0.41200101375579834,
+        5.225279808044434,
+        -1.8526060581207275
+      ],
+      "end_xyyaw": [
+        -0.3256640136241913,
+        6.095046043395996,
+        1.638841986656189
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 81,
+      "stage": "nav_to_place",
+      "start_frame": 89,
+      "stop_frame_exclusive": 191,
+      "frames": 102,
+      "duration_s": 20.4,
+      "trajectory_length_m": 3.0201782127567265,
+      "displacement_m": 2.375258136515683,
+      "absolute_yaw_change_rad": 4.426147643719808,
+      "net_yaw_change_rad": -3.1108120679855347,
+      "start_xyyaw": [
+        -0.3211449980735779,
+        6.098528861999512,
+        1.6405450105667114
+      ],
+      "end_xyyaw": [
+        -0.22912099957466125,
+        3.7250540256500244,
+        -1.4702670574188232
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.12745098039215685
+    },
+    {
+      "episode_index": 82,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 38,
+      "frames": 38,
+      "duration_s": 7.6,
+      "trajectory_length_m": 0.9028320878347901,
+      "displacement_m": 0.8358923773629974,
+      "absolute_yaw_change_rad": 1.969985071812765,
+      "net_yaw_change_rad": -1.7073333899127405,
+      "start_xyyaw": [
+        -0.9141719937324524,
+        5.55833101272583,
+        -2.891716957092285
+      ],
+      "end_xyyaw": [
+        -0.8918820023536682,
+        6.39392614364624,
+        1.6841349601745605
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.18421052631578946
+    },
+    {
+      "episode_index": 82,
+      "stage": "nav_to_place",
+      "start_frame": 76,
+      "stop_frame_exclusive": 182,
+      "frames": 106,
+      "duration_s": 21.2,
+      "trajectory_length_m": 2.858977846380588,
+      "displacement_m": 2.4204754542714,
+      "absolute_yaw_change_rad": 4.185946226119995,
+      "net_yaw_change_rad": -3.097949981689453,
+      "start_xyyaw": [
+        -0.8913639783859253,
+        6.401595115661621,
+        1.6836129426956177
+      ],
+      "end_xyyaw": [
+        -0.6053199768066406,
+        3.9980809688568115,
+        -1.4143370389938354
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.1320754716981132
+    },
+    {
+      "episode_index": 83,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 36,
+      "frames": 36,
+      "duration_s": 7.2,
+      "trajectory_length_m": 1.0650727088386827,
+      "displacement_m": 0.9736347721063705,
+      "absolute_yaw_change_rad": 1.4257498979568481,
+      "net_yaw_change_rad": -1.2374440431594849,
+      "start_xyyaw": [
+        -0.8054029941558838,
+        5.109231948852539,
+        3.095931053161621
+      ],
+      "end_xyyaw": [
+        -0.939428985118866,
+        6.0735979080200195,
+        1.8584870100021362
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 83,
+      "stage": "nav_to_place",
+      "start_frame": 74,
+      "stop_frame_exclusive": 186,
+      "frames": 112,
+      "duration_s": 22.4,
+      "trajectory_length_m": 2.994761230792644,
+      "displacement_m": 2.232588104650927,
+      "absolute_yaw_change_rad": 5.4539552370654505,
+      "net_yaw_change_rad": 3.094255272542135,
+      "start_xyyaw": [
+        -0.9362519979476929,
+        6.079533100128174,
+        1.859923005104065
+      ],
+      "end_xyyaw": [
+        -0.46317100524902344,
+        3.8976430892944336,
+        -1.3290070295333862
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 84,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 36,
+      "frames": 36,
+      "duration_s": 7.2,
+      "trajectory_length_m": 0.8140969760680156,
+      "displacement_m": 0.7470631242362219,
+      "absolute_yaw_change_rad": 1.9242722431765955,
+      "net_yaw_change_rad": -1.6203922669040125,
+      "start_xyyaw": [
+        -0.2244430035352707,
+        4.800851821899414,
+        -3.0354130268096924
+      ],
+      "end_xyyaw": [
+        -0.1647229939699173,
+        5.5455241203308105,
+        1.6273800134658813
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 84,
+      "stage": "nav_to_place",
+      "start_frame": 74,
+      "stop_frame_exclusive": 166,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.1980613312669792,
+      "displacement_m": 1.3788773950354205,
+      "absolute_yaw_change_rad": 4.4158212582217615,
+      "net_yaw_change_rad": 2.979827348385946,
+      "start_xyyaw": [
+        -0.16056600213050842,
+        5.555988788604736,
+        1.6269090175628662
+      ],
+      "end_xyyaw": [
+        -0.3922860026359558,
+        4.196721076965332,
+        -1.676448941230774
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.16304347826086957
+    },
+    {
+      "episode_index": 85,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 47,
+      "frames": 47,
+      "duration_s": 9.4,
+      "trajectory_length_m": 1.5150035010244765,
+      "displacement_m": 1.0453235314483942,
+      "absolute_yaw_change_rad": 3.26518876850605,
+      "net_yaw_change_rad": 1.488793060183525,
+      "start_xyyaw": [
+        -0.5676640272140503,
+        5.263460159301758,
+        0.19612999260425568
+      ],
+      "end_xyyaw": [
+        -0.46939000487327576,
+        6.304153919219971,
+        1.6849230527877808
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.19148936170212766
+    },
+    {
+      "episode_index": 85,
+      "stage": "nav_to_place",
+      "start_frame": 84,
+      "stop_frame_exclusive": 208,
+      "frames": 124,
+      "duration_s": 24.8,
+      "trajectory_length_m": 3.4791743406697018,
+      "displacement_m": 2.7272448217658702,
+      "absolute_yaw_change_rad": 5.604394499455587,
+      "net_yaw_change_rad": 2.9810163418399256,
+      "start_xyyaw": [
+        -0.4742799997329712,
+        6.315005779266357,
+        1.6797879934310913
+      ],
+      "end_xyyaw": [
+        -0.7626460194587708,
+        3.6030490398406982,
+        -1.6223809719085693
+      ],
+      "sparse_waypoint_count": 18,
+      "compression_ratio": 0.14516129032258066
+    },
+    {
+      "episode_index": 86,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 36,
+      "frames": 36,
+      "duration_s": 7.2,
+      "trajectory_length_m": 1.308065623118401,
+      "displacement_m": 1.1162907648393285,
+      "absolute_yaw_change_rad": 1.6223199367523193,
+      "net_yaw_change_rad": 0.6979079246520996,
+      "start_xyyaw": [
+        -0.3356040120124817,
+        4.639949798583984,
+        0.8891370296478271
+      ],
+      "end_xyyaw": [
+        -0.16253699362277985,
+        5.742743015289307,
+        1.5870449542999268
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 86,
+      "stage": "nav_to_place",
+      "start_frame": 74,
+      "stop_frame_exclusive": 183,
+      "frames": 109,
+      "duration_s": 21.8,
+      "trajectory_length_m": 2.8311208287925718,
+      "displacement_m": 1.847279136641398,
+      "absolute_yaw_change_rad": 5.717788283024923,
+      "net_yaw_change_rad": 3.046914283429281,
+      "start_xyyaw": [
+        -0.1597599983215332,
+        5.739130020141602,
+        1.590939998626709
+      ],
+      "end_xyyaw": [
+        -0.39078399538993835,
+        3.9063539505004883,
+        -1.6453310251235962
+      ],
+      "sparse_waypoint_count": 17,
+      "compression_ratio": 0.1559633027522936
+    },
+    {
+      "episode_index": 87,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 45,
+      "frames": 45,
+      "duration_s": 9.0,
+      "trajectory_length_m": 0.8439909643781973,
+      "displacement_m": 0.7566609452729128,
+      "absolute_yaw_change_rad": 2.873567525540487,
+      "net_yaw_change_rad": -2.6273433605777186,
+      "start_xyyaw": [
+        -0.8858630061149597,
+        4.8848700523376465,
+        -1.9329099655151367
+      ],
+      "end_xyyaw": [
+        -0.8857600092887878,
+        5.641530990600586,
+        1.722931981086731
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.17777777777777778
+    },
+    {
+      "episode_index": 87,
+      "stage": "nav_to_place",
+      "start_frame": 82,
+      "stop_frame_exclusive": 175,
+      "frames": 93,
+      "duration_s": 18.6,
+      "trajectory_length_m": 2.7322586723184035,
+      "displacement_m": 2.0030120249191348,
+      "absolute_yaw_change_rad": 4.442413155232565,
+      "net_yaw_change_rad": 3.1177213827716272,
+      "start_xyyaw": [
+        -0.8823999762535095,
+        5.637907981872559,
+        1.7253869771957397
+      ],
+      "end_xyyaw": [
+        -0.7076650261878967,
+        3.6425321102142334,
+        -1.4400769472122192
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.15053763440860216
+    },
+    {
+      "episode_index": 88,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 1.1819679059584127,
+      "displacement_m": 0.9312405731666858,
+      "absolute_yaw_change_rad": 1.8651338815689087,
+      "net_yaw_change_rad": 0.8067079782485962,
+      "start_xyyaw": [
+        -0.5097330212593079,
+        4.91263484954834,
+        1.1374050378799438
+      ],
+      "end_xyyaw": [
+        -0.7644169926643372,
+        5.8083720207214355,
+        1.94411301612854
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.20588235294117646
+    },
+    {
+      "episode_index": 88,
+      "stage": "nav_to_place",
+      "start_frame": 71,
+      "stop_frame_exclusive": 163,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.6806095452489904,
+      "displacement_m": 2.0304988969898403,
+      "absolute_yaw_change_rad": 4.33742326894869,
+      "net_yaw_change_rad": 3.0444433132754725,
+      "start_xyyaw": [
+        -0.7614970207214355,
+        5.806660175323486,
+        1.9424129724502563
+      ],
+      "end_xyyaw": [
+        -0.34131601452827454,
+        3.8201119899749756,
+        -1.2963290214538574
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14130434782608695
+    },
+    {
+      "episode_index": 89,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 42,
+      "frames": 42,
+      "duration_s": 8.4,
+      "trajectory_length_m": 1.3709082510395256,
+      "displacement_m": 0.891720045750558,
+      "absolute_yaw_change_rad": 2.794047996401787,
+      "net_yaw_change_rad": 1.8084339946508408,
+      "start_xyyaw": [
+        -0.6858279705047607,
+        4.894632816314697,
+        -0.2087240070104599
+      ],
+      "end_xyyaw": [
+        -0.6350160241127014,
+        5.7849040031433105,
+        1.5997099876403809
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.21428571428571427
+    },
+    {
+      "episode_index": 89,
+      "stage": "nav_to_place",
+      "start_frame": 79,
+      "stop_frame_exclusive": 160,
+      "frames": 81,
+      "duration_s": 16.2,
+      "trajectory_length_m": 1.8165844051441005,
+      "displacement_m": 1.4145670638318937,
+      "absolute_yaw_change_rad": 3.3998509645462036,
+      "net_yaw_change_rad": -3.0712130069732666,
+      "start_xyyaw": [
+        -0.633965015411377,
+        5.784485816955566,
+        1.6053839921951294
+      ],
+      "end_xyyaw": [
+        -0.5738149881362915,
+        4.3711981773376465,
+        -1.4658290147781372
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.14814814814814814
+    },
+    {
+      "episode_index": 90,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 21,
+      "frames": 21,
+      "duration_s": 4.2,
+      "trajectory_length_m": 0.7994695911217649,
+      "displacement_m": 0.7474236616566211,
+      "absolute_yaw_change_rad": 0.554480791091919,
+      "net_yaw_change_rad": 0.18808698654174805,
+      "start_xyyaw": [
+        -0.7423809766769409,
+        4.919967174530029,
+        1.446686029434204
+      ],
+      "end_xyyaw": [
+        -0.6996060013771057,
+        5.666165828704834,
+        1.6347730159759521
+      ],
+      "sparse_waypoint_count": 3,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 90,
+      "stage": "nav_to_place",
+      "start_frame": 58,
+      "stop_frame_exclusive": 150,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.655788693769326,
+      "displacement_m": 1.974515295297503,
+      "absolute_yaw_change_rad": 4.009969417248861,
+      "net_yaw_change_rad": 3.084429208432333,
+      "start_xyyaw": [
+        -0.6963909864425659,
+        5.674077033996582,
+        1.6441830396652222
+      ],
+      "end_xyyaw": [
+        -0.7661110162734985,
+        3.7007930278778076,
+        -1.5545730590820312
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14130434782608695
+    },
+    {
+      "episode_index": 91,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 54,
+      "frames": 54,
+      "duration_s": 10.8,
+      "trajectory_length_m": 1.3188441228882426,
+      "displacement_m": 1.1538868057213345,
+      "absolute_yaw_change_rad": 3.224536363278524,
+      "net_yaw_change_rad": -2.948140327130453,
+      "start_xyyaw": [
+        -0.5765050053596497,
+        5.320261001586914,
+        -1.5655239820480347
+      ],
+      "end_xyyaw": [
+        -0.7253599762916565,
+        6.464506149291992,
+        1.7695209980010986
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 91,
+      "stage": "nav_to_place",
+      "start_frame": 90,
+      "stop_frame_exclusive": 187,
+      "frames": 97,
+      "duration_s": 19.4,
+      "trajectory_length_m": 2.5211217448515146,
+      "displacement_m": 1.9230899384682703,
+      "absolute_yaw_change_rad": 4.3763302008258265,
+      "net_yaw_change_rad": 3.052802387868063,
+      "start_xyyaw": [
+        -0.7247959971427917,
+        6.478511810302734,
+        1.7670769691467285
+      ],
+      "end_xyyaw": [
+        -0.6166009902954102,
+        4.558467864990234,
+        -1.463305950164795
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.15463917525773196
+    },
+    {
+      "episode_index": 92,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 52,
+      "frames": 52,
+      "duration_s": 10.4,
+      "trajectory_length_m": 2.071428043477444,
+      "displacement_m": 1.506908814787654,
+      "absolute_yaw_change_rad": 2.656653642654419,
+      "net_yaw_change_rad": 2.1257580518722534,
+      "start_xyyaw": [
+        -0.7259399890899658,
+        5.031925201416016,
+        -0.6202080249786377
+      ],
+      "end_xyyaw": [
+        -0.5145400166511536,
+        6.523931980133057,
+        1.5055500268936157
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.17307692307692307
+    },
+    {
+      "episode_index": 92,
+      "stage": "nav_to_place",
+      "start_frame": 89,
+      "stop_frame_exclusive": 199,
+      "frames": 110,
+      "duration_s": 22.0,
+      "trajectory_length_m": 3.230397711154173,
+      "displacement_m": 2.5993655804204074,
+      "absolute_yaw_change_rad": 4.621650282536642,
+      "net_yaw_change_rad": -3.1148929595947266,
+      "start_xyyaw": [
+        -0.5111889839172363,
+        6.522128105163574,
+        1.5101269483566284
+      ],
+      "end_xyyaw": [
+        -0.7190650105476379,
+        3.9310879707336426,
+        -1.6047660112380981
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.12727272727272726
+    },
+    {
+      "episode_index": 93,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 29,
+      "frames": 29,
+      "duration_s": 5.8,
+      "trajectory_length_m": 1.3771844824491362,
+      "displacement_m": 1.3321363299280107,
+      "absolute_yaw_change_rad": 0.40519285202026367,
+      "net_yaw_change_rad": 0.007255077362060547,
+      "start_xyyaw": [
+        -0.3667210042476654,
+        5.074892997741699,
+        1.5998209714889526
+      ],
+      "end_xyyaw": [
+        -0.23014000058174133,
+        6.4000091552734375,
+        1.6070760488510132
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.13793103448275862
+    },
+    {
+      "episode_index": 93,
+      "stage": "nav_to_place",
+      "start_frame": 67,
+      "stop_frame_exclusive": 181,
+      "frames": 114,
+      "duration_s": 22.8,
+      "trajectory_length_m": 3.413350457568947,
+      "displacement_m": 2.6895480097779125,
+      "absolute_yaw_change_rad": 5.444104139004843,
+      "net_yaw_change_rad": 3.0104143063174646,
+      "start_xyyaw": [
+        -0.22635599970817566,
+        6.413704872131348,
+        1.6065089702606201
+      ],
+      "end_xyyaw": [
+        -0.5903750061988831,
+        3.7489049434661865,
+        -1.6662620306015015
+      ],
+      "sparse_waypoint_count": 17,
+      "compression_ratio": 0.14912280701754385
+    },
+    {
+      "episode_index": 94,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 49,
+      "frames": 49,
+      "duration_s": 9.8,
+      "trajectory_length_m": 1.6882244351424849,
+      "displacement_m": 1.0871144360811504,
+      "absolute_yaw_change_rad": 2.7780123353004456,
+      "net_yaw_change_rad": 2.4960400462150574,
+      "start_xyyaw": [
+        -0.8861039876937866,
+        5.245903015136719,
+        -0.9071620106697083
+      ],
+      "end_xyyaw": [
+        -0.793474018573761,
+        6.329063892364502,
+        1.5888780355453491
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.1836734693877551
+    },
+    {
+      "episode_index": 94,
+      "stage": "nav_to_place",
+      "start_frame": 87,
+      "stop_frame_exclusive": 199,
+      "frames": 112,
+      "duration_s": 22.4,
+      "trajectory_length_m": 3.278884750668324,
+      "displacement_m": 2.652005109606431,
+      "absolute_yaw_change_rad": 4.986646000538961,
+      "net_yaw_change_rad": 3.1285343805896204,
+      "start_xyyaw": [
+        -0.7889649868011475,
+        6.318747043609619,
+        1.5859099626541138
+      ],
+      "end_xyyaw": [
+        -0.8904640078544617,
+        3.668684959411621,
+        -1.568740963935852
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.13392857142857142
+    },
+    {
+      "episode_index": 95,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 35,
+      "frames": 35,
+      "duration_s": 7.0,
+      "trajectory_length_m": 1.4082851830485452,
+      "displacement_m": 1.3563807121171685,
+      "absolute_yaw_change_rad": 1.1174581050872803,
+      "net_yaw_change_rad": -0.6006338596343994,
+      "start_xyyaw": [
+        -0.5236669778823853,
+        4.834217071533203,
+        2.206044912338257
+      ],
+      "end_xyyaw": [
+        -0.3862000107765198,
+        6.1836137771606445,
+        1.6054110527038574
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 95,
+      "stage": "nav_to_place",
+      "start_frame": 73,
+      "stop_frame_exclusive": 176,
+      "frames": 103,
+      "duration_s": 20.6,
+      "trajectory_length_m": 2.9182508245142347,
+      "displacement_m": 2.285476689571602,
+      "absolute_yaw_change_rad": 4.694256607686178,
+      "net_yaw_change_rad": 2.962590281163351,
+      "start_xyyaw": [
+        -0.3816030025482178,
+        6.170834064483643,
+        1.6081700325012207
+      ],
+      "end_xyyaw": [
+        -0.8217530250549316,
+        3.9281411170959473,
+        -1.7124249935150146
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.1553398058252427
+    },
+    {
+      "episode_index": 96,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 54,
+      "frames": 54,
+      "duration_s": 10.8,
+      "trajectory_length_m": 1.4001474660289923,
+      "displacement_m": 1.3198599790386119,
+      "absolute_yaw_change_rad": 3.0907244125949305,
+      "net_yaw_change_rad": -2.883424226437704,
+      "start_xyyaw": [
+        -0.8957579731941223,
+        5.186030864715576,
+        -1.8322930335998535
+      ],
+      "end_xyyaw": [
+        -0.7862020134925842,
+        6.501336097717285,
+        1.5674680471420288
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.18518518518518517
+    },
+    {
+      "episode_index": 96,
+      "stage": "nav_to_place",
+      "start_frame": 91,
+      "stop_frame_exclusive": 189,
+      "frames": 98,
+      "duration_s": 19.6,
+      "trajectory_length_m": 2.542392083676332,
+      "displacement_m": 2.1080584354399723,
+      "absolute_yaw_change_rad": 3.8374805450439453,
+      "net_yaw_change_rad": -3.087800979614258,
+      "start_xyyaw": [
+        -0.7843130230903625,
+        6.501061916351318,
+        1.5645740032196045
+      ],
+      "end_xyyaw": [
+        -0.7776679992675781,
+        4.393013954162598,
+        -1.5232269763946533
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.12244897959183673
+    },
+    {
+      "episode_index": 97,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 1.0349794620813597,
+      "displacement_m": 0.9652942696163493,
+      "absolute_yaw_change_rad": 1.0959419012069702,
+      "net_yaw_change_rad": -0.6687668561935425,
+      "start_xyyaw": [
+        -0.36073601245880127,
+        5.136736869812012,
+        2.387049913406372
+      ],
+      "end_xyyaw": [
+        -0.40268900990486145,
+        6.101119041442871,
+        1.7182830572128296
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.14705882352941177
+    },
+    {
+      "episode_index": 97,
+      "stage": "nav_to_place",
+      "start_frame": 70,
+      "stop_frame_exclusive": 156,
+      "frames": 86,
+      "duration_s": 17.2,
+      "trajectory_length_m": 2.2215829468334127,
+      "displacement_m": 1.6313051206510236,
+      "absolute_yaw_change_rad": 3.7783259789096277,
+      "net_yaw_change_rad": 2.972226325665609,
+      "start_xyyaw": [
+        -0.3989979922771454,
+        6.09299898147583,
+        1.717121958732605
+      ],
+      "end_xyyaw": [
+        -0.5487419962882996,
+        4.468581199645996,
+        -1.593837022781372
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.13953488372093023
+    },
+    {
+      "episode_index": 98,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 26,
+      "frames": 26,
+      "duration_s": 5.2,
+      "trajectory_length_m": 0.6737182090145526,
+      "displacement_m": 0.6100266314463095,
+      "absolute_yaw_change_rad": 1.1161881685256958,
+      "net_yaw_change_rad": -0.6853901147842407,
+      "start_xyyaw": [
+        -0.5740429759025574,
+        5.161084175109863,
+        2.511815071105957
+      ],
+      "end_xyyaw": [
+        -0.6200000047683716,
+        5.7693772315979,
+        1.8264249563217163
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.15384615384615385
+    },
+    {
+      "episode_index": 98,
+      "stage": "nav_to_place",
+      "start_frame": 64,
+      "stop_frame_exclusive": 148,
+      "frames": 84,
+      "duration_s": 16.8,
+      "trajectory_length_m": 2.3520920179321103,
+      "displacement_m": 1.6606681769647271,
+      "absolute_yaw_change_rad": 3.925490204487936,
+      "net_yaw_change_rad": 3.0037363211261194,
+      "start_xyyaw": [
+        -0.6115210056304932,
+        5.754453182220459,
+        1.8281810283660889
+      ],
+      "end_xyyaw": [
+        -0.50587397813797,
+        4.097148895263672,
+        -1.451267957687378
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.15476190476190477
+    },
+    {
+      "episode_index": 99,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 44,
+      "frames": 44,
+      "duration_s": 8.8,
+      "trajectory_length_m": 1.2967347567622238,
+      "displacement_m": 0.6900665644022216,
+      "absolute_yaw_change_rad": 2.8736249208450317,
+      "net_yaw_change_rad": 2.4838149547576904,
+      "start_xyyaw": [
+        -0.8342139720916748,
+        5.522792816162109,
+        -0.8185139894485474
+      ],
+      "end_xyyaw": [
+        -0.8291820287704468,
+        6.212841033935547,
+        1.665300965309143
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.18181818181818182
+    },
+    {
+      "episode_index": 99,
+      "stage": "nav_to_place",
+      "start_frame": 80,
+      "stop_frame_exclusive": 172,
+      "frames": 92,
+      "duration_s": 18.4,
+      "trajectory_length_m": 2.3138105463221286,
+      "displacement_m": 1.6735715721095534,
+      "absolute_yaw_change_rad": 4.649813357983724,
+      "net_yaw_change_rad": 3.09301728407015,
+      "start_xyyaw": [
+        -0.8271740078926086,
+        6.22561502456665,
+        1.6696699857711792
+      ],
+      "end_xyyaw": [
+        -0.8493800163269043,
+        4.552190780639648,
+        -1.5204980373382568
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.16304347826086957
+    },
+    {
+      "episode_index": 100,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 27,
+      "frames": 27,
+      "duration_s": 5.4,
+      "trajectory_length_m": 1.0017984625181426,
+      "displacement_m": 0.9772643626554319,
+      "absolute_yaw_change_rad": 1.17231285572052,
+      "net_yaw_change_rad": -0.3501230478286743,
+      "start_xyyaw": [
+        -0.8873909711837769,
+        5.002172946929932,
+        1.9582220315933228
+      ],
+      "end_xyyaw": [
+        -0.8150749802589417,
+        5.976758003234863,
+        1.6080989837646484
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.18518518518518517
+    },
+    {
+      "episode_index": 100,
+      "stage": "nav_to_place",
+      "start_frame": 65,
+      "stop_frame_exclusive": 152,
+      "frames": 87,
+      "duration_s": 17.4,
+      "trajectory_length_m": 2.143029627987563,
+      "displacement_m": 1.4771058951643368,
+      "absolute_yaw_change_rad": 3.94792348543276,
+      "net_yaw_change_rad": 3.124491278325216,
+      "start_xyyaw": [
+        -0.8123049736022949,
+        5.991628170013428,
+        1.6081249713897705
+      ],
+      "end_xyyaw": [
+        -0.8605620265007019,
+        4.515310764312744,
+        -1.5505690574645996
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.14942528735632185
+    },
+    {
+      "episode_index": 101,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 26,
+      "frames": 26,
+      "duration_s": 5.2,
+      "trajectory_length_m": 1.1353863883988464,
+      "displacement_m": 1.117498179354158,
+      "absolute_yaw_change_rad": 0.6881659030914307,
+      "net_yaw_change_rad": 0.24755001068115234,
+      "start_xyyaw": [
+        -0.9704999923706055,
+        5.195765018463135,
+        1.420451045036316
+      ],
+      "end_xyyaw": [
+        -0.9196810126304626,
+        6.312107086181641,
+        1.6680010557174683
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.15384615384615385
+    },
+    {
+      "episode_index": 101,
+      "stage": "nav_to_place",
+      "start_frame": 63,
+      "stop_frame_exclusive": 162,
+      "frames": 99,
+      "duration_s": 19.8,
+      "trajectory_length_m": 2.5724905337913637,
+      "displacement_m": 1.890538191748203,
+      "absolute_yaw_change_rad": 4.774756495152609,
+      "net_yaw_change_rad": -3.1154329776763916,
+      "start_xyyaw": [
+        -0.9117299914360046,
+        6.3023481369018555,
+        1.6602619886398315
+      ],
+      "end_xyyaw": [
+        -0.8252530097961426,
+        4.413788795471191,
+        -1.45517098903656
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.16161616161616163
+    },
+    {
+      "episode_index": 102,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 27,
+      "frames": 27,
+      "duration_s": 5.4,
+      "trajectory_length_m": 1.1720271570898113,
+      "displacement_m": 1.0800762956025085,
+      "absolute_yaw_change_rad": 1.2073599100112915,
+      "net_yaw_change_rad": 0.25048601627349854,
+      "start_xyyaw": [
+        -0.5960419774055481,
+        5.368121147155762,
+        1.465404987335205
+      ],
+      "end_xyyaw": [
+        -0.7556049823760986,
+        6.436346054077148,
+        1.7158910036087036
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.18518518518518517
+    },
+    {
+      "episode_index": 102,
+      "stage": "nav_to_place",
+      "start_frame": 64,
+      "stop_frame_exclusive": 180,
+      "frames": 116,
+      "duration_s": 23.2,
+      "trajectory_length_m": 3.433505199576144,
+      "displacement_m": 2.8679082364694617,
+      "absolute_yaw_change_rad": 4.672643009816305,
+      "net_yaw_change_rad": 3.133611265813009,
+      "start_xyyaw": [
+        -0.753957986831665,
+        6.454168796539307,
+        1.7181910276412964
+      ],
+      "end_xyyaw": [
+        -0.49028700590133667,
+        3.598407030105591,
+        -1.4313830137252808
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.12931034482758622
+    },
+    {
+      "episode_index": 103,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 22,
+      "frames": 22,
+      "duration_s": 4.4,
+      "trajectory_length_m": 0.8571016661543644,
+      "displacement_m": 0.8051833279589725,
+      "absolute_yaw_change_rad": 0.49110400676727295,
+      "net_yaw_change_rad": -0.026805996894836426,
+      "start_xyyaw": [
+        -0.3909969925880432,
+        5.2076849937438965,
+        1.7290400266647339
+      ],
+      "end_xyyaw": [
+        -0.35424599051475525,
+        6.01202917098999,
+        1.7022340297698975
+      ],
+      "sparse_waypoint_count": 3,
+      "compression_ratio": 0.13636363636363635
+    },
+    {
+      "episode_index": 103,
+      "stage": "nav_to_place",
+      "start_frame": 60,
+      "stop_frame_exclusive": 146,
+      "frames": 86,
+      "duration_s": 17.2,
+      "trajectory_length_m": 2.2018460648274405,
+      "displacement_m": 1.5408089861170124,
+      "absolute_yaw_change_rad": 4.1351251045810145,
+      "net_yaw_change_rad": 2.967033330594198,
+      "start_xyyaw": [
+        -0.3507930040359497,
+        6.012578010559082,
+        1.7027080059051514
+      ],
+      "end_xyyaw": [
+        -0.5221830010414124,
+        4.481330871582031,
+        -1.6134439706802368
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.16279069767441862
+    },
+    {
+      "episode_index": 104,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 31,
+      "frames": 31,
+      "duration_s": 6.2,
+      "trajectory_length_m": 0.8526105390175139,
+      "displacement_m": 0.7787225838064394,
+      "absolute_yaw_change_rad": 1.4201785326004028,
+      "net_yaw_change_rad": -1.0372639894485474,
+      "start_xyyaw": [
+        -0.4761109948158264,
+        5.034066200256348,
+        2.778743028640747
+      ],
+      "end_xyyaw": [
+        -0.48314499855041504,
+        5.8127570152282715,
+        1.7414790391921997
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.1935483870967742
+    },
+    {
+      "episode_index": 104,
+      "stage": "nav_to_place",
+      "start_frame": 69,
+      "stop_frame_exclusive": 166,
+      "frames": 97,
+      "duration_s": 19.4,
+      "trajectory_length_m": 2.786100273726878,
+      "displacement_m": 2.161884822269493,
+      "absolute_yaw_change_rad": 4.331571404133932,
+      "net_yaw_change_rad": 3.0045693556415003,
+      "start_xyyaw": [
+        -0.478736013174057,
+        5.82551383972168,
+        1.749027967453003
+      ],
+      "end_xyyaw": [
+        -0.4856339991092682,
+        3.663640022277832,
+        -1.529587984085083
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14432989690721648
+    },
+    {
+      "episode_index": 105,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 43,
+      "frames": 43,
+      "duration_s": 8.6,
+      "trajectory_length_m": 1.2104038494232607,
+      "displacement_m": 1.1076233018924955,
+      "absolute_yaw_change_rad": 2.7119508425342005,
+      "net_yaw_change_rad": -1.805340353642599,
+      "start_xyyaw": [
+        -0.021832000464200974,
+        5.394392013549805,
+        -2.9716949462890625
+      ],
+      "end_xyyaw": [
+        -0.011380000039935112,
+        6.5019659996032715,
+        1.5061500072479248
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.18604651162790697
+    },
+    {
+      "episode_index": 105,
+      "stage": "nav_to_place",
+      "start_frame": 79,
+      "stop_frame_exclusive": 195,
+      "frames": 116,
+      "duration_s": 23.2,
+      "trajectory_length_m": 3.3979097858554064,
+      "displacement_m": 2.638894541564923,
+      "absolute_yaw_change_rad": 5.418227020894186,
+      "net_yaw_change_rad": -3.1188080310821533,
+      "start_xyyaw": [
+        -0.010108999907970428,
+        6.507697105407715,
+        1.507101058959961
+      ],
+      "end_xyyaw": [
+        -0.27347901463508606,
+        3.8819780349731445,
+        -1.6117069721221924
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.13793103448275862
+    },
+    {
+      "episode_index": 106,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 30,
+      "frames": 30,
+      "duration_s": 6.0,
+      "trajectory_length_m": 1.0508113299436752,
+      "displacement_m": 0.7740249255810158,
+      "absolute_yaw_change_rad": 1.491819143295288,
+      "net_yaw_change_rad": 0.5730669498443604,
+      "start_xyyaw": [
+        -0.3278129994869232,
+        5.68515682220459,
+        1.1164720058441162
+      ],
+      "end_xyyaw": [
+        -0.37651899456977844,
+        6.457647800445557,
+        1.6895389556884766
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 106,
+      "stage": "nav_to_place",
+      "start_frame": 67,
+      "stop_frame_exclusive": 167,
+      "frames": 100,
+      "duration_s": 20.0,
+      "trajectory_length_m": 2.7762545227699955,
+      "displacement_m": 2.176800841242836,
+      "absolute_yaw_change_rad": 4.355652038251058,
+      "net_yaw_change_rad": 3.085502330456869,
+      "start_xyyaw": [
+        -0.37300801277160645,
+        6.452178955078125,
+        1.6965889930725098
+      ],
+      "end_xyyaw": [
+        -0.33669498562812805,
+        4.275681018829346,
+        -1.5010939836502075
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14
+    },
+    {
+      "episode_index": 107,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 20,
+      "frames": 20,
+      "duration_s": 4.0,
+      "trajectory_length_m": 0.6486888680752585,
+      "displacement_m": 0.6133450693877044,
+      "absolute_yaw_change_rad": 0.8806437253952026,
+      "net_yaw_change_rad": -0.5424519777297974,
+      "start_xyyaw": [
+        -0.28198400139808655,
+        5.465330123901367,
+        2.2799079418182373
+      ],
+      "end_xyyaw": [
+        -0.4326229989528656,
+        6.05988883972168,
+        1.73745596408844
+      ],
+      "sparse_waypoint_count": 4,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 107,
+      "stage": "nav_to_place",
+      "start_frame": 57,
+      "stop_frame_exclusive": 147,
+      "frames": 90,
+      "duration_s": 18.0,
+      "trajectory_length_m": 2.397984423328195,
+      "displacement_m": 1.818515560496745,
+      "absolute_yaw_change_rad": 3.972249690686361,
+      "net_yaw_change_rad": -3.1370381116867065,
+      "start_xyyaw": [
+        -0.43456900119781494,
+        6.066823959350586,
+        1.7392940521240234
+      ],
+      "end_xyyaw": [
+        -0.23649199306964874,
+        4.259128093719482,
+        -1.397744059562683
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.13333333333333333
+    },
+    {
+      "episode_index": 108,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 46,
+      "frames": 46,
+      "duration_s": 9.2,
+      "trajectory_length_m": 1.4698961581922936,
+      "displacement_m": 0.8990395646427526,
+      "absolute_yaw_change_rad": 2.681588888168335,
+      "net_yaw_change_rad": 2.3887410163879395,
+      "start_xyyaw": [
+        -0.29140499234199524,
+        5.126183986663818,
+        -0.5902429819107056
+      ],
+      "end_xyyaw": [
+        -0.3744080066680908,
+        6.021383762359619,
+        1.7984980344772339
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.1956521739130435
+    },
+    {
+      "episode_index": 108,
+      "stage": "nav_to_place",
+      "start_frame": 82,
+      "stop_frame_exclusive": 177,
+      "frames": 95,
+      "duration_s": 19.0,
+      "trajectory_length_m": 2.7788489963289926,
+      "displacement_m": 2.1659788688321955,
+      "absolute_yaw_change_rad": 4.191325489674703,
+      "net_yaw_change_rad": 2.9998932520495813,
+      "start_xyyaw": [
+        -0.367931991815567,
+        6.003052234649658,
+        1.8077960014343262
+      ],
+      "end_xyyaw": [
+        -0.29945799708366394,
+        3.83815598487854,
+        -1.4754960536956787
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.1368421052631579
+    },
+    {
+      "episode_index": 109,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 37,
+      "frames": 37,
+      "duration_s": 7.4,
+      "trajectory_length_m": 0.959133632811508,
+      "displacement_m": 0.4215114929309109,
+      "absolute_yaw_change_rad": 2.609751909971237,
+      "net_yaw_change_rad": 2.2932499945163727,
+      "start_xyyaw": [
+        -0.3083919882774353,
+        5.401193141937256,
+        -0.37511399388313293
+      ],
+      "end_xyyaw": [
+        -0.387921005487442,
+        5.815134048461914,
+        1.9181360006332397
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.1891891891891892
+    },
+    {
+      "episode_index": 109,
+      "stage": "nav_to_place",
+      "start_frame": 75,
+      "stop_frame_exclusive": 154,
+      "frames": 79,
+      "duration_s": 15.8,
+      "trajectory_length_m": 1.9937415966539105,
+      "displacement_m": 1.3889508274005784,
+      "absolute_yaw_change_rad": 3.911212984715597,
+      "net_yaw_change_rad": 2.867413345967428,
+      "start_xyyaw": [
+        -0.38286900520324707,
+        5.8058319091796875,
+        1.9170039892196655
+      ],
+      "end_xyyaw": [
+        -0.3827829957008362,
+        4.416881084442139,
+        -1.4987679719924927
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.1518987341772152
+    },
+    {
+      "episode_index": 110,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 32,
+      "frames": 32,
+      "duration_s": 6.4,
+      "trajectory_length_m": 1.0440254400460953,
+      "displacement_m": 0.8530883268349132,
+      "absolute_yaw_change_rad": 1.4389187693595886,
+      "net_yaw_change_rad": 0.7098129391670227,
+      "start_xyyaw": [
+        -0.7073310017585754,
+        4.832557201385498,
+        0.7816140055656433
+      ],
+      "end_xyyaw": [
+        -0.47878000140190125,
+        5.6544599533081055,
+        1.491426944732666
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.1875
+    },
+    {
+      "episode_index": 110,
+      "stage": "nav_to_place",
+      "start_frame": 70,
+      "stop_frame_exclusive": 165,
+      "frames": 95,
+      "duration_s": 19.0,
+      "trajectory_length_m": 2.534386824828968,
+      "displacement_m": 1.8830984557834596,
+      "absolute_yaw_change_rad": 4.420292441044943,
+      "net_yaw_change_rad": -3.1354429721832275,
+      "start_xyyaw": [
+        -0.47800299525260925,
+        5.658492088317871,
+        1.4869359731674194
+      ],
+      "end_xyyaw": [
+        -0.7280679941177368,
+        3.7920711040496826,
+        -1.648506999015808
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14736842105263157
+    },
+    {
+      "episode_index": 111,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 33,
+      "frames": 33,
+      "duration_s": 6.6,
+      "trajectory_length_m": 1.054673507155973,
+      "displacement_m": 0.9763080524157872,
+      "absolute_yaw_change_rad": 1.3434211015701294,
+      "net_yaw_change_rad": -1.0041650533676147,
+      "start_xyyaw": [
+        -0.7338430285453796,
+        4.886589050292969,
+        2.7488110065460205
+      ],
+      "end_xyyaw": [
+        -0.7785249948501587,
+        5.861874103546143,
+        1.7446459531784058
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.18181818181818182
+    },
+    {
+      "episode_index": 111,
+      "stage": "nav_to_place",
+      "start_frame": 71,
+      "stop_frame_exclusive": 162,
+      "frames": 91,
+      "duration_s": 18.2,
+      "trajectory_length_m": 2.463099610601519,
+      "displacement_m": 1.8822617482472184,
+      "absolute_yaw_change_rad": 4.290864650403158,
+      "net_yaw_change_rad": 3.120766345654623,
+      "start_xyyaw": [
+        -0.7763950228691101,
+        5.8776469230651855,
+        1.7438700199127197
+      ],
+      "end_xyyaw": [
+        -0.5891180038452148,
+        4.004724979400635,
+        -1.4185489416122437
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.15384615384615385
+    },
+    {
+      "episode_index": 112,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 33,
+      "frames": 33,
+      "duration_s": 6.6,
+      "trajectory_length_m": 0.9568332174939072,
+      "displacement_m": 0.8498580497269028,
+      "absolute_yaw_change_rad": 1.501465916633606,
+      "net_yaw_change_rad": -1.1316100358963013,
+      "start_xyyaw": [
+        -0.3585450053215027,
+        5.343544006347656,
+        2.870619058609009
+      ],
+      "end_xyyaw": [
+        -0.39563900232315063,
+        6.192592144012451,
+        1.7390090227127075
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.18181818181818182
+    },
+    {
+      "episode_index": 112,
+      "stage": "nav_to_place",
+      "start_frame": 71,
+      "stop_frame_exclusive": 176,
+      "frames": 105,
+      "duration_s": 21.0,
+      "trajectory_length_m": 2.982136963773818,
+      "displacement_m": 2.3958305531107187,
+      "absolute_yaw_change_rad": 4.549388114606039,
+      "net_yaw_change_rad": 2.948650304471151,
+      "start_xyyaw": [
+        -0.3976469933986664,
+        6.206028938293457,
+        1.7416960000991821
+      ],
+      "end_xyyaw": [
+        -0.4457859992980957,
+        3.8106820583343506,
+        -1.592839002609253
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.14285714285714285
+    },
+    {
+      "episode_index": 113,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 40,
+      "frames": 40,
+      "duration_s": 8.0,
+      "trajectory_length_m": 1.2256075533955042,
+      "displacement_m": 0.7051756592449835,
+      "absolute_yaw_change_rad": 2.60764080286026,
+      "net_yaw_change_rad": 1.9990609288215637,
+      "start_xyyaw": [
+        -0.3452880084514618,
+        5.2404561042785645,
+        -0.5157089829444885
+      ],
+      "end_xyyaw": [
+        -0.19020800292491913,
+        5.928368091583252,
+        1.4833519458770752
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 113,
+      "stage": "nav_to_place",
+      "start_frame": 78,
+      "stop_frame_exclusive": 172,
+      "frames": 94,
+      "duration_s": 18.8,
+      "trajectory_length_m": 2.6962387183554846,
+      "displacement_m": 2.0226092396234248,
+      "absolute_yaw_change_rad": 4.304978553448812,
+      "net_yaw_change_rad": -3.1383990049362183,
+      "start_xyyaw": [
+        -0.1911650002002716,
+        5.917118072509766,
+        1.4877129793167114
+      ],
+      "end_xyyaw": [
+        -0.45484599471092224,
+        3.9117701053619385,
+        -1.6506860256195068
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.1595744680851064
+    },
+    {
+      "episode_index": 114,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 33,
+      "frames": 33,
+      "duration_s": 6.6,
+      "trajectory_length_m": 1.040297515688008,
+      "displacement_m": 0.6282938984141407,
+      "absolute_yaw_change_rad": 2.0744698643684387,
+      "net_yaw_change_rad": 1.1465699672698975,
+      "start_xyyaw": [
+        -0.3343389928340912,
+        5.388627052307129,
+        0.38661301136016846
+      ],
+      "end_xyyaw": [
+        -0.3690969944000244,
+        6.015958786010742,
+        1.533182978630066
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.21212121212121213
+    },
+    {
+      "episode_index": 114,
+      "stage": "nav_to_place",
+      "start_frame": 69,
+      "stop_frame_exclusive": 159,
+      "frames": 90,
+      "duration_s": 18.0,
+      "trajectory_length_m": 2.112233244746071,
+      "displacement_m": 1.7535198706798298,
+      "absolute_yaw_change_rad": 3.4760769605636597,
+      "net_yaw_change_rad": -3.0618770122528076,
+      "start_xyyaw": [
+        -0.3667849898338318,
+        6.020872116088867,
+        1.5318360328674316
+      ],
+      "end_xyyaw": [
+        -0.3766930103302002,
+        4.267380237579346,
+        -1.530040979385376
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.13333333333333333
+    },
+    {
+      "episode_index": 115,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 50,
+      "frames": 50,
+      "duration_s": 10.0,
+      "trajectory_length_m": 1.622971915108607,
+      "displacement_m": 1.0214440255443789,
+      "absolute_yaw_change_rad": 3.3503339290618896,
+      "net_yaw_change_rad": 2.9678940773010254,
+      "start_xyyaw": [
+        -0.6159089803695679,
+        5.227334022521973,
+        -1.4436570405960083
+      ],
+      "end_xyyaw": [
+        -0.47358399629592896,
+        6.238813877105713,
+        1.524237036705017
+      ],
+      "sparse_waypoint_count": 10,
+      "compression_ratio": 0.2
+    },
+    {
+      "episode_index": 115,
+      "stage": "nav_to_place",
+      "start_frame": 87,
+      "stop_frame_exclusive": 190,
+      "frames": 103,
+      "duration_s": 20.6,
+      "trajectory_length_m": 2.8527213995697,
+      "displacement_m": 2.4676785255935783,
+      "absolute_yaw_change_rad": 3.9575726985931396,
+      "net_yaw_change_rad": -3.0768150091171265,
+      "start_xyyaw": [
+        -0.46820899844169617,
+        6.247097969055176,
+        1.528601050376892
+      ],
+      "end_xyyaw": [
+        -0.5117719769477844,
+        3.779803991317749,
+        -1.5482139587402344
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.13592233009708737
+    },
+    {
+      "episode_index": 116,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 51,
+      "frames": 51,
+      "duration_s": 10.2,
+      "trajectory_length_m": 1.911889510822033,
+      "displacement_m": 1.3875335573715013,
+      "absolute_yaw_change_rad": 2.712648034095764,
+      "net_yaw_change_rad": 2.147476017475128,
+      "start_xyyaw": [
+        -0.6142899990081787,
+        4.77036714553833,
+        -0.28160399198532104
+      ],
+      "end_xyyaw": [
+        -0.8919379711151123,
+        6.129837989807129,
+        1.8658720254898071
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 116,
+      "stage": "nav_to_place",
+      "start_frame": 88,
+      "stop_frame_exclusive": 195,
+      "frames": 107,
+      "duration_s": 21.4,
+      "trajectory_length_m": 3.0786451761983806,
+      "displacement_m": 2.4308046696063883,
+      "absolute_yaw_change_rad": 4.497105185185568,
+      "net_yaw_change_rad": 3.0107412973987024,
+      "start_xyyaw": [
+        -0.8892170190811157,
+        6.124743938446045,
+        1.8623770475387573
+      ],
+      "end_xyyaw": [
+        -0.6049000024795532,
+        3.7106239795684814,
+        -1.4100669622421265
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.14018691588785046
+    },
+    {
+      "episode_index": 117,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 37,
+      "frames": 37,
+      "duration_s": 7.4,
+      "trajectory_length_m": 0.97786946396557,
+      "displacement_m": 0.42382116966617656,
+      "absolute_yaw_change_rad": 2.5694777965545654,
+      "net_yaw_change_rad": 1.9089099764823914,
+      "start_xyyaw": [
+        -0.7935490012168884,
+        5.502799034118652,
+        -0.18881100416183472
+      ],
+      "end_xyyaw": [
+        -0.840224027633667,
+        5.924042224884033,
+        1.7200989723205566
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.21621621621621623
+    },
+    {
+      "episode_index": 117,
+      "stage": "nav_to_place",
+      "start_frame": 75,
+      "stop_frame_exclusive": 157,
+      "frames": 82,
+      "duration_s": 16.4,
+      "trajectory_length_m": 2.1005361234990994,
+      "displacement_m": 1.4811681491220798,
+      "absolute_yaw_change_rad": 3.8429641167270105,
+      "net_yaw_change_rad": 2.9934362808810633,
+      "start_xyyaw": [
+        -0.8327029943466187,
+        5.920661926269531,
+        1.7221909761428833
+      ],
+      "end_xyyaw": [
+        -0.899101972579956,
+        4.440982818603516,
+        -1.5675580501556396
+      ],
+      "sparse_waypoint_count": 11,
+      "compression_ratio": 0.13414634146341464
+    },
+    {
+      "episode_index": 118,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 36,
+      "frames": 36,
+      "duration_s": 7.2,
+      "trajectory_length_m": 0.9860804333018378,
+      "displacement_m": 0.8930476915795793,
+      "absolute_yaw_change_rad": 1.7539101839065552,
+      "net_yaw_change_rad": -1.4236119985580444,
+      "start_xyyaw": [
+        -0.6884859800338745,
+        5.439754009246826,
+        3.00504994392395
+      ],
+      "end_xyyaw": [
+        -0.6216729879379272,
+        6.330298900604248,
+        1.5814379453659058
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 118,
+      "stage": "nav_to_place",
+      "start_frame": 73,
+      "stop_frame_exclusive": 169,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.6129548169238888,
+      "displacement_m": 1.9312460264853204,
+      "absolute_yaw_change_rad": 4.629583183919088,
+      "net_yaw_change_rad": 3.061939303074972,
+      "start_xyyaw": [
+        -0.6214410066604614,
+        6.3335652351379395,
+        1.5808279514312744
+      ],
+      "end_xyyaw": [
+        -0.8382179737091064,
+        4.414524078369141,
+        -1.6404180526733398
+      ],
+      "sparse_waypoint_count": 16,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 119,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 42,
+      "frames": 42,
+      "duration_s": 8.4,
+      "trajectory_length_m": 1.2353853400257884,
+      "displacement_m": 1.146360737566019,
+      "absolute_yaw_change_rad": 2.198596183453695,
+      "net_yaw_change_rad": -1.628100339566366,
+      "start_xyyaw": [
+        -0.2328770011663437,
+        5.115694046020508,
+        -3.0289559364318848
+      ],
+      "end_xyyaw": [
+        -0.14843100309371948,
+        6.25894021987915,
+        1.6261290311813354
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.19047619047619047
+    },
+    {
+      "episode_index": 119,
+      "stage": "nav_to_place",
+      "start_frame": 80,
+      "stop_frame_exclusive": 173,
+      "frames": 93,
+      "duration_s": 18.6,
+      "trajectory_length_m": 2.5231831052847657,
+      "displacement_m": 1.7770432469651976,
+      "absolute_yaw_change_rad": 4.3218380848514,
+      "net_yaw_change_rad": 3.072668258343832,
+      "start_xyyaw": [
+        -0.14592400193214417,
+        6.267784118652344,
+        1.6273030042648315
+      ],
+      "end_xyyaw": [
+        -0.24705499410629272,
+        4.493620872497559,
+        -1.5832140445709229
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.13978494623655913
+    },
+    {
+      "episode_index": 120,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 30,
+      "frames": 30,
+      "duration_s": 6.0,
+      "trajectory_length_m": 0.8882791171981159,
+      "displacement_m": 0.8331961302326129,
+      "absolute_yaw_change_rad": 1.1501696109771729,
+      "net_yaw_change_rad": -0.7997260093688965,
+      "start_xyyaw": [
+        -0.6936579942703247,
+        4.904763221740723,
+        2.1342990398406982
+      ],
+      "end_xyyaw": [
+        -0.3583019971847534,
+        5.667490005493164,
+        1.3345730304718018
+      ],
+      "sparse_waypoint_count": 5,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 120,
+      "stage": "nav_to_place",
+      "start_frame": 67,
+      "stop_frame_exclusive": 165,
+      "frames": 98,
+      "duration_s": 19.6,
+      "trajectory_length_m": 2.562978482411333,
+      "displacement_m": 1.8784021852745663,
+      "absolute_yaw_change_rad": 4.578523103390829,
+      "net_yaw_change_rad": -3.1410380601882935,
+      "start_xyyaw": [
+        -0.35220101475715637,
+        5.676753997802734,
+        1.3378870487213135
+      ],
+      "end_xyyaw": [
+        -0.8787019848823547,
+        3.873647928237915,
+        -1.80315101146698
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.15306122448979592
+    },
+    {
+      "episode_index": 121,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 44,
+      "frames": 44,
+      "duration_s": 8.8,
+      "trajectory_length_m": 1.0212933169149165,
+      "displacement_m": 0.941613971547186,
+      "absolute_yaw_change_rad": 2.496219340954916,
+      "net_yaw_change_rad": -1.9976431767093104,
+      "start_xyyaw": [
+        -0.33971700072288513,
+        5.013474941253662,
+        -2.60329008102417
+      ],
+      "end_xyyaw": [
+        -0.28923800587654114,
+        5.953734874725342,
+        1.682252049446106
+      ],
+      "sparse_waypoint_count": 7,
+      "compression_ratio": 0.1590909090909091
+    },
+    {
+      "episode_index": 121,
+      "stage": "nav_to_place",
+      "start_frame": 82,
+      "stop_frame_exclusive": 175,
+      "frames": 93,
+      "duration_s": 18.6,
+      "trajectory_length_m": 2.5911077356226677,
+      "displacement_m": 1.878904799230009,
+      "absolute_yaw_change_rad": 4.517406288777487,
+      "net_yaw_change_rad": 2.932124201451437,
+      "start_xyyaw": [
+        -0.28633999824523926,
+        5.94631814956665,
+        1.6843570470809937
+      ],
+      "end_xyyaw": [
+        -0.5553029775619507,
+        4.086763858795166,
+        -1.6667040586471558
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.16129032258064516
+    },
+    {
+      "episode_index": 122,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 50,
+      "frames": 50,
+      "duration_s": 10.0,
+      "trajectory_length_m": 1.0017221190820758,
+      "displacement_m": 0.8964019299318673,
+      "absolute_yaw_change_rad": 3.2955153624164026,
+      "net_yaw_change_rad": -2.921215359364645,
+      "start_xyyaw": [
+        -0.6441230177879333,
+        5.215507984161377,
+        -1.732414960861206
+      ],
+      "end_xyyaw": [
+        -0.5547249913215637,
+        6.107440948486328,
+        1.6295549869537354
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.18
+    },
+    {
+      "episode_index": 122,
+      "stage": "nav_to_place",
+      "start_frame": 88,
+      "stop_frame_exclusive": 183,
+      "frames": 95,
+      "duration_s": 19.0,
+      "trajectory_length_m": 2.6414231624176505,
+      "displacement_m": 2.101503864807281,
+      "absolute_yaw_change_rad": 4.182321492825643,
+      "net_yaw_change_rad": 3.1112152973758143,
+      "start_xyyaw": [
+        -0.5480669736862183,
+        6.099143981933594,
+        1.6242320537567139
+      ],
+      "end_xyyaw": [
+        -0.6006060242652893,
+        3.9982969760894775,
+        -1.547737956047058
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.1368421052631579
+    },
+    {
+      "episode_index": 123,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 53,
+      "frames": 53,
+      "duration_s": 10.6,
+      "trajectory_length_m": 1.726410727242903,
+      "displacement_m": 1.1025714395446211,
+      "absolute_yaw_change_rad": 3.854832172393799,
+      "net_yaw_change_rad": 3.1045119762420654,
+      "start_xyyaw": [
+        -0.47141799330711365,
+        5.023660182952881,
+        -1.6272239685058594
+      ],
+      "end_xyyaw": [
+        -0.32244300842285156,
+        6.1161208152771,
+        1.477288007736206
+      ],
+      "sparse_waypoint_count": 11,
+      "compression_ratio": 0.20754716981132076
+    },
+    {
+      "episode_index": 123,
+      "stage": "nav_to_place",
+      "start_frame": 89,
+      "stop_frame_exclusive": 185,
+      "frames": 96,
+      "duration_s": 19.2,
+      "trajectory_length_m": 2.7143540377045547,
+      "displacement_m": 2.0649827414296538,
+      "absolute_yaw_change_rad": 3.9902737776385706,
+      "net_yaw_change_rad": -3.126528024673462,
+      "start_xyyaw": [
+        -0.32152000069618225,
+        6.1208600997924805,
+        1.4808460474014282
+      ],
+      "end_xyyaw": [
+        -0.575797975063324,
+        4.071592807769775,
+        -1.6456819772720337
+      ],
+      "sparse_waypoint_count": 13,
+      "compression_ratio": 0.13541666666666666
+    },
+    {
+      "episode_index": 124,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 49,
+      "frames": 49,
+      "duration_s": 9.8,
+      "trajectory_length_m": 1.1474319595363445,
+      "displacement_m": 0.9470368348962349,
+      "absolute_yaw_change_rad": 2.6429033915149134,
+      "net_yaw_change_rad": -2.4765594641314905,
+      "start_xyyaw": [
+        -0.5922589898109436,
+        5.44358491897583,
+        -2.087390899658203
+      ],
+      "end_xyyaw": [
+        -0.6499630212783813,
+        6.388862133026123,
+        1.7192349433898926
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.16326530612244897
+    },
+    {
+      "episode_index": 124,
+      "stage": "nav_to_place",
+      "start_frame": 87,
+      "stop_frame_exclusive": 196,
+      "frames": 109,
+      "duration_s": 21.8,
+      "trajectory_length_m": 3.155987437387709,
+      "displacement_m": 2.4735303983200527,
+      "absolute_yaw_change_rad": 4.725610438977377,
+      "net_yaw_change_rad": 3.1367782990085047,
+      "start_xyyaw": [
+        -0.6434419751167297,
+        6.374213218688965,
+        1.722923994064331
+      ],
+      "end_xyyaw": [
+        -0.38154199719429016,
+        3.9145870208740234,
+        -1.4234830141067505
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.13761467889908258
+    },
+    {
+      "episode_index": 125,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 36,
+      "frames": 36,
+      "duration_s": 7.2,
+      "trajectory_length_m": 1.1521449782425095,
+      "displacement_m": 0.8153286198871866,
+      "absolute_yaw_change_rad": 2.0428951382637024,
+      "net_yaw_change_rad": 0.8841189742088318,
+      "start_xyyaw": [
+        -0.26558300852775574,
+        5.037735939025879,
+        0.5720450282096863
+      ],
+      "end_xyyaw": [
+        -0.2002280056476593,
+        5.850440979003906,
+        1.456164002418518
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.16666666666666666
+    },
+    {
+      "episode_index": 125,
+      "stage": "nav_to_place",
+      "start_frame": 74,
+      "stop_frame_exclusive": 163,
+      "frames": 89,
+      "duration_s": 17.8,
+      "trajectory_length_m": 2.1965016057957216,
+      "displacement_m": 1.811071178945034,
+      "absolute_yaw_change_rad": 3.8053468465805054,
+      "net_yaw_change_rad": -3.026369094848633,
+      "start_xyyaw": [
+        -0.19534100592136383,
+        5.866274833679199,
+        1.4607720375061035
+      ],
+      "end_xyyaw": [
+        -0.3219990134239197,
+        4.059638023376465,
+        -1.5655970573425293
+      ],
+      "sparse_waypoint_count": 12,
+      "compression_ratio": 0.1348314606741573
+    },
+    {
+      "episode_index": 126,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 48,
+      "frames": 48,
+      "duration_s": 9.6,
+      "trajectory_length_m": 1.5181051199080398,
+      "displacement_m": 1.0193026992190368,
+      "absolute_yaw_change_rad": 3.2630422711372375,
+      "net_yaw_change_rad": 1.5909559726715088,
+      "start_xyyaw": [
+        -0.4816280007362366,
+        5.4184889793396,
+        0.3487989902496338
+      ],
+      "end_xyyaw": [
+        -0.6559770107269287,
+        6.422770023345947,
+        1.9397549629211426
+      ],
+      "sparse_waypoint_count": 9,
+      "compression_ratio": 0.1875
+    },
+    {
+      "episode_index": 126,
+      "stage": "nav_to_place",
+      "start_frame": 85,
+      "stop_frame_exclusive": 200,
+      "frames": 115,
+      "duration_s": 23.0,
+      "trajectory_length_m": 3.4999855859136146,
+      "displacement_m": 2.821165412062169,
+      "absolute_yaw_change_rad": 5.124602858220236,
+      "net_yaw_change_rad": 2.93712026277651,
+      "start_xyyaw": [
+        -0.6498420238494873,
+        6.419305801391602,
+        1.9416019916534424
+      ],
+      "end_xyyaw": [
+        -0.36970001459121704,
+        3.612083911895752,
+        -1.4044630527496338
+      ],
+      "sparse_waypoint_count": 18,
+      "compression_ratio": 0.1565217391304348
+    },
+    {
+      "episode_index": 127,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 38,
+      "frames": 38,
+      "duration_s": 7.6,
+      "trajectory_length_m": 1.0627140644989654,
+      "displacement_m": 0.9969427330697486,
+      "absolute_yaw_change_rad": 1.8523344993591309,
+      "net_yaw_change_rad": -1.4131851196289062,
+      "start_xyyaw": [
+        -0.36147400736808777,
+        5.135179042816162,
+        2.970863103866577
+      ],
+      "end_xyyaw": [
+        -0.18743599951267242,
+        6.1168131828308105,
+        1.557677984237671
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.15789473684210525
+    },
+    {
+      "episode_index": 127,
+      "stage": "nav_to_place",
+      "start_frame": 75,
+      "stop_frame_exclusive": 172,
+      "frames": 97,
+      "duration_s": 19.4,
+      "trajectory_length_m": 2.4933267464114617,
+      "displacement_m": 1.7193355842418216,
+      "absolute_yaw_change_rad": 4.884366337453024,
+      "net_yaw_change_rad": 3.0131242910968226,
+      "start_xyyaw": [
+        -0.1842309981584549,
+        6.114545822143555,
+        1.5548889636993408
+      ],
+      "end_xyyaw": [
+        -0.5234469771385193,
+        4.429005146026611,
+        -1.7151720523834229
+      ],
+      "sparse_waypoint_count": 15,
+      "compression_ratio": 0.15463917525773196
+    },
+    {
+      "episode_index": 128,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 39,
+      "frames": 39,
+      "duration_s": 7.8,
+      "trajectory_length_m": 1.4250576354790392,
+      "displacement_m": 1.1989044964315758,
+      "absolute_yaw_change_rad": 1.8805550336837769,
+      "net_yaw_change_rad": 0.7329009771347046,
+      "start_xyyaw": [
+        -0.8354269862174988,
+        4.769001007080078,
+        0.9775890111923218
+      ],
+      "end_xyyaw": [
+        -0.8364760279655457,
+        5.967905044555664,
+        1.7104899883270264
+      ],
+      "sparse_waypoint_count": 8,
+      "compression_ratio": 0.20512820512820512
+    },
+    {
+      "episode_index": 128,
+      "stage": "nav_to_place",
+      "start_frame": 76,
+      "stop_frame_exclusive": 173,
+      "frames": 97,
+      "duration_s": 19.4,
+      "trajectory_length_m": 2.733843469324122,
+      "displacement_m": 1.9850996781031427,
+      "absolute_yaw_change_rad": 4.674977366124288,
+      "net_yaw_change_rad": 3.1403172651873987,
+      "start_xyyaw": [
+        -0.827180027961731,
+        5.950218200683594,
+        1.7093650102615356
+      ],
+      "end_xyyaw": [
+        -0.6522049903869629,
+        3.9728450775146484,
+        -1.4335030317306519
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.14432989690721648
+    },
+    {
+      "episode_index": 129,
+      "stage": "nav_to_pick",
+      "start_frame": 0,
+      "stop_frame_exclusive": 34,
+      "frames": 34,
+      "duration_s": 6.8,
+      "trajectory_length_m": 1.3012317373334064,
+      "displacement_m": 1.063912046459003,
+      "absolute_yaw_change_rad": 1.6460931897163391,
+      "net_yaw_change_rad": 0.8421129584312439,
+      "start_xyyaw": [
+        -0.9405270218849182,
+        4.769414901733398,
+        0.5659189820289612
+      ],
+      "end_xyyaw": [
+        -0.5942950248718262,
+        5.7754130363464355,
+        1.408031940460205
+      ],
+      "sparse_waypoint_count": 6,
+      "compression_ratio": 0.17647058823529413
+    },
+    {
+      "episode_index": 129,
+      "stage": "nav_to_place",
+      "start_frame": 70,
+      "stop_frame_exclusive": 155,
+      "frames": 85,
+      "duration_s": 17.0,
+      "trajectory_length_m": 2.2944578863113487,
+      "displacement_m": 1.6037242998241512,
+      "absolute_yaw_change_rad": 3.942713205014364,
+      "net_yaw_change_rad": -3.12623393535614,
+      "start_xyyaw": [
+        -0.5892580151557922,
+        5.783578872680664,
+        1.4123469591140747
+      ],
+      "end_xyyaw": [
+        -0.9051669836044312,
+        4.211277008056641,
+        -1.7138869762420654
+      ],
+      "sparse_waypoint_count": 14,
+      "compression_ratio": 0.16470588235294117
+    }
+  ]
+}
