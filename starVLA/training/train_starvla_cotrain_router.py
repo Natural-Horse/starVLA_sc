@@ -635,6 +635,11 @@ class VLARouterTrainer(TrainerUtils):
         self.accelerator.wait_for_everyone()
 
     def _finalize_training(self):
+        if not _cfg_bool(self.config.trainer, "save_final_model", True):
+            if self.accelerator.is_main_process:
+                logger.info("Skipping final model save because trainer.save_final_model=false")
+            self.accelerator.wait_for_everyone()
+            return
         state_dict = self.accelerator.get_state_dict(self.model)
         if self.accelerator.is_main_process:
             final_dir = Path(self.config.output_dir) / "final_model"

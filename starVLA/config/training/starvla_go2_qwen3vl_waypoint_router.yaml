@@ -141,6 +141,7 @@ trainer:
     eps: 1.0e-8
     weight_decay: 1.0e-8
   save_format: pt
+  save_final_model: true
   is_resume: false
   resume_epoch: null
   resume_step: null
