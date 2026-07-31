@@ -16,6 +16,7 @@ export CUDA_VISIBLE_DEVICES="${VISIBLE_GPUS}"
 export WANDB_MODE
 export PYTHONDONTWRITEBYTECODE=1
 export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
+export PYTHONPATH="${REPO_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
 
 exec "${ACCELERATE_BIN}" launch \
   --num_processes "${NUM_PROCESSES}" \
