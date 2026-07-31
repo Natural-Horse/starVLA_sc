@@ -16,7 +16,8 @@ framework:
     action_loss_grad_to_vlm: true
 
   qwenvl:
-    base_vlm: /hdd4/MaTianran/rtc_starvla/models/base_vlm/Qwen3-VL-4B-Instruct-ActionRouterSubtask
+    # Official Qwen/Qwen3-VL-4B-Instruct, HF revision ebb281ec70b05090aa6165b016eac8ec08e71b17.
+    base_vlm: /hdd4/MaTianran/rtc_starvla/models/base_vlm/Qwen3-VL-4B-Instruct
     attn_implementation: sdpa
     torch_dtype: bfloat16
     freeze: false
