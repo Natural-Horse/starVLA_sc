@@ -19,9 +19,10 @@
 ## Active Training
 
 - tmux session: `go2_n200_train`
-- run ID: `go2_waypoint_n200_0731_save300`
+- run ID: `go2_waypoint_n200_0731_save300_tb`
 - GPUs: idle RTX 3090 cards 5 and 6 only; occupied A40 cards were not touched.
 - Steps: 1,000; global batch size: 2; W&B mode: offline.
 - Evaluation interval: 100 steps; checkpoint interval: 300 steps.
+- TensorBoard logging is enabled; server tmux session `go2_n200_tensorboard` listens on `127.0.0.1:6006`.
 - Estimated average: about 109 seconds/step including amortized evaluation/checkpoint overhead; first checkpoint is expected after about 9.1 hours.
-- Log: `results/TrainingLogs/go2_waypoint_n200_0731_save300.log`.
+- Training log: `results/TrainingLogs/go2_waypoint_n200_0731_save300_tb.log`.
