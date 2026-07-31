@@ -220,7 +220,11 @@ class LayerwiseFlowmatchingActionHead(nn.Module):
         diffusion_model_cfg = action_config.diffusion_model_cfg
 
         # 更新 DiTConfig 到 diffusion_model_cfg
-        DiTConfig["num_layers"] = global_config.framework.qwenvl.num_vl_layers
+        # The action expert may consume only the last N VLM hidden layers. Honor
+        # the configured DiT depth instead of silently expanding it to every VLM layer.
+        DiTConfig["num_layers"] = int(
+            getattr(diffusion_model_cfg, "num_layers", global_config.framework.qwenvl.num_vl_layers)
+        )
         DiTConfig["input_embedding_dim"] = global_config.framework.qwenvl.vl_hidden_dim
         DiTConfig["num_attention_heads"] = DiTConfig["input_embedding_dim"] // DiTConfig["attention_head_dim"]
         diffusion_model_cfg.update(DiTConfig)
