@@ -1,14 +1,17 @@
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from omegaconf import OmegaConf
+import torch
 
 from starVLA.training.train_starvla_cotrain_router import (
     _apply_router_framework_overrides,
     _validate_go2_training_config,
     build_accelerator,
 )
+from starVLA.training.trainer_utils.trainer_tools import adapt_padded_vocab_state_dict
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +19,36 @@ GO2_CONFIG = REPO_ROOT / "starVLA/config/training/starvla_go2_qwen3vl_waypoint_r
 
 
 class Go2TrainingConfigTest(unittest.TestCase):
+    def test_legacy_qwen_vocab_rows_expand_without_moving_token_rows(self):
+        class FakeTokenizer:
+            def __len__(self):
+                return 5
+
+        class FakeQwen(torch.nn.Module):
+            def __init__(self):
+                super().__init__()
+                self.language_model = torch.nn.Module()
+                self.language_model.embed_tokens = torch.nn.Embedding(8, 3)
+                self.lm_head = torch.nn.Linear(3, 8, bias=False)
+                self.processor = SimpleNamespace(tokenizer=FakeTokenizer())
+
+        module = FakeQwen()
+        old_embed = torch.arange(15, dtype=torch.float32).reshape(5, 3)
+        old_head = old_embed + 100.0
+        adapted, keys = adapt_padded_vocab_state_dict(
+            module,
+            {
+                "language_model.embed_tokens.weight": old_embed,
+                "lm_head.weight": old_head,
+            },
+        )
+        self.assertEqual(len(keys), 2)
+        torch.testing.assert_close(
+            adapted["language_model.embed_tokens.weight"][:5], old_embed
+        )
+        torch.testing.assert_close(adapted["lm_head.weight"][:5], old_head)
+        self.assertEqual(tuple(adapted["lm_head.weight"].shape), (8, 3))
+
     def test_checked_in_config_contract(self):
         cfg = OmegaConf.load(GO2_CONFIG)
         _apply_router_framework_overrides(cfg)

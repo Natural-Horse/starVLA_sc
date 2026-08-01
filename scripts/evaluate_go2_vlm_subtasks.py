@@ -115,6 +115,7 @@ def _load_model_for_vlm_evaluation(checkpoint: Path):
     from accelerate import PartialState
     from starVLA.model.framework.__init__ import build_framework
     from starVLA.model.framework.share_tools import dict_to_namespace
+    from starVLA.training.trainer_utils.trainer_tools import adapt_padded_vocab_state_dict
 
     PartialState()
     checkpoint = checkpoint.resolve()
@@ -132,7 +133,10 @@ def _load_model_for_vlm_evaluation(checkpoint: Path):
         state_dict = load_file(str(checkpoint))
     else:
         state_dict = torch.load(checkpoint, map_location="cpu", mmap=True)
+    state_dict, expanded_keys = adapt_padded_vocab_state_dict(model, state_dict)
     model.load_state_dict(state_dict, strict=True)
+    if expanded_keys:
+        print("已兼容扩展旧 checkpoint 的词表 padding 行：" + ", ".join(expanded_keys))
     return model
 
 

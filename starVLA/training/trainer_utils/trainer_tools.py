@@ -150,7 +150,55 @@ def _module_has_zero3_params(module):
     return any(hasattr(param, "ds_id") for param in module.parameters(recurse=True))
 
 
+_VOCAB_WEIGHT_SUFFIXES = (
+    "language_model.embed_tokens.weight",
+    "lm_head.weight",
+)
+
+
+def adapt_padded_vocab_state_dict(module, state_dict):
+    """兼容 tokenizer 行一致、仅模型 padding 行数增加的旧 Qwen checkpoint。"""
+
+    tokenizer_owner = getattr(module, "qwen_vl_interface", module)
+    processor = getattr(tokenizer_owner, "processor", None)
+    tokenizer = getattr(processor, "tokenizer", None)
+    if tokenizer is None:
+        return state_dict, []
+
+    current_state = module.state_dict()
+    adapted = dict(state_dict)
+    expanded_keys = []
+    tokenizer_size = len(tokenizer)
+    for key, checkpoint_tensor in state_dict.items():
+        current_tensor = current_state.get(key)
+        if current_tensor is None or tuple(current_tensor.shape) == tuple(checkpoint_tensor.shape):
+            continue
+        if not key.endswith(_VOCAB_WEIGHT_SUFFIXES):
+            continue
+        if (
+            checkpoint_tensor.ndim != 2
+            or current_tensor.ndim != 2
+            or checkpoint_tensor.shape[1] != current_tensor.shape[1]
+            or checkpoint_tensor.shape[0] != tokenizer_size
+            or checkpoint_tensor.shape[0] > current_tensor.shape[0]
+        ):
+            continue
+        expanded = current_tensor.detach().clone()
+        expanded[: checkpoint_tensor.shape[0]].copy_(
+            checkpoint_tensor.to(device=expanded.device, dtype=expanded.dtype)
+        )
+        adapted[key] = expanded
+        expanded_keys.append(key)
+    return adapted, expanded_keys
+
+
 def _load_state_dict_zero3_aware(module, state_dict, strict=True):
+    state_dict, expanded_keys = adapt_padded_vocab_state_dict(module, state_dict)
+    if expanded_keys and (not dist.is_initialized() or dist.get_rank() == 0):
+        print(
+            "✅ expanded legacy Qwen vocabulary weights into current padded rows: "
+            + ", ".join(expanded_keys)
+        )
     if not _module_has_zero3_params(module):
         return module.load_state_dict(state_dict, strict=strict)
 
