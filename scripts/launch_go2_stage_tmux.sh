@@ -1,13 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-STAGE="${1:?Usage: launch_go2_stage_tmux.sh <vlm|action|manip>}"
+STAGE="${1:?Usage: launch_go2_stage_tmux.sh <vlm|vlm_relabel|action|manip>}"
 shift
 
 case "${STAGE}" in
   vlm)
     ROUTES=(nav grasp place done recover)
     DEFAULT_WARMUP=100
+    ;;
+  vlm_relabel)
+    ROUTES=(nav grasp place done recover)
+    DEFAULT_WARMUP=100
+    : "${PRETRAINED_CHECKPOINT:?Set PRETRAINED_CHECKPOINT to the previous VLM checkpoint}"
     ;;
   action)
     ROUTES=(nav)
@@ -84,7 +89,7 @@ RUN_ENV=(
   EVAL_INTERVAL="${EVAL_INTERVAL:-100}"
   CHECK_GPU_IDLE="${CHECK_GPU_IDLE:-1}"
   DS_SKIP_CUDA_CHECK="${DS_SKIP_CUDA_CHECK:-1}"
-  OFFLOAD_OPTIMIZER_DEVICE="${OFFLOAD_OPTIMIZER_DEVICE:-cpu}"
+  OFFLOAD_OPTIMIZER_DEVICE="${OFFLOAD_OPTIMIZER_DEVICE:-none}"
   STARVLA_PYTHON_ENV="${STARVLA_PYTHON_ENV}"
   TRAIN_CONFIG="${TRAIN_CONFIG}"
 )

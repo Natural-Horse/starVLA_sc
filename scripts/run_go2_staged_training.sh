@@ -5,6 +5,7 @@ usage() {
   cat <<'EOF'
 Usage:
   VISIBLE_GPUS=5,6 scripts/run_go2_staged_training.sh vlm
+  VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/old-vlm.pt scripts/run_go2_staged_training.sh vlm_relabel
   VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage1.pt scripts/run_go2_staged_training.sh action
   VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage2.pt scripts/run_go2_staged_training.sh manip
   VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage2.pt scripts/run_go2_staged_training.sh joint
@@ -34,6 +35,28 @@ case "${STAGE}" in
       --trainer.loss_scale.vlm 1.0
       --trainer.loss_scale.action 0.0
       --trainer.learning_rate.qwen_vl_interface 5.0e-6
+      --trainer.skip_no_grad_batches false
+      --datasets.router_data.include_routes "[nav,grasp,place,done,recover]"
+    )
+    ;;
+  vlm_relabel)
+    TRAINER_STAGE=vlm
+    DEFAULT_STEPS=1000
+    DEFAULT_WARMUP=100
+    : "${PRETRAINED_CHECKPOINT:?Set PRETRAINED_CHECKPOINT to the previous VLM checkpoint}"
+    [[ -f "${PRETRAINED_CHECKPOINT}" ]] || {
+      echo "Checkpoint does not exist: ${PRETRAINED_CHECKPOINT}" >&2
+      exit 2
+    }
+    STAGE_ARGS=(
+      --framework.qwenvl.freeze false
+      --framework.action_model.freeze true
+      --framework.router.action_loss_grad_to_vlm false
+      --trainer.loss_scale.vlm 1.0
+      --trainer.loss_scale.action 0.0
+      --trainer.learning_rate.qwen_vl_interface 1.0e-6
+      --trainer.pretrained_checkpoint "${PRETRAINED_CHECKPOINT}"
+      --trainer.reload_modules qwen_vl_interface
       --trainer.skip_no_grad_batches false
       --datasets.router_data.include_routes "[nav,grasp,place,done,recover]"
     )
