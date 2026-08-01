@@ -1521,8 +1521,14 @@ def main(cfg) -> None:
 
     logger.info("Router training finished.")
     if dist.is_initialized():
-        dist.barrier()
-        dist.destroy_process_group()
+        try:
+            dist.barrier()
+            dist.destroy_process_group()
+        except RuntimeError as exc:
+            # ZeRO-3 may leave CUDA memory fully occupied after the final
+            # checkpoint gather. A late NCCL teardown OOM must not invalidate
+            # a training run whose synchronized save has already completed.
+            logger.warning("Distributed cleanup failed after successful training: %s", exc)
 
 
 if __name__ == "__main__":
