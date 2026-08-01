@@ -544,6 +544,9 @@ def setup_optimizer_and_scheduler(model, cfg) -> Tuple[torch.optim.Optimizer, to
     foreach = _cfg_get(cfg.trainer.optimizer, "foreach", None)
     if foreach is not None:
         optimizer_kwargs["foreach"] = bool(foreach)
+    fused = _cfg_get(cfg.trainer.optimizer, "fused", None)
+    if fused is not None:
+        optimizer_kwargs["fused"] = bool(fused)
     optimizer = torch.optim.AdamW(
         param_groups,
         lr=cfg.trainer.learning_rate.base,

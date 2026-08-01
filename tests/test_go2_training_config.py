@@ -68,6 +68,7 @@ class Go2TrainingConfigTest(unittest.TestCase):
         setup_optimizer_and_scheduler(model=object(), cfg=cfg)
 
         self.assertFalse(adamw_cls.call_args.kwargs["foreach"])
+        self.assertTrue(adamw_cls.call_args.kwargs["fused"])
         get_scheduler.assert_called_once()
 
     def test_horizon_mismatch_is_rejected(self):
