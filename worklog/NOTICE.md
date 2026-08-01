@@ -13,6 +13,13 @@ github 仓库为 github.com/Natural-Horse/starVLA_sc.git
 数采仓库 upstream 为 https://github.com/yagami-light7/arm-vla-grasp-sim.git
 已采集数据目录为 ~/pct_scene_outputs
 
+本地真机控制仓库为 /home/natural/Desktop/mtr/gx-real
+真机仓库分支为 mtr_dev
+真机仓库 origin 为 https://github.com/Natural-Horse/gx-real.git
+真机仓库 upstream 为 https://github.com/lemonoscar/gx-real.git
+
 仿真闭环测评中，starVLA_sc 负责模型加载、版本化远程协议和 route/subtask/机体系稀疏 waypoint 输出；pct_scene 负责观测编码、世界系变换、DWA/RL 速度适配、Isaac 状态机及 cuRobo 抓放。远端服务只绑定 127.0.0.1，由评测机 SSH 本地转发访问，不直接暴露公网。
+
+三仓库统一动作协议为 10 维 `[dx_body,dy_body,dyaw,tcp_x_base,tcp_y_base,tcp_z_base,roll_base,pitch_base,yaw_base,gripper]`。NAV 只监督前三维，GRASP/PLACE 只监督后七维。机械臂输出是机体系 TCP 目标，仿真由 pct_scene 本地规划执行，真机由 gx-real 本地完成标定、IK/规划、安全限幅、看门狗和 CAN 写入；远端模型不得直接下发关节或 CAN 命令。
 
 工作时，在本地修改代码，验证提交后，再在远程服务器目录下拉取新版本代码并运行。

@@ -370,6 +370,7 @@ class LayerwiseFlowmatchingActionHead(nn.Module):
         actions: torch.Tensor,
         state: torch.Tensor = None,
         action_mask: torch.Tensor = None,
+        action_dim_mask: torch.Tensor = None,
     ):
         """
         vl_embs: list of torch.Tensor, each shape (B, seq_length, feature_dim)
@@ -390,6 +391,16 @@ class LayerwiseFlowmatchingActionHead(nn.Module):
                     f"action_mask must have shape {tuple(actions.shape[:2])}, got {tuple(action_mask.shape)}"
                 )
             loss_mask &= action_mask
+        if action_dim_mask is not None:
+            action_dim_mask = torch.as_tensor(
+                action_dim_mask, device=actions.device, dtype=torch.bool
+            )
+            expected_dim_shape = (actions.shape[0], actions.shape[2])
+            if tuple(action_dim_mask.shape) != expected_dim_shape:
+                raise ValueError(
+                    f"action_dim_mask must have shape {expected_dim_shape}, "
+                    f"got {tuple(action_dim_mask.shape)}"
+                )
         self.latest_rtc_delay = None
 
         if self.rtc_enabled and self.rtc_simulated_delay > 0:
@@ -463,12 +474,19 @@ class LayerwiseFlowmatchingActionHead(nn.Module):
 
         # Slice out only the action portion of pred and target.
         squared_error = (pred_actions - velocity) ** 2
-        if action_mask is not None or (self.rtc_enabled and self.rtc_simulated_delay > 0):
-            loss_mask = loss_mask.unsqueeze(-1).to(dtype=squared_error.dtype)
-            denom = loss_mask.sum().clamp_min(1.0) * squared_error.shape[-1]
-            loss = (squared_error * loss_mask).sum() / denom
-            per_dim_denom = loss_mask.sum().clamp_min(1.0)
-            per_dim_loss = (squared_error * loss_mask).sum(dim=(0, 1)) / per_dim_denom
+        if (
+            action_mask is not None
+            or action_dim_mask is not None
+            or (self.rtc_enabled and self.rtc_simulated_delay > 0)
+        ):
+            element_mask = loss_mask.unsqueeze(-1)
+            if action_dim_mask is not None:
+                element_mask = element_mask & action_dim_mask.unsqueeze(1)
+            element_mask = element_mask.expand_as(squared_error)
+            element_mask = element_mask.to(dtype=squared_error.dtype)
+            loss = (squared_error * element_mask).sum() / element_mask.sum().clamp_min(1.0)
+            per_dim_denom = element_mask.sum(dim=(0, 1)).clamp_min(1.0)
+            per_dim_loss = (squared_error * element_mask).sum(dim=(0, 1)) / per_dim_denom
         else:
             loss = squared_error.mean()
             per_dim_loss = squared_error.mean(dim=(0, 1))

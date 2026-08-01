@@ -40,8 +40,9 @@ framework:
     hidden_size: 1024
     add_pos_embed: true
     max_seq_len: 1024
-    action_dim: 3
-    state_dim: 3
+    # [dx_body,dy_body,dyaw,tcp_x_base,tcp_y_base,tcp_z_base,roll,pitch,yaw,gripper]
+    action_dim: 10
+    state_dim: 10
     future_action_window_size: 3
     action_horizon: 4
     past_action_window_size: 0

@@ -55,6 +55,16 @@ def test_non_nav_decision_drops_waypoints() -> None:
     assert decision["nav_waypoints"] is None
 
 
+def test_arm_decision_is_json_safe() -> None:
+    decision = normalize_decision(
+        {
+            "route": "grasp",
+            "arm_targets_base": ((0.35, 0.0, 0.2, 0.0, 0.1, 0.0, 1.0),),
+        }
+    )
+    assert decision["arm_targets_base"] == [[0.35, 0.0, 0.2, 0.0, 0.1, 0.0, 1.0]]
+
+
 def test_mock_backend_matches_typed_contract() -> None:
     result = MockBackend("nav").infer(_request()["payload"])
     assert result["route"] == "nav"

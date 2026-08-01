@@ -37,6 +37,7 @@ class Go2TaskInstructionUnitTest(unittest.TestCase):
         dataset.subtask_start_token = "<|subtask|>"
         dataset.subtask_end_token = "<|end_subtask|>"
         dataset.include_state = True
+        dataset.action_horizon = 4
         dataset._image = lambda *_: Image.new("RGB", (8, 8))
 
         def episode(episode_index, task_index):
@@ -45,6 +46,7 @@ class Go2TaskInstructionUnitTest(unittest.TestCase):
                 task_indices=np.asarray([task_index]),
                 poses=np.zeros((1, 3)),
                 base_velocity=np.zeros((1, 3), dtype=np.float32),
+                actions=np.zeros((1, 10), dtype=np.float32),
                 stages=np.asarray(["pick"], dtype=object),
                 subtasks=np.asarray(["arm_contact"], dtype=object),
                 instructions=np.asarray(["Pick the object."], dtype=object),
@@ -100,21 +102,25 @@ class Go2WaypointDatasetIntegrationTest(unittest.TestCase):
         sample = self.dataset[nav_index]
         expected_task = self.dataset.task_instructions[sample["task_index"]]
         self.assertIn(expected_task, sample["lang"])
-        self.assertEqual(sample["action"].shape, (4, 3))
+        self.assertEqual(sample["action"].shape, (4, 10))
         self.assertEqual(sample["action_mask"].shape, (4,))
-        self.assertEqual(sample["state"].shape, (1, 3))
+        self.assertEqual(sample["action_dim_mask"].shape, (10,))
+        np.testing.assert_array_equal(sample["action_dim_mask"], [1, 1, 1, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(sample["state"].shape, (1, 10))
         self.assertEqual([image.size for image in sample["image"]], [(96, 96), (96, 96)])
         self.assertTrue(sample["solution"].startswith("<|nav|>"))
 
-    def test_non_nav_has_no_continuous_target(self):
+    def test_grasp_has_cartesian_arm_target(self):
         grasp_index = next(
             idx
             for idx, (episode, frame) in enumerate(self.dataset.samples)
             if self.dataset._route_for_frame(self.dataset.episodes[episode], frame) == "grasp"
         )
         sample = self.dataset[grasp_index]
-        self.assertNotIn("action", sample)
-        self.assertNotIn("action_mask", sample)
+        self.assertEqual(sample["action"].shape, (4, 10))
+        self.assertEqual(sample["action_mask"].shape, (4,))
+        np.testing.assert_array_equal(sample["action_dim_mask"], [0, 0, 0, 1, 1, 1, 1, 1, 1, 1])
+        self.assertIn(sample["subtask_text"], {"arm_approach", "arm_contact", "arm_retreat"})
 
     def test_route_filter_keeps_only_requested_routes(self):
         cfg = OmegaConf.create(

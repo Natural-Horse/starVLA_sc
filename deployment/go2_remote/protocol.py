@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
-PROTOCOL_VERSION = "starvla-go2-eval/v1"
+PROTOCOL_VERSION = "starvla-go2-eval/v2"
 ROUTES = frozenset({"nav", "grasp", "place", "done", "recover"})
 REQUEST_TYPES = frozenset({"health", "infer", "reset"})
 
@@ -67,6 +67,28 @@ def normalize_decision(raw: Any) -> dict[str, Any]:
                 raise ProtocolError(f"nav_waypoints[{index}] contains non-finite values")
             normalized_waypoints.append(values)
 
+    arm_targets = raw.get("arm_targets_base")
+    normalized_arm_targets: list[list[float]] | None = None
+    if arm_targets is not None:
+        if hasattr(arm_targets, "tolist"):
+            arm_targets = arm_targets.tolist()
+        if not isinstance(arm_targets, (list, tuple)) or not arm_targets:
+            raise ProtocolError("arm_targets_base must be a non-empty action chunk")
+        if len(arm_targets) > 32:
+            raise ProtocolError("arm_targets_base exceeds 32 targets")
+        normalized_arm_targets = []
+        for index, target in enumerate(arm_targets):
+            if not isinstance(target, (list, tuple)) or len(target) != 7:
+                raise ProtocolError(
+                    f"arm_targets_base[{index}] must contain [x,y,z,roll,pitch,yaw,gripper]"
+                )
+            values = [float(value) for value in target]
+            if not all(math.isfinite(value) for value in values):
+                raise ProtocolError(f"arm_targets_base[{index}] contains non-finite values")
+            if not 0.0 <= values[-1] <= 1.0:
+                raise ProtocolError(f"arm_targets_base[{index}] gripper must be in [0,1]")
+            normalized_arm_targets.append(values)
+
     def _optional_float(value: Any) -> float | None:
         if value is None:
             return None
@@ -87,6 +109,7 @@ def normalize_decision(raw: Any) -> dict[str, Any]:
         "route": route,
         "subtask": None if raw.get("subtask") is None else str(raw["subtask"]),
         "nav_waypoints": normalized_waypoints,
+        "arm_targets_base": normalized_arm_targets,
         "stop_probability": _optional_float(raw.get("stop_probability")),
         "target_name": (
             None if raw.get("target_name") is None else str(raw["target_name"])

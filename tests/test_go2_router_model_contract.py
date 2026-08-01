@@ -14,9 +14,11 @@ class _FakeActionModel(torch.nn.Module):
         super().__init__()
         self.model = SimpleNamespace(transformer_blocks=[object(), object()])
         self.received_mask = None
+        self.received_dim_mask = None
 
-    def forward(self, hidden, actions, state, action_mask=None):
+    def forward(self, hidden, actions, state, action_mask=None, action_dim_mask=None):
         self.received_mask = action_mask.detach().cpu()
+        self.received_dim_mask = action_dim_mask.detach().cpu()
         return actions.square().mean()
 
 
@@ -24,7 +26,7 @@ def _config():
     return OmegaConf.create(
         {
             "framework": {
-                "action_model": {"future_action_window_size": 3, "action_dim": 3, "state_dim": 3},
+                "action_model": {"future_action_window_size": 3, "action_dim": 10, "state_dim": 10},
             },
             "datasets": {
                 "router_data": {
@@ -62,9 +64,10 @@ class Go2RouterModelContractTest(unittest.TestCase):
         hidden = [torch.zeros((1, 5, 8)), torch.zeros((1, 5, 8))]
         examples = [
             {
-                "action": np.ones((4, 3), dtype=np.float32),
+                "action": np.ones((4, 10), dtype=np.float32),
                 "action_mask": np.array([1, 1, 0, 0], dtype=np.float32),
-                "state": np.zeros((1, 3), dtype=np.float32),
+                "action_dim_mask": np.array([1, 1, 1, 0, 0, 0, 0, 0, 0, 0], dtype=np.float32),
+                "state": np.zeros((1, 10), dtype=np.float32),
             }
         ]
 
@@ -74,6 +77,11 @@ class Go2RouterModelContractTest(unittest.TestCase):
         np.testing.assert_array_equal(
             model.action_model.received_mask.numpy(),
             [[True, True, False, False], [True, True, False, False]],
+        )
+        self.assertEqual(tuple(model.action_model.received_dim_mask.shape), (2, 10))
+        np.testing.assert_array_equal(
+            model.action_model.received_dim_mask.numpy(),
+            [[True, True, True, False, False, False, False, False, False, False]] * 2,
         )
 
     def test_main_route_map_excludes_bbox(self):
@@ -89,13 +97,13 @@ class Go2RouterModelContractTest(unittest.TestCase):
         trainer = VLARouterTrainer.__new__(VLARouterTrainer)
         trainer.config = _config()
         batch = [
-            {"route": "nav", "action": np.zeros((4, 3))},
-            {"route": "grasp"},
+            {"route": "nav", "action": np.zeros((4, 10))},
+            {"route": "grasp", "action": np.zeros((4, 10))},
             {"route": "bbox"},
         ]
         filtered = trainer._filter_bbox_samples(batch, training=True)
         self.assertEqual([item["route"] for item in filtered], ["nav", "grasp"])
-        self.assertEqual(trainer._action_indices(filtered), [0])
+        self.assertEqual(trainer._action_indices(filtered), [0, 1])
         self.assertNotIn("bbox", trainer._route_counts(filtered))
 
 

@@ -171,6 +171,11 @@ class Qwen_PI(baseframework):
         actions = [example["action"] for example in examples]
         state = [example["state"] for example in examples] if "state" in examples[0] else None
         action_mask = [example["action_mask"] for example in examples] if "action_mask" in examples[0] else None
+        action_dim_mask = (
+            [example["action_dim_mask"] for example in examples]
+            if "action_dim_mask" in examples[0]
+            else None
+        )
 
         device_type = "cuda" if base_hidden.is_cuda else "cpu"
         with torch.autocast(device_type=device_type, dtype=torch.float32, enabled=base_hidden.is_cuda):
@@ -200,11 +205,19 @@ class Qwen_PI(baseframework):
                 action_mask = action_mask[:, -(self.future_action_window_size + 1):]
                 action_mask_repeated = action_mask.repeat(repeated_diffusion_steps, 1)
 
+            action_dim_mask_repeated = None
+            if action_dim_mask is not None:
+                action_dim_mask = torch.tensor(
+                    np.array(action_dim_mask), device=base_hidden.device, dtype=torch.bool
+                )
+                action_dim_mask_repeated = action_dim_mask.repeat(repeated_diffusion_steps, 1)
+
             action_loss = self.action_model(
                 vl_embs_list_repeated,
                 actions_target_repeated,
                 state_repeated,
                 action_mask=action_mask_repeated,
+                action_dim_mask=action_dim_mask_repeated,
             )
 
         return action_loss
@@ -606,7 +619,7 @@ class Qwen_PI(baseframework):
         examples: List[dict] | None = None,
         **kwargs,
     ) -> dict:
-        """Predict a Go2 route and run the waypoint expert only for NAV."""
+        """Predict a Go2 route and decode only the dimensions owned by that route."""
         if examples is None:
             images = []
             if head_images is not None:
@@ -627,13 +640,19 @@ class Qwen_PI(baseframework):
             **kwargs,
         )
         routes = route_output["routes"]
-        nav_indices = [idx for idx, item in enumerate(routes) if item["route"] == "nav"]
-        if nav_indices:
-            nav_examples = [examples[idx] for idx in nav_indices]
-            solutions = [routes[idx]["generated_text"] for idx in nav_indices]
-            action_output = self.predict_action(examples=nav_examples, solutions=solutions)
-            for local_idx, sample_idx in enumerate(nav_indices):
-                routes[sample_idx]["nav_waypoints"] = action_output["normalized_actions"][local_idx]
+        action_indices = [
+            idx for idx, item in enumerate(routes) if item["route"] in {"nav", "grasp", "place"}
+        ]
+        if action_indices:
+            action_examples = [examples[idx] for idx in action_indices]
+            solutions = [routes[idx]["generated_text"] for idx in action_indices]
+            action_output = self.predict_action(examples=action_examples, solutions=solutions)
+            for local_idx, sample_idx in enumerate(action_indices):
+                action_chunk = action_output["normalized_actions"][local_idx]
+                if routes[sample_idx]["route"] == "nav":
+                    routes[sample_idx]["nav_waypoints"] = action_chunk[:, :3]
+                else:
+                    routes[sample_idx]["arm_targets_base"] = action_chunk[:, 3:10]
 
         results = []
         for item in routes:
@@ -642,6 +661,7 @@ class Qwen_PI(baseframework):
                     "route": item["route"],
                     "subtask": self._parse_subtask(item.get("generated_text", "")),
                     "nav_waypoints": item.get("nav_waypoints"),
+                    "arm_targets_base": item.get("arm_targets_base"),
                     "stop_probability": None,
                     "target_name": None,
                     "grasp_primitive": None,

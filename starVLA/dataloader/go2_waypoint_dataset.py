@@ -23,6 +23,9 @@ from starVLA.dataloader.go2_waypoints import (
 
 
 MAIN_ROUTES = ("nav", "grasp", "place", "done", "recover")
+ACTION_DIM = 10
+NAV_ACTION_SLICE = slice(0, 3)
+ARM_ACTION_SLICE = slice(3, 10)
 DEFAULT_ROUTE_TOKENS = {
     "nav": "<|nav|>",
     "grasp": "<|grasp|>",
@@ -52,6 +55,7 @@ class _Episode:
     task_indices: np.ndarray
     poses: np.ndarray
     base_velocity: np.ndarray
+    actions: np.ndarray
     stages: np.ndarray
     subtasks: np.ndarray
     instructions: np.ndarray
@@ -77,7 +81,7 @@ def _load_task_instructions(tasks_path: Path) -> dict[int, str]:
 
 
 class Go2WaypointRouterDataset(Dataset):
-    """Five-route Go2 supervision with Flow Matching targets only on NAV frames."""
+    """Five-route routing with masked NAV and Cartesian-arm Flow Matching targets."""
 
     def __init__(self, data_cfg: Any):
         super().__init__()
@@ -183,6 +187,7 @@ class Go2WaypointRouterDataset(Dataset):
             "task_index",
             "observation.state",
             "observation.base_velocity",
+            "action",
             "task_stage",
             "subtask",
             "instruction",
@@ -199,6 +204,11 @@ class Go2WaypointRouterDataset(Dataset):
             )
         states = np.asarray(table["observation.state"].to_pylist(), dtype=np.float64)
         poses = states[:, [0, 1, 3]]
+        actions = np.asarray(table["action"].to_pylist(), dtype=np.float32)
+        if actions.ndim != 2 or actions.shape[1] != ACTION_DIM:
+            raise ValueError(
+                f"Episode {episode_index} action must have shape [T,{ACTION_DIM}], got {actions.shape}"
+            )
         stages = np.asarray(table["task_stage"].to_pylist(), dtype=object)
         waypoint_by_frame: dict[int, tuple[np.ndarray, int, int]] = {}
         for stage, start, stop in contiguous_stage_segments(stages):
@@ -213,6 +223,7 @@ class Go2WaypointRouterDataset(Dataset):
             task_indices=task_indices,
             poses=poses,
             base_velocity=np.asarray(table["observation.base_velocity"].to_pylist(), dtype=np.float32),
+            actions=actions,
             stages=stages,
             subtasks=np.asarray(table["subtask"].to_pylist(), dtype=object),
             instructions=np.asarray(table["instruction"].to_pylist(), dtype=object),
@@ -269,12 +280,9 @@ class Go2WaypointRouterDataset(Dataset):
         episode_index, frame_index = self.samples[index]
         episode = self.episodes[episode_index]
         route = self._route_for_frame(episode, frame_index)
-        if route == "nav":
-            subtask = str(episode.instructions[frame_index]).strip()
-            if not subtask:
-                subtask = "Approach and align with the target."
-        else:
-            subtask = DEFAULT_SUBTASKS[route]
+        subtask = str(episode.subtasks[frame_index]).strip()
+        if not subtask:
+            subtask = DEFAULT_SUBTASKS.get(route, "Recover and realign with the target.")
 
         route_token = self.route_tokens[route]
         solution = f"{route_token}{self.subtask_start_token}{subtask}{self.subtask_end_token}"
@@ -295,6 +303,11 @@ class Go2WaypointRouterDataset(Dataset):
             "task_index": task_index,
         }
 
+        if route in {"nav", "grasp", "place"}:
+            action = np.zeros((self.action_horizon, ACTION_DIM), dtype=np.float32)
+            action_dim_mask = np.zeros((ACTION_DIM,), dtype=np.float32)
+            state = np.zeros((1, ACTION_DIM), dtype=np.float32)
+
         if route == "nav":
             sparse_indices, segment_start, stage_stop = episode.waypoint_indices_by_frame[frame_index]
             segment_poses = episode.poses[segment_start:stage_stop]
@@ -305,10 +318,31 @@ class Go2WaypointRouterDataset(Dataset):
                 sparse_indices,
                 self.action_horizon,
             )
-            output["action"] = waypoints.astype(np.float16)
-            output["action_mask"] = valid_mask.astype(np.float16)
+            action[:, NAV_ACTION_SLICE] = waypoints
+            action_dim_mask[NAV_ACTION_SLICE] = 1.0
             if self.include_state:
-                output["state"] = episode.base_velocity[frame_index][None, :].astype(np.float16)
+                state[0, NAV_ACTION_SLICE] = episode.base_velocity[frame_index]
+        elif route in {"grasp", "place"}:
+            stage = str(episode.stages[frame_index])
+            stage_stop = frame_index + 1
+            while stage_stop < len(episode.stages) and str(episode.stages[stage_stop]) == stage:
+                stage_stop += 1
+            valid_count = min(self.action_horizon, stage_stop - frame_index)
+            source = episode.actions[frame_index : frame_index + valid_count, ARM_ACTION_SLICE]
+            action[:valid_count, ARM_ACTION_SLICE] = source
+            action[valid_count:, ARM_ACTION_SLICE] = source[-1]
+            valid_mask = np.arange(self.action_horizon) < valid_count
+            action_dim_mask[ARM_ACTION_SLICE] = 1.0
+            if self.include_state:
+                previous_index = max(0, frame_index - 1)
+                state[0, ARM_ACTION_SLICE] = episode.actions[previous_index, ARM_ACTION_SLICE]
+
+        if route in {"nav", "grasp", "place"}:
+            output["action"] = action.astype(np.float16)
+            output["action_mask"] = valid_mask.astype(np.float16)
+            output["action_dim_mask"] = action_dim_mask.astype(np.float16)
+            if self.include_state:
+                output["state"] = state.astype(np.float16)
         return output
 
 

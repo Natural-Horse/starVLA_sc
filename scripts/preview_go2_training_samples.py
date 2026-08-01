@@ -52,6 +52,7 @@ def _sample_record(dataset, sample: dict) -> dict:
         "state": np.asarray(sample.get("state", [])).astype(float).tolist(),
         "action": np.asarray(sample.get("action", [])).astype(float).tolist(),
         "action_mask": np.asarray(sample.get("action_mask", [])).astype(float).tolist(),
+        "action_dim_mask": np.asarray(sample.get("action_dim_mask", [])).astype(float).tolist(),
     }
 
 

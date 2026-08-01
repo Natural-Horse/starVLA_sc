@@ -190,8 +190,11 @@ def _validate_go2_training_config(cfg: Any) -> None:
             f"{data_horizon}, {model_horizon}, {future_window} + 1"
         )
 
-    if int(_cfg_get(action_cfg, "action_dim", 0)) != 3 or int(_cfg_get(action_cfg, "state_dim", 0)) != 3:
-        raise ValueError("Go2 waypoint action_dim and state_dim must both be 3 ([x, y, yaw] and [vx, vy, wz]).")
+    if int(_cfg_get(action_cfg, "action_dim", 0)) != 10 or int(_cfg_get(action_cfg, "state_dim", 0)) != 10:
+        raise ValueError(
+            "Go2 action_dim and state_dim must both be 10: three NAV dimensions plus "
+            "seven base-frame Cartesian arm/gripper dimensions."
+        )
 
     main_routes = [str(route) for route in _cfg_get(router_data_cfg, "main_routes", [])]
     expected_routes = ["nav", "grasp", "place", "done", "recover"]
@@ -981,6 +984,7 @@ class VLARouterTrainer(TrainerUtils):
         example: dict[str, Any] = {
             "action": np.zeros((action_horizon, action_dim), dtype=np.float16),
             "action_mask": np.ones((action_horizon,), dtype=np.float16),
+            "action_dim_mask": np.ones((action_dim,), dtype=np.float16),
         }
         if bool(_cfg_get(router_cfg, "include_state", False)):
             example["state"] = np.zeros((1, state_dim), dtype=np.float16)

@@ -88,7 +88,7 @@ class StarVLABackend:
             "backend": "starvla_qwenpi",
             "checkpoint": self.checkpoint,
             "device": self.device,
-            "capabilities": ["typed_route", "sparse_body_waypoints"],
+            "capabilities": ["typed_route", "sparse_body_waypoints", "base_frame_arm_targets"],
         }
 
     def infer(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -103,7 +103,19 @@ class StarVLABackend:
         )
         if not isinstance(body_velocity, (list, tuple)) or len(body_velocity) != 3:
             raise ProtocolError("state.base_velocity_body must contain [vx,vy,wz]")
-        state = [[float(value) for value in body_velocity]]
+        arm_state = (payload.get("state") or {}).get(
+            "arm_tcp_base", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        )
+        if not isinstance(arm_state, (list, tuple)) or len(arm_state) != 7:
+            raise ProtocolError(
+                "state.arm_tcp_base must contain [x,y,z,roll,pitch,yaw,gripper]"
+            )
+        state = [
+            [
+                *(float(value) for value in body_velocity),
+                *(float(value) for value in arm_state),
+            ]
+        ]
         prompt = self.router_prompt.format(
             instruction=str(payload["instruction"]).strip()
         )
@@ -127,7 +139,7 @@ class MockBackend:
     def metadata(self) -> dict[str, Any]:
         return {
             "backend": "mock",
-            "capabilities": ["typed_route", "sparse_body_waypoints"],
+            "capabilities": ["typed_route", "sparse_body_waypoints", "base_frame_arm_targets"],
         }
 
     def infer(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -137,6 +149,11 @@ class MockBackend:
             "nav_waypoints": (
                 [[0.25, 0.0, 0.0], [0.50, 0.0, 0.0]]
                 if self.route == "nav"
+                else None
+            ),
+            "arm_targets_base": (
+                [[0.35, 0.0, 0.20, 0.0, 0.0, 0.0, 1.0]]
+                if self.route in {"grasp", "place"}
                 else None
             ),
             "raw_text": f"<|{self.route}|>",

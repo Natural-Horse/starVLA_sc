@@ -60,7 +60,7 @@ case "${STAGE}" in
     )
     ;;
   manip)
-    TRAINER_STAGE=vlm
+    TRAINER_STAGE=action
     DEFAULT_STEPS=3000
     DEFAULT_WARMUP=100
     : "${PRETRAINED_CHECKPOINT:?Set PRETRAINED_CHECKPOINT to a NAV-action-stage checkpoint}"
@@ -69,15 +69,15 @@ case "${STAGE}" in
       exit 2
     }
     STAGE_ARGS=(
-      --framework.qwenvl.freeze false
-      --framework.action_model.freeze true
+      --framework.qwenvl.freeze true
+      --framework.action_model.freeze false
       --framework.router.action_loss_grad_to_vlm false
-      --trainer.loss_scale.vlm 1.0
-      --trainer.loss_scale.action 0.0
-      --trainer.learning_rate.qwen_vl_interface 1.0e-6
+      --trainer.loss_scale.vlm 0.0
+      --trainer.loss_scale.action 1.0
+      --trainer.learning_rate.action_model 2.0e-6
       --trainer.pretrained_checkpoint "${PRETRAINED_CHECKPOINT}"
       --trainer.reload_modules null
-      --trainer.skip_no_grad_batches false
+      --trainer.skip_no_grad_batches true
       --datasets.router_data.include_routes "[grasp,place]"
     )
     ;;
