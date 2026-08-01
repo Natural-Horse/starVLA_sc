@@ -10,6 +10,7 @@ from starVLA.training.train_starvla_cotrain_router import (
     _apply_router_framework_overrides,
     _validate_go2_training_config,
     build_accelerator,
+    setup_optimizer_and_scheduler,
 )
 from starVLA.training.trainer_utils.trainer_tools import adapt_padded_vocab_state_dict
 
@@ -53,6 +54,21 @@ class Go2TrainingConfigTest(unittest.TestCase):
         cfg = OmegaConf.load(GO2_CONFIG)
         _apply_router_framework_overrides(cfg)
         _validate_go2_training_config(cfg)
+        self.assertFalse(cfg.trainer.optimizer.foreach)
+
+    @patch("starVLA.training.train_starvla_cotrain_router.get_scheduler")
+    @patch("starVLA.training.train_starvla_cotrain_router.build_param_lr_groups")
+    @patch("starVLA.training.train_starvla_cotrain_router.torch.optim.AdamW")
+    def test_optimizer_disables_foreach_from_config(
+        self, adamw_cls, build_groups, get_scheduler
+    ):
+        cfg = OmegaConf.load(GO2_CONFIG)
+        build_groups.return_value = [{"params": []}]
+
+        setup_optimizer_and_scheduler(model=object(), cfg=cfg)
+
+        self.assertFalse(adamw_cls.call_args.kwargs["foreach"])
+        get_scheduler.assert_called_once()
 
     def test_horizon_mismatch_is_rejected(self):
         cfg = OmegaConf.load(GO2_CONFIG)

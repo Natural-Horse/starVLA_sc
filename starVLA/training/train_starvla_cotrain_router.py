@@ -540,12 +540,17 @@ def prepare_data(
 
 def setup_optimizer_and_scheduler(model, cfg) -> Tuple[torch.optim.Optimizer, torch.optim.lr_scheduler._LRScheduler]:
     param_groups = build_param_lr_groups(model=model, cfg=cfg)
+    optimizer_kwargs = {}
+    foreach = _cfg_get(cfg.trainer.optimizer, "foreach", None)
+    if foreach is not None:
+        optimizer_kwargs["foreach"] = bool(foreach)
     optimizer = torch.optim.AdamW(
         param_groups,
         lr=cfg.trainer.learning_rate.base,
         betas=tuple(cfg.trainer.optimizer.betas),
         weight_decay=cfg.trainer.optimizer.weight_decay,
         eps=cfg.trainer.optimizer.eps,
+        **optimizer_kwargs,
     )
 
     if dist.is_initialized() and dist.get_rank() == 0:
