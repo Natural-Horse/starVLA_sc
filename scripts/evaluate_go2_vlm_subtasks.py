@@ -23,7 +23,6 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from starVLA.dataloader.go2_waypoint_dataset import Go2WaypointRouterDataset
-from starVLA.model.framework.base_framework import baseframework
 
 
 ACTION_ROUTES = frozenset({"nav", "grasp", "place"})
@@ -110,6 +109,31 @@ def _git_commit() -> str | None:
     return result.stdout.strip() if result.returncode == 0 else None
 
 
+def _load_model_for_vlm_evaluation(checkpoint: Path):
+    """加载完整模型，但不要求与 VLM 评测无关的 action normalization stats。"""
+
+    from starVLA.model.framework.__init__ import build_framework
+    from starVLA.model.framework.share_tools import dict_to_namespace
+
+    checkpoint = checkpoint.resolve()
+    config_path = checkpoint.parents[1] / "config.yaml"
+    if not config_path.is_file():
+        raise FileNotFoundError(f"checkpoint run 缺少 config.yaml: {config_path}")
+    config = dict_to_namespace(
+        OmegaConf.to_container(OmegaConf.load(config_path), resolve=True)
+    )
+    config.trainer.pretrained_checkpoint = None
+    model = build_framework(cfg=config)
+    if checkpoint.suffix == ".safetensors":
+        from safetensors.torch import load_file
+
+        state_dict = load_file(str(checkpoint))
+    else:
+        state_dict = torch.load(checkpoint, map_location="cpu", mmap=True)
+    model.load_state_dict(state_dict, strict=True)
+    return model
+
+
 def _build_eval_dataset(config_path: Path, dataset_root: Path) -> tuple[Go2WaypointRouterDataset, dict[str, int]]:
     cfg = OmegaConf.load(config_path)
     data_cfg = cfg.datasets.router_data
@@ -181,7 +205,7 @@ def main() -> None:
 
     device = torch.device(args.device)
     torch.cuda.set_device(device)
-    model = baseframework.from_pretrained(str(args.checkpoint.resolve()))
+    model = _load_model_for_vlm_evaluation(args.checkpoint)
     model = model.to(device=device, dtype=torch.bfloat16).eval()
 
     records: list[dict[str, Any]] = []

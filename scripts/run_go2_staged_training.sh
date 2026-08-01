@@ -54,7 +54,8 @@ case "${STAGE}" in
       --trainer.loss_scale.action 1.0
       --trainer.learning_rate.action_model 5.0e-6
       --trainer.pretrained_checkpoint "${PRETRAINED_CHECKPOINT}"
-      --trainer.reload_modules null
+      # 只继承 VLM；action head 按当前 10 维配置初始化，兼容旧 3 维 VLM checkpoint。
+      --trainer.reload_modules qwen_vl_interface
       --trainer.skip_no_grad_batches true
       --datasets.router_data.include_routes "[nav]"
     )

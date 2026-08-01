@@ -33,4 +33,4 @@
 2. `action`：只取 NAV，冻结 VLM，训练动作头前三维。
 3. `manip`：只取 GRASP/PLACE，冻结 VLM，训练动作头后七维。
 
-10 维动作头与旧 3 维动作头权重形状不兼容。切换协议后必须从原始 Qwen3-VL 基座重新执行三阶段训练，不能从旧 NAV 动作 checkpoint 续训。
+10 维动作头与旧 3 维动作头权重形状不兼容。可以通过 `reload_modules=qwen_vl_interface` 只迁移已训练的 VLM，并重新初始化 10 维 action head；不能完整加载旧 NAV 动作 checkpoint。后续 GRASP/PLACE 阶段再完整继承同为 10 维的 NAV checkpoint。
