@@ -39,6 +39,12 @@ class Go2TrainingConfigTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "missing"):
             _validate_go2_training_config(cfg)
 
+    def test_unknown_include_route_is_rejected(self):
+        cfg = OmegaConf.load(GO2_CONFIG)
+        cfg.datasets.router_data.include_routes = ["nav", "bbox"]
+        with self.assertRaisesRegex(ValueError, "include_routes"):
+            _validate_go2_training_config(cfg)
+
     def test_vlm_stage_contract(self):
         cfg = OmegaConf.load(GO2_CONFIG)
         cfg.trainer.stage = "vlm"

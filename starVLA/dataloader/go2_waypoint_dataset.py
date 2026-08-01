@@ -146,6 +146,17 @@ class Go2WaypointRouterDataset(Dataset):
         self.route_stride = {
             route: max(1, int(_cfg_get(route_strides_cfg, route, 1))) for route in MAIN_ROUTES
         }
+        include_routes_cfg = _cfg_get(data_cfg, "include_routes", MAIN_ROUTES)
+        if isinstance(include_routes_cfg, str):
+            include_routes = [route.strip() for route in include_routes_cfg.split(",") if route.strip()]
+        else:
+            include_routes = [str(route) for route in include_routes_cfg]
+        unknown_routes = sorted(set(include_routes) - set(MAIN_ROUTES))
+        if not include_routes or unknown_routes:
+            raise ValueError(
+                f"include_routes must be a non-empty subset of {MAIN_ROUTES}, got {include_routes}"
+            )
+        self.include_routes = frozenset(include_routes)
         self.done_repeat = max(1, int(_cfg_get(data_cfg, "done_repeat", 1)))
         self.episodes: dict[int, _Episode] = {}
         self.samples: list[tuple[int, int]] = []
@@ -159,6 +170,8 @@ class Go2WaypointRouterDataset(Dataset):
                 route = self._route_for_frame(episode, frame_index)
                 counter = route_counters[route]
                 route_counters[route] += 1
+                if route not in self.include_routes:
+                    continue
                 if counter % self.route_stride[route] != 0:
                     continue
                 repeat = self.done_repeat if route == "done" else 1

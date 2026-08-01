@@ -65,6 +65,7 @@ class Go2WaypointDatasetIntegrationTest(unittest.TestCase):
         root = os.environ.get("GO2_TEST_DATASET_ROOT")
         if not root or not Path(root).exists():
             raise unittest.SkipTest("GO2_TEST_DATASET_ROOT is not available")
+        cls.dataset_root = Path(root)
         cls.dataset = Go2WaypointRouterDataset(
             OmegaConf.create(
                 {
@@ -114,6 +115,25 @@ class Go2WaypointDatasetIntegrationTest(unittest.TestCase):
         sample = self.dataset[grasp_index]
         self.assertNotIn("action", sample)
         self.assertNotIn("action_mask", sample)
+
+    def test_route_filter_keeps_only_requested_routes(self):
+        cfg = OmegaConf.create(
+            {
+                "root": str(self.dataset_root),
+                "image_size": [96, 96],
+                "action_horizon": 4,
+                "episode_start": 0,
+                "num_episodes": 2,
+                "include_routes": ["grasp", "place"],
+            }
+        )
+        filtered = Go2WaypointRouterDataset(cfg)
+        self.assertTrue(filtered.samples)
+        routes = {
+            filtered._route_for_frame(filtered.episodes[episode], frame)
+            for episode, frame in filtered.samples
+        }
+        self.assertEqual(routes, {"grasp", "place"})
 
 
 if __name__ == "__main__":

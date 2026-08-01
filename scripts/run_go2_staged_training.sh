@@ -6,6 +6,7 @@ usage() {
 Usage:
   VISIBLE_GPUS=5,6 scripts/run_go2_staged_training.sh vlm
   VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage1.pt scripts/run_go2_staged_training.sh action
+  VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage2.pt scripts/run_go2_staged_training.sh manip
   VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage2.pt scripts/run_go2_staged_training.sh joint
 
 Optional environment variables:
@@ -20,6 +21,7 @@ if [[ -z "${STAGE}" || "${STAGE}" == "-h" || "${STAGE}" == "--help" ]]; then
   [[ -n "${STAGE}" ]] && exit 0 || exit 2
 fi
 shift
+TRAINER_STAGE="${STAGE}"
 
 case "${STAGE}" in
   vlm)
@@ -33,6 +35,7 @@ case "${STAGE}" in
       --trainer.loss_scale.action 0.0
       --trainer.learning_rate.qwen_vl_interface 5.0e-6
       --trainer.skip_no_grad_batches false
+      --datasets.router_data.include_routes "[nav,grasp,place,done,recover]"
     )
     ;;
   action)
@@ -53,6 +56,29 @@ case "${STAGE}" in
       --trainer.pretrained_checkpoint "${PRETRAINED_CHECKPOINT}"
       --trainer.reload_modules null
       --trainer.skip_no_grad_batches true
+      --datasets.router_data.include_routes "[nav]"
+    )
+    ;;
+  manip)
+    TRAINER_STAGE=vlm
+    DEFAULT_STEPS=3000
+    DEFAULT_WARMUP=100
+    : "${PRETRAINED_CHECKPOINT:?Set PRETRAINED_CHECKPOINT to a NAV-action-stage checkpoint}"
+    [[ -f "${PRETRAINED_CHECKPOINT}" ]] || {
+      echo "Checkpoint does not exist: ${PRETRAINED_CHECKPOINT}" >&2
+      exit 2
+    }
+    STAGE_ARGS=(
+      --framework.qwenvl.freeze false
+      --framework.action_model.freeze true
+      --framework.router.action_loss_grad_to_vlm false
+      --trainer.loss_scale.vlm 1.0
+      --trainer.loss_scale.action 0.0
+      --trainer.learning_rate.qwen_vl_interface 1.0e-6
+      --trainer.pretrained_checkpoint "${PRETRAINED_CHECKPOINT}"
+      --trainer.reload_modules null
+      --trainer.skip_no_grad_batches false
+      --datasets.router_data.include_routes "[grasp,place]"
     )
     ;;
   joint)
@@ -74,6 +100,7 @@ case "${STAGE}" in
       --trainer.pretrained_checkpoint "${PRETRAINED_CHECKPOINT}"
       --trainer.reload_modules null
       --trainer.skip_no_grad_batches false
+      --datasets.router_data.include_routes "[nav,grasp,place,done,recover]"
     )
     ;;
   *)
@@ -101,7 +128,7 @@ fi
 
 exec "${REPO_ROOT}/scripts/run_go2_waypoint_training.sh" \
   --run_id "${RUN_ID}" \
-  --trainer.stage "${STAGE}" \
+  --trainer.stage "${TRAINER_STAGE}" \
   --trainer.max_train_steps "${MAX_TRAIN_STEPS}" \
   --trainer.num_warmup_steps "${WARMUP_STEPS}" \
   --trainer.save_interval "${SAVE_INTERVAL}" \

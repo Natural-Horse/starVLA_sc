@@ -198,6 +198,16 @@ def _validate_go2_training_config(cfg: Any) -> None:
     if set(main_routes) != set(expected_routes) or len(main_routes) != len(expected_routes):
         raise ValueError(f"Go2 main_routes must contain exactly {expected_routes}, got {main_routes}")
 
+    include_routes_cfg = _cfg_get(router_data_cfg, "include_routes", expected_routes)
+    if isinstance(include_routes_cfg, str):
+        include_routes = [route.strip() for route in include_routes_cfg.split(",") if route.strip()]
+    else:
+        include_routes = [str(route) for route in include_routes_cfg]
+    if not include_routes or not set(include_routes).issubset(expected_routes):
+        raise ValueError(
+            f"Go2 include_routes must be a non-empty subset of {expected_routes}, got {include_routes}"
+        )
+
     route_tokens_cfg = _cfg_get(router_data_cfg, "route_tokens", None)
     route_tokens = {route: str(_cfg_get(route_tokens_cfg, route, "")) for route in expected_routes}
     if any(not token for token in route_tokens.values()) or len(set(route_tokens.values())) != len(route_tokens):
@@ -1404,6 +1414,7 @@ class VLARouterTrainer(TrainerUtils):
             if self.is_sft_multi:
                 logger.info(f"  SFT source probs = {self.sft_source_prob_map}")
             logger.info("  Route tokens: %s", self._configured_route_tokens(include_bbox=False))
+            logger.info("  Included routes = %s", _cfg_get(router_cfg, "include_routes", "all"))
             logger.info(
                 "  BBox enabled: train=%s evaluation=%s",
                 self._bbox_flag("train_enabled", False),
