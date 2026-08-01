@@ -112,9 +112,11 @@ def _git_commit() -> str | None:
 def _load_model_for_vlm_evaluation(checkpoint: Path):
     """加载完整模型，但不要求与 VLM 评测无关的 action normalization stats。"""
 
+    from accelerate import PartialState
     from starVLA.model.framework.__init__ import build_framework
     from starVLA.model.framework.share_tools import dict_to_namespace
 
+    PartialState()
     checkpoint = checkpoint.resolve()
     config_path = checkpoint.parents[1] / "config.yaml"
     if not config_path.is_file():
