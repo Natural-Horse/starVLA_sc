@@ -44,6 +44,7 @@ def _sample_record(dataset, sample: dict) -> dict:
     return {
         "episode_index": episode_index,
         "frame_index": frame_index,
+        "task_index": int(sample["task_index"]),
         "task_stage": str(dataset.episodes[episode_index].stages[frame_index]),
         "route": sample["route"],
         "prompt": sample["lang"],

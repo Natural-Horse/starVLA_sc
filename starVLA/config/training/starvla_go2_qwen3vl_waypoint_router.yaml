@@ -110,10 +110,11 @@ datasets:
     enable: false
 
 trainer:
+  stage: joint
   epochs: 100
   max_train_steps: 5000
   num_warmup_steps: 250
-  save_interval: 500
+  save_interval: 300
   eval_interval: 100
   learning_rate:
     action_model: 1.0e-6
@@ -148,3 +149,4 @@ trainer:
   resume_step: null
   enable_gradient_checkpointing: true
   enable_mixed_precision_training: true
+  enable_tensorboard: true

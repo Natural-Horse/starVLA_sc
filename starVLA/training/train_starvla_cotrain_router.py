@@ -78,11 +78,14 @@ def build_accelerator(cfg) -> Accelerator:
     ds_cfg = cfg_get(trainer_cfg, "deepspeed", None)
     zero_stage = cfg_get(ds_cfg, "zero_stage", None)
     zero_stage = int(zero_stage) if zero_stage is not None else None
+    gradient_clipping = cfg_get(trainer_cfg, "gradient_clipping", None)
+    gradient_clipping = float(gradient_clipping) if gradient_clipping is not None else None
     offload_optimizer_device = cfg_get(ds_cfg, "offload_optimizer_device", None)
     offload_param_device = cfg_get(ds_cfg, "offload_param_device", None)
     zero3_save_16bit_model = cfg_get(ds_cfg, "zero3_save_16bit_model", None)
     deepspeed_plugin = DeepSpeedPlugin(
         gradient_accumulation_steps=gradient_accumulation_steps,
+        gradient_clipping=gradient_clipping,
         zero_stage=zero_stage,
         offload_optimizer_device=offload_optimizer_device,
         offload_param_device=offload_param_device,
@@ -163,6 +166,112 @@ def _apply_router_framework_overrides(cfg: Any) -> None:
     action_tokenizer_cfg = _cfg_get(framework_cfg, "action_tokenizer", None)
     if action_tokenizer_cfg is not None:
         router_data_cfg.action_tokenizer = _clone_cfg(action_tokenizer_cfg)
+
+
+def _validate_go2_training_config(cfg: Any) -> None:
+    datasets_cfg = _cfg_get(cfg, "datasets", None)
+    router_data_cfg = _cfg_get(datasets_cfg, "router_data", None)
+    if str(_cfg_get(router_data_cfg, "dataset_py", "")) != "go2_waypoint_router_dataset":
+        return
+
+    framework_cfg = _cfg_get(cfg, "framework", None)
+    router_cfg = _cfg_get(framework_cfg, "router", None)
+    action_cfg = _cfg_get(framework_cfg, "action_model", None)
+    trainer_cfg = _cfg_get(cfg, "trainer", None)
+
+    data_horizon = int(_cfg_get(router_data_cfg, "action_horizon", 0))
+    model_horizon = int(_cfg_get(action_cfg, "action_horizon", 0))
+    future_window = int(_cfg_get(action_cfg, "future_action_window_size", -1))
+    if data_horizon <= 0 or model_horizon != data_horizon or future_window + 1 != data_horizon:
+        raise ValueError(
+            "Go2 action horizon mismatch: expected "
+            "datasets.router_data.action_horizon == framework.action_model.action_horizon == "
+            "framework.action_model.future_action_window_size + 1, got "
+            f"{data_horizon}, {model_horizon}, {future_window} + 1"
+        )
+
+    if int(_cfg_get(action_cfg, "action_dim", 0)) != 3 or int(_cfg_get(action_cfg, "state_dim", 0)) != 3:
+        raise ValueError("Go2 waypoint action_dim and state_dim must both be 3 ([x, y, yaw] and [vx, vy, wz]).")
+
+    main_routes = [str(route) for route in _cfg_get(router_data_cfg, "main_routes", [])]
+    expected_routes = ["nav", "grasp", "place", "done", "recover"]
+    if set(main_routes) != set(expected_routes) or len(main_routes) != len(expected_routes):
+        raise ValueError(f"Go2 main_routes must contain exactly {expected_routes}, got {main_routes}")
+
+    route_tokens_cfg = _cfg_get(router_data_cfg, "route_tokens", None)
+    route_tokens = {route: str(_cfg_get(route_tokens_cfg, route, "")) for route in expected_routes}
+    if any(not token for token in route_tokens.values()) or len(set(route_tokens.values())) != len(route_tokens):
+        raise ValueError(f"Go2 route tokens must be present and unique, got {route_tokens}")
+
+    special_cfg = _cfg_get(_cfg_get(framework_cfg, "qwenvl", None), "special_tokens", None)
+    if str(_cfg_get(special_cfg, "policy", "")) != "auto_add":
+        raise ValueError("Go2 training from the clean Qwen base requires special_tokens.policy=auto_add.")
+    special_tokens = {str(token) for token in _cfg_get(special_cfg, "router_tokens", [])}
+    required_tokens = set(route_tokens.values()) | {
+        str(_cfg_get(router_data_cfg, "subtask_start_token", "")),
+        str(_cfg_get(router_data_cfg, "subtask_end_token", "")),
+    }
+    if "" in required_tokens or not required_tokens.issubset(special_tokens):
+        raise ValueError(f"Qwen special tokens are missing Go2 route/subtask tokens: {sorted(required_tokens - special_tokens)}")
+
+    action_supervision = str(_cfg_get(router_cfg, "action_supervision", ""))
+    data_action_supervision = str(_cfg_get(router_data_cfg, "action_supervision", ""))
+    if action_supervision != "flow_matching" or data_action_supervision != "flow_matching":
+        raise ValueError("Go2 training requires flow_matching action supervision in framework and dataset config.")
+    if str(_cfg_get(router_data_cfg, "action_route_format", "")) != "route_subtask":
+        raise ValueError("Go2 training requires datasets.router_data.action_route_format=route_subtask.")
+
+    bbox_cfg = _cfg_get(router_data_cfg, "bbox", None)
+    if any(
+        _cfg_bool(bbox_cfg, key, False)
+        for key in ("allow_route_prediction", "train_enabled", "evaluation_enabled", "fallback_enabled")
+    ):
+        raise ValueError("Go2 main training requires bbox route, training, evaluation, and fallback to stay disabled.")
+
+    sft_multi_cfg = _cfg_get(datasets_cfg, "sft_multi", None)
+    loss_scale_cfg = _cfg_get(trainer_cfg, "loss_scale", None)
+    if not _cfg_bool(sft_multi_cfg, "enable", False) and float(_cfg_get(loss_scale_cfg, "sft_vlm", 0.0)) != 0.0:
+        raise ValueError("trainer.loss_scale.sft_vlm must be 0 when datasets.sft_multi.enable=false.")
+    vlm_scale = float(_cfg_get(loss_scale_cfg, "vlm", 0.0))
+    action_scale = float(_cfg_get(loss_scale_cfg, "action", 0.0))
+    if vlm_scale < 0.0 or action_scale < 0.0 or (vlm_scale == 0.0 and action_scale == 0.0):
+        raise ValueError("Go2 VLM/action loss scales must be non-negative and at least one must be positive.")
+
+    stage = str(_cfg_get(trainer_cfg, "stage", "joint"))
+    if stage not in {"vlm", "action", "joint"}:
+        raise ValueError(f"trainer.stage must be vlm, action, or joint, got {stage!r}")
+    qwenvl_frozen = _cfg_bool(_cfg_get(framework_cfg, "qwenvl", None), "freeze", False)
+    action_frozen = _cfg_bool(action_cfg, "freeze", False)
+    action_grad_to_vlm = _cfg_bool(router_cfg, "action_loss_grad_to_vlm", True)
+    if stage == "vlm" and not (vlm_scale > 0.0 and action_scale == 0.0 and not qwenvl_frozen and action_frozen):
+        raise ValueError("VLM stage requires VLM loss only, trainable Qwen, and a frozen action model.")
+    if stage == "action":
+        if not (vlm_scale == 0.0 and action_scale > 0.0 and qwenvl_frozen and not action_frozen):
+            raise ValueError("Action stage requires action loss only, frozen Qwen, and a trainable action model.")
+        if action_grad_to_vlm:
+            raise ValueError("Action stage requires framework.router.action_loss_grad_to_vlm=false.")
+        if not str(_cfg_get(trainer_cfg, "pretrained_checkpoint", "")).strip():
+            raise ValueError("Action stage requires trainer.pretrained_checkpoint from the VLM stage.")
+    if stage == "joint" and (vlm_scale <= 0.0 or action_scale <= 0.0 or qwenvl_frozen or action_frozen):
+        raise ValueError("Joint stage requires positive VLM/action losses and both modules trainable.")
+
+    if int(_cfg_get(router_data_cfg, "per_device_batch_size", 0)) <= 0:
+        raise ValueError("datasets.router_data.per_device_batch_size must be positive.")
+    if int(_cfg_get(router_data_cfg, "num_workers", -1)) < 0:
+        raise ValueError("datasets.router_data.num_workers must be non-negative.")
+    for key in ("rdp_epsilon_m", "yaw_metric_scale_m_per_rad", "max_translation_m", "max_yaw_deg"):
+        if float(_cfg_get(router_data_cfg, key, 0.0)) <= 0.0:
+            raise ValueError(f"datasets.router_data.{key} must be positive.")
+
+    max_steps = int(_cfg_get(trainer_cfg, "max_train_steps", 0))
+    warmup_steps = int(_cfg_get(trainer_cfg, "num_warmup_steps", 0))
+    if max_steps <= 0 or not 0 <= warmup_steps < max_steps:
+        raise ValueError(f"Invalid Go2 training steps: max_train_steps={max_steps}, num_warmup_steps={warmup_steps}")
+    for key in ("save_interval", "eval_interval", "logging_frequency", "gradient_accumulation_steps"):
+        if int(_cfg_get(trainer_cfg, key, 0)) <= 0:
+            raise ValueError(f"trainer.{key} must be positive for Go2 training.")
+    if float(_cfg_get(trainer_cfg, "gradient_clipping", 0.0)) <= 0.0:
+        raise ValueError("trainer.gradient_clipping must be positive.")
 
 
 def _sync_framework_freeze_modules(cfg: Any) -> None:
@@ -393,6 +502,7 @@ def prepare_data(
             split_summary["eval_episode_start"],
             split_summary["eval_num_episodes"],
         )
+        eval_cfg.datasets.router_data.shuffle = False
         _disable_photometric_augmentation(eval_cfg.datasets.router_data)
 
         router_train_dataloader = build_dataloader(cfg=train_cfg, dataset_py=train_cfg.datasets.router_data.dataset_py)
@@ -1021,7 +1131,9 @@ class VLARouterTrainer(TrainerUtils):
                     targets,
                     reduction="none",
                 )
+                token_correct = (torch.argmax(logits[i, label_positions - 1, :], dim=-1) == targets).float()
                 add_values("router_vlm_token_ce", token_losses)
+                add_values("router_vlm_token_accuracy", token_correct)
                 add_values("router_route_token_ce", token_losses[:1])
 
                 route = str(sample.get("route", "unknown"))
@@ -1046,6 +1158,7 @@ class VLARouterTrainer(TrainerUtils):
                         route_prefix_len = max(1, token_count(route_prefix))
                     subtask_end = min(route_prefix_len, int(token_losses.numel()))
                     add_values("router_action_subtask_ce", token_losses[1:subtask_end])
+                    add_values("router_action_subtask_token_accuracy", token_correct[1:subtask_end])
                     add_values("router_action_route_prefix_ce", token_losses[:subtask_end])
 
                     if self.router_action_supervision == "fast_token_ce":
@@ -1101,7 +1214,9 @@ class VLARouterTrainer(TrainerUtils):
             self.optimizer.zero_grad()
             batch_inputs = self._prepare_router_batch(batch_router)
             qwen_vl_interface = self._get_qwen_vl_interface()
-            use_flow_action_loss = self.router_action_supervision == "flow_matching"
+            use_flow_action_loss = (
+                self.router_action_supervision == "flow_matching" and self.loss_scale_action > 0.0
+            )
 
             with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
                 qwen_output = qwen_vl_interface(
@@ -1223,7 +1338,9 @@ class VLARouterTrainer(TrainerUtils):
         action_indices = self._action_indices(batch_router)
         batch_inputs = self._prepare_router_batch(batch_router)
         qwen_vl_interface = self._get_qwen_vl_interface()
-        use_flow_action_loss = self.router_action_supervision == "flow_matching"
+        use_flow_action_loss = (
+            self.router_action_supervision == "flow_matching" and self.loss_scale_action > 0.0
+        )
 
         with torch.inference_mode():
             with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
@@ -1256,9 +1373,13 @@ class VLARouterTrainer(TrainerUtils):
                     self._append_action_dim_loss_metrics(step_metrics, prefix="action_dim_loss_eval")
                     self._append_rtc_delay_metrics(step_metrics, prefix="rtc_delay_eval")
 
-                step_metrics.update(self._compute_route_token_metrics(qwen_output, batch_inputs))
-                step_metrics.update(self._compute_router_ce_breakdown_metrics(qwen_output, batch_inputs, batch_router))
-                self._append_batch_route_metrics(step_metrics, batch_router)
+                route_metrics = self._compute_route_token_metrics(qwen_output, batch_inputs)
+                ce_metrics = self._compute_router_ce_breakdown_metrics(qwen_output, batch_inputs, batch_router)
+                step_metrics.update({f"{key}_eval": value for key, value in route_metrics.items()})
+                step_metrics.update({f"{key}_eval": value for key, value in ce_metrics.items()})
+                eval_batch_metrics: dict[str, float] = {}
+                self._append_batch_route_metrics(eval_batch_metrics, batch_router)
+                step_metrics.update({f"{key}_eval": value for key, value in eval_batch_metrics.items()})
 
         if dist.is_initialized():
             dist.barrier()
@@ -1268,6 +1389,7 @@ class VLARouterTrainer(TrainerUtils):
         if self.accelerator.is_main_process:
             router_cfg = self.config.datasets.router_data
             logger.info("***** Router Training Configuration *****")
+            logger.info(f"  Training stage = {_cfg_get(self.config.trainer, 'stage', 'joint')}")
             logger.info(f"  Total optimization steps = {self.config.trainer.max_train_steps}")
             logger.info(f"  Per device router batch size = {router_cfg.per_device_batch_size}")
             logger.info(f"  Total batch size = {self.total_batch_size}")
@@ -1351,6 +1473,8 @@ class VLARouterTrainer(TrainerUtils):
 
 def main(cfg) -> None:
     cfg = wrap_config(cfg)
+    _apply_router_framework_overrides(cfg)
+    _validate_go2_training_config(cfg)
     _sync_framework_freeze_modules(cfg)
     accelerator = build_accelerator(cfg)
     logger.info("VLA Router Training :: Warming Up")

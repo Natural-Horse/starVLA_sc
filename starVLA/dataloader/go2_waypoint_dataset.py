@@ -49,6 +49,7 @@ def _cfg_get(cfg: Any, key: str, default: Any = None) -> Any:
 @dataclass
 class _Episode:
     episode_index: int
+    task_indices: np.ndarray
     poses: np.ndarray
     base_velocity: np.ndarray
     stages: np.ndarray
@@ -56,6 +57,23 @@ class _Episode:
     instructions: np.ndarray
     done: np.ndarray
     waypoint_indices_by_frame: dict[int, tuple[np.ndarray, int, int]]
+
+
+def _load_task_instructions(tasks_path: Path) -> dict[int, str]:
+    rows = [json.loads(line) for line in tasks_path.read_text().splitlines() if line.strip()]
+    if not rows:
+        raise ValueError(f"No task definitions found in {tasks_path}")
+
+    task_instructions: dict[int, str] = {}
+    for row_index, row in enumerate(rows):
+        task_index = int(row.get("task_index", row_index))
+        instruction = str(row.get("task", row.get("instruction", ""))).strip()
+        if not instruction:
+            raise ValueError(f"Task {task_index} has no task/instruction text in {tasks_path}")
+        if task_index in task_instructions:
+            raise ValueError(f"Duplicate task_index={task_index} in {tasks_path}")
+        task_instructions[task_index] = instruction
+    return task_instructions
 
 
 class Go2WaypointRouterDataset(Dataset):
@@ -101,8 +119,7 @@ class Go2WaypointRouterDataset(Dataset):
         self.waypoint_cfg = extraction_cfg
 
         tasks_path = self.root / "meta" / "tasks.jsonl"
-        task_lines = [json.loads(line) for line in tasks_path.read_text().splitlines() if line.strip()]
-        self.task_instruction = str(task_lines[0].get("task", task_lines[0].get("instruction", "")))
+        self.task_instructions = _load_task_instructions(tasks_path)
         self.router_prompt = str(
             _cfg_get(
                 data_cfg,
@@ -150,6 +167,7 @@ class Go2WaypointRouterDataset(Dataset):
     def _load_episode(self, parquet_path: Path) -> _Episode:
         columns = [
             "episode_index",
+            "task_index",
             "observation.state",
             "observation.base_velocity",
             "task_stage",
@@ -159,6 +177,13 @@ class Go2WaypointRouterDataset(Dataset):
         ]
         table = pq.read_table(parquet_path, columns=columns)
         episode_index = int(table["episode_index"][0].as_py())
+        task_indices = np.asarray(table["task_index"].to_pylist(), dtype=np.int64)
+        unknown_task_indices = sorted(set(task_indices.tolist()) - set(self.task_instructions))
+        if unknown_task_indices:
+            raise ValueError(
+                f"Episode {episode_index} references task_index values missing from meta/tasks.jsonl: "
+                f"{unknown_task_indices}"
+            )
         states = np.asarray(table["observation.state"].to_pylist(), dtype=np.float64)
         poses = states[:, [0, 1, 3]]
         stages = np.asarray(table["task_stage"].to_pylist(), dtype=object)
@@ -172,6 +197,7 @@ class Go2WaypointRouterDataset(Dataset):
 
         return _Episode(
             episode_index=episode_index,
+            task_indices=task_indices,
             poses=poses,
             base_velocity=np.asarray(table["observation.base_velocity"].to_pylist(), dtype=np.float32),
             stages=stages,
@@ -239,18 +265,21 @@ class Go2WaypointRouterDataset(Dataset):
 
         route_token = self.route_tokens[route]
         solution = f"{route_token}{self.subtask_start_token}{subtask}{self.subtask_end_token}"
+        task_index = int(episode.task_indices[frame_index])
+        task_instruction = self.task_instructions[task_index]
         output: dict[str, Any] = {
             "image": [
                 self._image(episode_index, frame_index, "front"),
                 self._image(episode_index, frame_index, "wrist"),
             ],
-            "lang": self.router_prompt.format(instruction=self.task_instruction),
+            "lang": self.router_prompt.format(instruction=task_instruction),
             "solution": solution,
             "route": route,
             "route_token": route_token,
             "subtask_text": subtask,
             "episode_index": episode_index,
             "frame_index": frame_index,
+            "task_index": task_index,
         }
 
         if route == "nav":
