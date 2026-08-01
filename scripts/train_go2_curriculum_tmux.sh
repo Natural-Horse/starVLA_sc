@@ -31,6 +31,26 @@ read -r VLM_SAMPLES VLM_STEPS < <(count_stage nav grasp place done recover)
 read -r NAV_SAMPLES NAV_STEPS < <(count_stage nav)
 read -r MANIP_SAMPLES MANIP_STEPS < <(count_stage grasp place)
 
+normalize_warmup_steps() {
+  local requested="$1"
+  local total_steps="$2"
+  if (( requested < total_steps )); then
+    echo "${requested}"
+    return
+  fi
+  local fallback=$(( total_steps / 10 ))
+  if (( fallback >= total_steps )); then
+    fallback=$(( total_steps - 1 ))
+  fi
+  (( fallback < 0 )) && fallback=0
+  echo "warmup ${requested} must be below ${total_steps}; using ${fallback}" >&2
+  echo "${fallback}"
+}
+
+VLM_WARMUP_STEPS="$(normalize_warmup_steps "${VLM_WARMUP_STEPS:-100}" "${VLM_STEPS}")"
+NAV_WARMUP_STEPS="$(normalize_warmup_steps "${NAV_WARMUP_STEPS:-150}" "${NAV_STEPS}")"
+MANIP_WARMUP_STEPS="$(normalize_warmup_steps "${MANIP_WARMUP_STEPS:-100}" "${MANIP_STEPS}")"
+
 BASE_RUN_ID="${BASE_RUN_ID:-go2_n200_curriculum_$(date +%m%d_%H%M%S)}"
 VLM_RUN_ID="${BASE_RUN_ID}_vlm"
 NAV_RUN_ID="${BASE_RUN_ID}_nav"
@@ -71,20 +91,20 @@ if [[ -n "${DATASET_ROOT:-}" ]]; then
 fi
 
 printf -v VLM_COMMAND '%q ' "${common_env[@]}" RUN_ID="${VLM_RUN_ID}" \
-  MAX_TRAIN_STEPS="${VLM_STEPS}" WARMUP_STEPS="${VLM_WARMUP_STEPS:-100}" \
+  MAX_TRAIN_STEPS="${VLM_STEPS}" WARMUP_STEPS="${VLM_WARMUP_STEPS}" \
   "${REPO_ROOT}/scripts/run_go2_staged_training.sh" vlm \
   --trainer.gradient_accumulation_steps "${GRADIENT_ACCUMULATION_STEPS}" "${dataset_args[@]}"
 VLM_CHECKPOINT="${RUN_ROOT}/${VLM_RUN_ID}/final_model/pytorch_model.pt"
 
 printf -v NAV_COMMAND '%q ' "${common_env[@]}" RUN_ID="${NAV_RUN_ID}" \
-  MAX_TRAIN_STEPS="${NAV_STEPS}" WARMUP_STEPS="${NAV_WARMUP_STEPS:-150}" \
+  MAX_TRAIN_STEPS="${NAV_STEPS}" WARMUP_STEPS="${NAV_WARMUP_STEPS}" \
   PRETRAINED_CHECKPOINT="${VLM_CHECKPOINT}" \
   "${REPO_ROOT}/scripts/run_go2_staged_training.sh" action \
   --trainer.gradient_accumulation_steps "${GRADIENT_ACCUMULATION_STEPS}" "${dataset_args[@]}"
 NAV_CHECKPOINT="${RUN_ROOT}/${NAV_RUN_ID}/final_model/pytorch_model.pt"
 
 printf -v MANIP_COMMAND '%q ' "${common_env[@]}" RUN_ID="${MANIP_RUN_ID}" \
-  MAX_TRAIN_STEPS="${MANIP_STEPS}" WARMUP_STEPS="${MANIP_WARMUP_STEPS:-100}" \
+  MAX_TRAIN_STEPS="${MANIP_STEPS}" WARMUP_STEPS="${MANIP_WARMUP_STEPS}" \
   PRETRAINED_CHECKPOINT="${NAV_CHECKPOINT}" \
   "${REPO_ROOT}/scripts/run_go2_staged_training.sh" manip \
   --trainer.gradient_accumulation_steps "${GRADIENT_ACCUMULATION_STEPS}" "${dataset_args[@]}"
