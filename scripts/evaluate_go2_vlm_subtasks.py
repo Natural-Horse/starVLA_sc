@@ -181,7 +181,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--batch-size", type=int, default=12)
-    parser.add_argument("--max-new-tokens", type=int, default=24)
+    parser.add_argument(
+        "--max-new-tokens",
+        type=int,
+        default=64,
+        help="完整生成 route 与局部 instruction 的 token 上限。",
+    )
     parser.add_argument("--max-samples", type=int)
     parser.add_argument("--routes", nargs="+", choices=["nav", "grasp", "place", "done", "recover"])
     return parser.parse_args()

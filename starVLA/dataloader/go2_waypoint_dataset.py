@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -33,12 +34,26 @@ DEFAULT_ROUTE_TOKENS = {
     "done": "<|done|>",
     "recover": "<|recover|>",
 }
-DEFAULT_SUBTASKS = {
-    "grasp": "Grasp the target object.",
-    "place": "Place the held object.",
-    "done": "Task completed.",
-    "recover": "Recover and realign with the target.",
-}
+EGOCENTRIC_DIRECTIONS = (
+    "front",
+    "front-right",
+    "right",
+    "back-right",
+    "back",
+    "back-left",
+    "left",
+    "front-left",
+)
+TURN_INSTRUCTION_PATTERN = re.compile(
+    r"^Turn toward your (" + "|".join(EGOCENTRIC_DIRECTIONS) + r") to find the box\b"
+)
+GLOBAL_INSTRUCTION_PATTERN = re.compile(
+    r"^(?P<base>.+?) Box1 is to the robot's "
+    r"(?P<box1>" + "|".join(EGOCENTRIC_DIRECTIONS) + r") from its initial pose\. "
+    r"Box2 is to the robot's "
+    r"(?P<box2>" + "|".join(EGOCENTRIC_DIRECTIONS) + r") "
+    r"from its first pose after grasping\.$"
+)
 
 
 def _cfg_get(cfg: Any, key: str, default: Any = None) -> Any:
@@ -61,6 +76,7 @@ class _Episode:
     instructions: np.ndarray
     done: np.ndarray
     waypoint_indices_by_frame: dict[int, tuple[np.ndarray, int, int]]
+    global_instruction: str
 
 
 def _load_task_instructions(tasks_path: Path) -> dict[int, str]:
@@ -78,6 +94,50 @@ def _load_task_instructions(tasks_path: Path) -> dict[int, str]:
             raise ValueError(f"Duplicate task_index={task_index} in {tasks_path}")
         task_instructions[task_index] = instruction
     return task_instructions
+
+
+def _first_turn_direction(
+    stages: np.ndarray,
+    instructions: np.ndarray,
+    *,
+    stage: str,
+) -> str:
+    for frame_stage, instruction in zip(stages, instructions):
+        if str(frame_stage) != stage:
+            continue
+        match = TURN_INSTRUCTION_PATTERN.match(str(instruction).strip())
+        if match is not None:
+            return match.group(1)
+    raise ValueError(f"stage={stage} has no canonical eight-direction turn instruction")
+
+
+def _build_episode_instruction(
+    task_instruction: str,
+    stages: np.ndarray,
+    instructions: np.ndarray,
+) -> str:
+    box1_direction = _first_turn_direction(
+        stages, instructions, stage="nav_to_pick"
+    )
+    box2_direction = _first_turn_direction(
+        stages, instructions, stage="nav_to_place"
+    )
+    normalized_task_instruction = str(task_instruction).strip()
+    existing = GLOBAL_INSTRUCTION_PATTERN.match(normalized_task_instruction)
+    if existing is not None:
+        existing_directions = (existing.group("box1"), existing.group("box2"))
+        expected_directions = (box1_direction, box2_direction)
+        if existing_directions != expected_directions:
+            raise ValueError(
+                "global instruction directions disagree with local instructions: "
+                f"global={existing_directions} local={expected_directions}"
+            )
+        return normalized_task_instruction
+    return (
+        f"{normalized_task_instruction} "
+        f"Box1 is to the robot's {box1_direction} from its initial pose. "
+        f"Box2 is to the robot's {box2_direction} from its first pose after grasping."
+    )
 
 
 class Go2WaypointRouterDataset(Dataset):
@@ -129,7 +189,7 @@ class Go2WaypointRouterDataset(Dataset):
                 data_cfg,
                 "router_prompt",
                 "{instruction}\nChoose the current control route: NAV, GRASP, PLACE, DONE, or RECOVER. "
-                "Output exactly one route token and one short subtask.",
+                "Output exactly one route token and one local subtask instruction.",
             )
         )
 
@@ -218,6 +278,17 @@ class Go2WaypointRouterDataset(Dataset):
             for frame_index in range(start, stop):
                 waypoint_by_frame[frame_index] = (local_indices, start, stop)
 
+        instructions = np.asarray(table["instruction"].to_pylist(), dtype=object)
+        if any(not str(instruction).strip() for instruction in instructions):
+            raise ValueError(f"Episode {episode_index} contains an empty local instruction")
+        unique_task_indices = set(task_indices.tolist())
+        if len(unique_task_indices) != 1:
+            raise ValueError(
+                f"Episode {episode_index} must use exactly one task_index, got "
+                f"{sorted(unique_task_indices)}"
+            )
+        task_instruction = self.task_instructions[next(iter(unique_task_indices))]
+
         return _Episode(
             episode_index=episode_index,
             task_indices=task_indices,
@@ -226,9 +297,14 @@ class Go2WaypointRouterDataset(Dataset):
             actions=actions,
             stages=stages,
             subtasks=np.asarray(table["subtask"].to_pylist(), dtype=object),
-            instructions=np.asarray(table["instruction"].to_pylist(), dtype=object),
+            instructions=instructions,
             done=np.asarray(table["next.done"].to_pylist(), dtype=bool),
             waypoint_indices_by_frame=waypoint_by_frame,
+            global_instruction=_build_episode_instruction(
+                task_instruction,
+                stages,
+                instructions,
+            ),
         )
 
     @staticmethod
@@ -280,24 +356,24 @@ class Go2WaypointRouterDataset(Dataset):
         episode_index, frame_index = self.samples[index]
         episode = self.episodes[episode_index]
         route = self._route_for_frame(episode, frame_index)
-        subtask = str(episode.subtasks[frame_index]).strip()
-        if not subtask:
-            subtask = DEFAULT_SUBTASKS.get(route, "Recover and realign with the target.")
+        subtask = str(episode.instructions[frame_index]).strip()
+        phase_label = str(episode.subtasks[frame_index]).strip()
 
         route_token = self.route_tokens[route]
         solution = f"{route_token}{self.subtask_start_token}{subtask}{self.subtask_end_token}"
         task_index = int(episode.task_indices[frame_index])
-        task_instruction = self.task_instructions[task_index]
         output: dict[str, Any] = {
             "image": [
                 self._image(episode_index, frame_index, "front"),
                 self._image(episode_index, frame_index, "wrist"),
             ],
-            "lang": self.router_prompt.format(instruction=task_instruction),
+            "lang": self.router_prompt.format(instruction=episode.global_instruction),
             "solution": solution,
             "route": route,
             "route_token": route_token,
             "subtask_text": subtask,
+            "phase_label": phase_label,
+            "global_instruction": episode.global_instruction,
             "episode_index": episode_index,
             "frame_index": frame_index,
             "task_index": task_index,

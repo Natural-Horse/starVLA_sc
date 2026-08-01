@@ -6,8 +6,11 @@ from scripts.evaluate_go2_vlm_subtasks import (
 
 def test_parse_generated_subtask() -> None:
     assert (
-        parse_generated_subtask("<|nav|><|subtask|>nav_turn<|end_subtask|>")
-        == "nav_turn"
+        parse_generated_subtask(
+            "<|nav|><|subtask|>Turn toward your left to find the box."
+            "<|end_subtask|>"
+        )
+        == "Turn toward your left to find the box."
     )
     assert parse_generated_subtask("<|nav|>") is None
 
@@ -16,24 +19,24 @@ def test_summary_reports_micro_macro_and_action_subset() -> None:
     records = [
         {
             "target_route": "nav",
-            "target_subtask": "nav_turn",
-            "predicted_subtask": "nav_turn",
+            "target_subtask": "Turn toward your left to find the box.",
+            "predicted_subtask": "Turn toward your left to find the box.",
             "route_correct": True,
             "subtask_correct": True,
             "joint_correct": True,
         },
         {
             "target_route": "nav",
-            "target_subtask": "nav_turn",
-            "predicted_subtask": "nav_straight",
+            "target_subtask": "Turn toward your left to find the box.",
+            "predicted_subtask": "Walk toward the box in front of you.",
             "route_correct": True,
             "subtask_correct": False,
             "joint_correct": False,
         },
         {
             "target_route": "done",
-            "target_subtask": "task_completed",
-            "predicted_subtask": "task_completed",
+            "target_subtask": "Place the coke can on the box in front of you.",
+            "predicted_subtask": "Place the coke can on the box in front of you.",
             "route_correct": True,
             "subtask_correct": True,
             "joint_correct": True,

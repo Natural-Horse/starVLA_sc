@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-STAGE="${1:?Usage: launch_go2_stage_tmux.sh <vlm|vlm_relabel|action|manip>}"
+STAGE="${1:?Usage: launch_go2_stage_tmux.sh <vlm|vlm_instruction|action|manip>}"
 shift
 
 case "${STAGE}" in
@@ -9,7 +9,7 @@ case "${STAGE}" in
     ROUTES=(nav grasp place done recover)
     DEFAULT_WARMUP=100
     ;;
-  vlm_relabel)
+  vlm_relabel|vlm_instruction)
     ROUTES=(nav grasp place done recover)
     DEFAULT_WARMUP=100
     : "${PRETRAINED_CHECKPOINT:?Set PRETRAINED_CHECKPOINT to the previous VLM checkpoint}"

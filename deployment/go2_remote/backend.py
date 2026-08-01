@@ -11,7 +11,7 @@ from .protocol import ProtocolError, normalize_decision
 
 DEFAULT_ROUTER_PROMPT = (
     "{instruction}\nChoose the current control route: NAV, GRASP, PLACE, DONE, "
-    "or RECOVER. Output exactly one route token and one short subtask."
+    "or RECOVER. Output exactly one route token and one local subtask instruction."
 )
 
 

@@ -5,7 +5,7 @@ usage() {
   cat <<'EOF'
 Usage:
   VISIBLE_GPUS=5,6 scripts/run_go2_staged_training.sh vlm
-  VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/old-vlm.pt scripts/run_go2_staged_training.sh vlm_relabel
+  VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/old-vlm.pt scripts/run_go2_staged_training.sh vlm_instruction
   VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage1.pt scripts/run_go2_staged_training.sh action
   VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage2.pt scripts/run_go2_staged_training.sh manip
   VISIBLE_GPUS=5,6 PRETRAINED_CHECKPOINT=/path/to/stage2.pt scripts/run_go2_staged_training.sh joint
@@ -39,7 +39,7 @@ case "${STAGE}" in
       --datasets.router_data.include_routes "[nav,grasp,place,done,recover]"
     )
     ;;
-  vlm_relabel)
+  vlm_relabel|vlm_instruction)
     TRAINER_STAGE=vlm
     DEFAULT_STEPS=1000
     DEFAULT_WARMUP=100
