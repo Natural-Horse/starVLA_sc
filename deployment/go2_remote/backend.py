@@ -81,6 +81,7 @@ class StarVLABackend:
         self.router_prompt = str(
             _cfg_get(router_cfg, "router_prompt", DEFAULT_ROUTER_PROMPT)
         )
+        self.include_state = bool(_cfg_get(router_cfg, "include_state", False))
 
     @property
     def metadata(self) -> dict[str, Any]:
@@ -98,29 +99,34 @@ class StarVLABackend:
         if images.get("wrist") is not None:
             ordered_images.append(_decode_jpeg(images["wrist"]))
 
-        body_velocity = (
-            (payload.get("state") or {}).get("base_velocity_body", [0.0, 0.0, 0.0])
-        )
-        if not isinstance(body_velocity, (list, tuple)) or len(body_velocity) != 3:
-            raise ProtocolError("state.base_velocity_body must contain [vx,vy,wz]")
-        arm_state = (payload.get("state") or {}).get(
-            "arm_tcp_base", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        )
-        if not isinstance(arm_state, (list, tuple)) or len(arm_state) != 7:
-            raise ProtocolError(
-                "state.arm_tcp_base must contain [x,y,z,roll,pitch,yaw,gripper]"
+        state = None
+        if self.include_state:
+            body_velocity = (
+                (payload.get("state") or {}).get("base_velocity_body", [0.0, 0.0, 0.0])
             )
-        state = [
-            [
-                *(float(value) for value in body_velocity),
-                *(float(value) for value in arm_state),
+            if not isinstance(body_velocity, (list, tuple)) or len(body_velocity) != 3:
+                raise ProtocolError("state.base_velocity_body must contain [vx,vy,wz]")
+            arm_state = (payload.get("state") or {}).get(
+                "arm_tcp_base", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            )
+            if not isinstance(arm_state, (list, tuple)) or len(arm_state) != 7:
+                raise ProtocolError(
+                    "state.arm_tcp_base must contain [x,y,z,roll,pitch,yaw,gripper]"
+                )
+            state = [
+                [
+                    *(float(value) for value in body_velocity),
+                    *(float(value) for value in arm_state),
+                ]
             ]
-        ]
         prompt = self.router_prompt.format(
             instruction=str(payload["instruction"]).strip()
         )
+        example: dict[str, Any] = {"image": ordered_images, "lang": prompt}
+        if state is not None:
+            example["state"] = state
         raw = self.model.predict_typed_action(
-            examples=[{"image": ordered_images, "lang": prompt, "state": state}],
+            examples=[example],
             allow_bbox=False,
         )
         return normalize_decision(raw)

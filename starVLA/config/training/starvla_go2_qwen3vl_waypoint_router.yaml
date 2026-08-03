@@ -76,7 +76,7 @@ datasets:
     shuffle: true
     image_size: [224, 224]
     action_horizon: 4
-    include_state: true
+    include_state: false
     main_routes: [nav, grasp, place, done, recover]
     include_routes: [nav, grasp, place, done, recover]
     route_tokens:

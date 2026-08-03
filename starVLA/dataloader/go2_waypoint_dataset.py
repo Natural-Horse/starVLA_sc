@@ -64,6 +64,32 @@ def _cfg_get(cfg: Any, key: str, default: Any = None) -> Any:
     return getattr(cfg, key, default)
 
 
+def _episode_offsets(root_infos: list[dict[str, Any]]) -> list[int]:
+    """Return per-root episode index offsets so multiple datasets share one index space."""
+    offsets: list[int] = []
+    total = 0
+    for root_info in root_infos:
+        offsets.append(total)
+        total += int(root_info.get("total_episodes", 0))
+    return offsets
+
+
+def _episode_offset(root_index: int, root_infos: list[dict[str, Any]]) -> int:
+    return _episode_offsets(root_infos)[root_index]
+
+
+def _episode_location(
+    episode_index: int,
+    root_infos: list[dict[str, Any]],
+) -> tuple[int, int]:
+    """Map a global episode index back to (root_index, local_episode_index)."""
+    offsets = _episode_offsets(root_infos)
+    for root_index in range(len(root_infos) - 1, -1, -1):
+        if episode_index >= offsets[root_index]:
+            return root_index, episode_index - offsets[root_index]
+    raise ValueError(f"episode_index {episode_index} is out of range")
+
+
 @dataclass
 class _Episode:
     episode_index: int
@@ -146,18 +172,34 @@ class Go2WaypointRouterDataset(Dataset):
     def __init__(self, data_cfg: Any):
         super().__init__()
         self.data_cfg = data_cfg
-        self.root = Path(str(_cfg_get(data_cfg, "root", ""))).expanduser().resolve()
-        if not self.root.exists():
-            raise FileNotFoundError(f"Go2 dataset root does not exist: {self.root}")
+        raw_roots = _cfg_get(data_cfg, "root", "")
+        if not raw_roots:
+            raise ValueError("Go2 dataset requires datasets.router_data.root")
+        if isinstance(raw_roots, str):
+            roots = [Path(raw_roots).expanduser().resolve()]
+        else:
+            roots = [Path(str(item)).expanduser().resolve() for item in raw_roots]
+        for root in roots:
+            if not root.exists():
+                raise FileNotFoundError(f"Go2 dataset root does not exist: {root}")
+        self.roots = roots
+        self.root = self.roots[0]
 
-        info_path = self.root / "meta" / "info.json"
-        self.info = json.loads(info_path.read_text())
+        root_infos: list[dict[str, Any]] = []
+        for root in self.roots:
+            info_path = root / "meta" / "info.json"
+            root_infos.append(json.loads(info_path.read_text()))
+        self.root_infos = root_infos
+        self.info = root_infos[0]
+        for extra in root_infos[1:]:
+            if float(extra.get("fps", -1.0)) != float(self.info.get("fps", -2.0)):
+                raise ValueError("All Go2 dataset roots must share the same fps")
         self.fps = float(self.info["fps"])
         self.image_size = tuple(int(v) for v in _cfg_get(data_cfg, "image_size", [224, 224]))
         if len(self.image_size) != 2:
             raise ValueError(f"image_size must be [width,height], got {self.image_size}")
         self.action_horizon = int(_cfg_get(data_cfg, "action_horizon", 4))
-        self.include_state = bool(_cfg_get(data_cfg, "include_state", True))
+        self.include_state = bool(_cfg_get(data_cfg, "include_state", False))
         self.subtask_start_token = str(_cfg_get(data_cfg, "subtask_start_token", "<|subtask|>"))
         self.subtask_end_token = str(_cfg_get(data_cfg, "subtask_end_token", "<|end_subtask|>"))
 
@@ -182,8 +224,18 @@ class Go2WaypointRouterDataset(Dataset):
         )
         self.waypoint_cfg = extraction_cfg
 
-        tasks_path = self.root / "meta" / "tasks.jsonl"
-        self.task_instructions = _load_task_instructions(tasks_path)
+        task_instructions: dict[int, str] = {}
+        for root in self.roots:
+            tasks_path = root / "meta" / "tasks.jsonl"
+            root_tasks = _load_task_instructions(tasks_path)
+            for task_index, instruction in root_tasks.items():
+                if task_index in task_instructions and task_instructions[task_index] != instruction:
+                    raise ValueError(
+                        f"Go2 dataset roots disagree on task_index={task_index}: "
+                        f"{task_instructions[task_index]!r} vs {instruction!r}"
+                    )
+                task_instructions[task_index] = instruction
+        self.task_instructions = task_instructions
         self.router_prompt = str(
             _cfg_get(
                 data_cfg,
@@ -195,7 +247,10 @@ class Go2WaypointRouterDataset(Dataset):
 
         episode_start = int(_cfg_get(data_cfg, "episode_start", 0))
         num_episodes = _cfg_get(data_cfg, "num_episodes", None)
-        parquet_paths = sorted((self.root / "data").glob("chunk-*/episode_*.parquet"))
+        parquet_paths: list[tuple[int, Path]] = []
+        for root_index, root in enumerate(self.roots):
+            for path in sorted((root / "data").glob("chunk-*/episode_*.parquet")):
+                parquet_paths.append((root_index, path))
         if num_episodes is None:
             selected_paths = parquet_paths[episode_start:]
         else:
@@ -226,8 +281,8 @@ class Go2WaypointRouterDataset(Dataset):
         self.samples: list[tuple[int, int]] = []
         self._video_cache: dict[tuple[int, str], VideoReader] = {}
 
-        for parquet_path in selected_paths:
-            episode = self._load_episode(parquet_path)
+        for root_index, parquet_path in selected_paths:
+            episode = self._load_episode(parquet_path, root_index=root_index)
             self.episodes[episode.episode_index] = episode
             route_counters = {route: 0 for route in MAIN_ROUTES}
             for frame_index in range(len(episode.poses)):
@@ -241,7 +296,36 @@ class Go2WaypointRouterDataset(Dataset):
                 repeat = self.done_repeat if route == "done" else 1
                 self.samples.extend([(episode.episode_index, frame_index)] * repeat)
 
-    def _load_episode(self, parquet_path: Path) -> _Episode:
+    def save_dataset_statistics(self, out_path: Path | str) -> None:
+        """Write the go2 dataset statistics file required by checkpoint loading.
+
+        The go2 flow-matching pipeline keeps actions in physical units and does
+        not use these statistics for un-normalization, but ``read_mode_config``
+        asserts the file exists next to ``config.yaml``, so every training run
+        writes it together with the run config.
+        """
+        out_path = Path(out_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        actions: list[np.ndarray] = []
+        for episode in self.episodes.values():
+            if episode.actions.size:
+                actions.append(episode.actions)
+        if not actions:
+            raise ValueError("cannot build go2 dataset statistics without any actions")
+        stacked = np.concatenate(actions, axis=0).astype(np.float64)
+        q01 = np.quantile(stacked, 0.01, axis=0).tolist()
+        q99 = np.quantile(stacked, 0.99, axis=0).tolist()
+        mask = [True] * int(stacked.shape[1])
+        stats = {
+            "go2_waypoint_router_dataset": {
+                "action": {"q01": q01, "q99": q99, "mask": mask},
+                "num_trajectories": int(len(self.episodes)),
+                "num_transitions": int(stacked.shape[0]),
+            }
+        }
+        out_path.write_text(json.dumps(stats, indent=2), encoding="utf-8")
+
+    def _load_episode(self, parquet_path: Path, *, root_index: int) -> _Episode:
         columns = [
             "episode_index",
             "task_index",
@@ -255,6 +339,7 @@ class Go2WaypointRouterDataset(Dataset):
         ]
         table = pq.read_table(parquet_path, columns=columns)
         episode_index = int(table["episode_index"][0].as_py())
+        episode_index = _episode_offset(root_index, self.root_infos) + episode_index
         task_indices = np.asarray(table["task_index"].to_pylist(), dtype=np.int64)
         unknown_task_indices = sorted(set(task_indices.tolist()) - set(self.task_instructions))
         if unknown_task_indices:
@@ -321,9 +406,11 @@ class Go2WaypointRouterDataset(Dataset):
         return "recover"
 
     def _video_path(self, episode_index: int, camera: str) -> Path:
-        chunk = episode_index // int(self.info.get("chunks_size", 1000))
+        root_index, local_episode_index = _episode_location(episode_index, self.root_infos)
+        root_info = self.root_infos[root_index]
+        chunk = local_episode_index // int(root_info.get("chunks_size", 1000))
         template = str(
-            self.info.get(
+            root_info.get(
                 "video_path",
                 "videos/chunk-{episode_chunk:03d}/{video_key}/episode_{episode_index:06d}.mp4",
             )
@@ -331,10 +418,10 @@ class Go2WaypointRouterDataset(Dataset):
         video_key = f"observation.images.{camera}"
         relative = template.format(
             episode_chunk=chunk,
-            episode_index=episode_index,
+            episode_index=local_episode_index,
             video_key=video_key,
         )
-        return self.root / relative
+        return self.roots[root_index] / relative
 
     def _image(self, episode_index: int, frame_index: int, camera: str) -> Image.Image:
         cache_key = (episode_index, camera)

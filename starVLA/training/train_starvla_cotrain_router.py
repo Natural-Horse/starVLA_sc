@@ -311,18 +311,26 @@ def _clone_cfg(cfg: Any):
 
 
 def _dataset_total_episodes(data_cfg: Any) -> int:
-    root = str(_cfg_get(data_cfg, "root", ""))
-    if not root:
+    raw_roots = _cfg_get(data_cfg, "root", "")
+    if not raw_roots:
         raise ValueError("data_cfg.root is required when datasets.split.enable is true.")
     if str(_cfg_get(data_cfg, "dataset_py", "")) == "go2_waypoint_router_dataset":
-        info_path = Path(root) / "meta" / "info.json"
-        return int(json.loads(info_path.read_text())["total_episodes"])
+        roots = raw_roots if isinstance(raw_roots, (list, tuple)) else [raw_roots]
+        total = 0
+        for root in roots:
+            info_path = Path(str(root)) / "meta" / "info.json"
+            total += int(json.loads(info_path.read_text())["total_episodes"])
+        return total
     _install_wallx_v2_lerobot_compat()
     from lerobot.datasets.lerobot_dataset import LeRobotDatasetMetadata
 
     repo_id = str(_cfg_get(data_cfg, "repo_id", "dzb/lerobot_ego_data"))
-    meta = LeRobotDatasetMetadata(repo_id, root=root)
-    return int(meta.total_episodes)
+    total = 0
+    roots = raw_roots if isinstance(raw_roots, (list, tuple)) else [raw_roots]
+    for root in roots:
+        meta = LeRobotDatasetMetadata(repo_id, root=str(root))
+        total += int(meta.total_episodes)
+    return total
 
 
 def _validate_no_manual_episode_window(data_cfg: Any, data_name: str) -> None:

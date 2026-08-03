@@ -14,8 +14,8 @@
 
 - NAV action：当前机体系下的稀疏 `[dx,dy,dyaw]` waypoint chunk。
 - ARM action：base frame 下的 TCP `[x,y,z,roll,pitch,yaw]` 和 `[0,1]` 夹爪目标 chunk。
-- NAV state：前三维为 `[vx_body,vy_body,wz_body]`。
-- ARM state：后七维为当前 TCP 与夹爪状态；离线数据使用上一帧已执行目标作为当前控制状态代理。
+- 默认不输入机器人 state（`datasets.router_data.include_state=false`），动作头只以视觉、指令与路由为条件。
+- 若显式开启 `include_state=true`：NAV state 前三维为 `[vx_body,vy_body,wz_body]`；ARM state 后七维为当前 TCP 与夹爪状态，离线数据使用上一帧已执行目标作为当前控制状态代理。
 
 ## Route 与 subtask
 

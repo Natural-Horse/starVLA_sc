@@ -16,7 +16,10 @@ from starVLA.dataloader.go2_waypoint_dataset import Go2WaypointRouterDataset
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=Path, required=True)
-    parser.add_argument("--dataset-root", type=Path)
+    parser.add_argument(
+        "--dataset-root",
+        help="LeRobot dataset root; comma-separated list to train on multiple roots.",
+    )
     parser.add_argument("--routes", nargs="+", required=True)
     parser.add_argument("--world-size", type=int, required=True)
     parser.add_argument("--batch-size", type=int, required=True)
@@ -34,15 +37,20 @@ def main() -> None:
     cfg = OmegaConf.load(args.config)
     data_cfg = OmegaConf.create(OmegaConf.to_container(cfg.datasets.router_data, resolve=True))
     if args.dataset_root is not None:
-        data_cfg.root = str(args.dataset_root)
+        roots = [item.strip() for item in str(args.dataset_root).split(",") if item.strip()]
+        data_cfg.root = roots if len(roots) > 1 else roots[0]
     data_cfg.include_routes = list(args.routes)
 
     split_cfg = cfg.datasets.get("split")
     if split_cfg and bool(split_cfg.get("enable", False)):
         if str(split_cfg.get("mode", "contiguous")) != "contiguous":
             raise ValueError("Only contiguous dataset splits are supported")
-        info = json.loads((Path(data_cfg.root) / "meta" / "info.json").read_text())
-        total_episodes = int(info["total_episodes"])
+        raw_roots = data_cfg.root
+        roots = raw_roots if isinstance(raw_roots, (list, tuple)) else [raw_roots]
+        total_episodes = 0
+        for root in roots:
+            info = json.loads((Path(str(root)) / "meta" / "info.json").read_text())
+            total_episodes += int(info["total_episodes"])
         train_episodes = int(math.floor(total_episodes * float(split_cfg.train_ratio)))
         train_episodes = max(1, min(train_episodes, total_episodes - 1))
         data_cfg.episode_start = 0
