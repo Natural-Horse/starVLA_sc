@@ -141,7 +141,8 @@ def build_dataloader(cfg, dataset_py="lerobot_datasets_oxe"):
 
         router_dataset_cfg = cfg.datasets.router_data
         router_dataset = get_go2_waypoint_dataset(data_cfg=router_dataset_cfg)
-        if (not dist.is_initialized()) or dist.get_rank() == 0:
+        is_train = bool(router_dataset_cfg.get("shuffle", True))
+        if is_train and ((not dist.is_initialized()) or dist.get_rank() == 0):
             output_dir = Path(cfg.output_dir)
             router_dataset.save_dataset_statistics(output_dir / "dataset_statistics.json")
         return DataLoader(
