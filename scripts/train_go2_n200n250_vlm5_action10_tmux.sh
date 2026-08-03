@@ -84,100 +84,28 @@ export STAGE1_SAMPLES STAGE1_STEPS STAGE2_SAMPLES STAGE2_STEPS
 mkdir -p "${LOG_DIR}"
 rm -f "${MARKER}"
 
-# TensorBoard 窗口：跟随 marker 指向的当前阶段 logdir，阶段切换时重启。
-TB_WATCHER='
-last=""
-while true; do
-  target="$(cat "${MARKER}" 2>/dev/null || true)"
-  if [[ -n "${target}" && "${target}" != "${last}" && -d "${target}" ]]; then
-    pkill -f "tensorboard.*--port ${TB_PORT}" 2>/dev/null || true
-    sleep 1
-    nohup "${TENSORBOARD_BIN}" --logdir "${target}" --port "${TB_PORT}" --bind_all \
-      > "${LOG_DIR}/tb_${TMUX_SESSION}.log" 2>&1 &
-    last="${target}"
-  elif [[ -z "${target}" ]]; then
-    last=""
-  fi
-  sleep 3
-done
-'
-
-CHAIN='
-set -euo pipefail
-cd "${REPO_ROOT}"
-export PATH="${STARVLA_PYTHON_ENV}/bin:${PATH}"
-export PYTHONPATH="${REPO_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
-export PYTHONDONTWRITEBYTECODE=1
-
-STAGE1_RUN_ID="go2_n200n250_vlm_5ep_$(date +%m%d_%H%M%S)"
-STAGE1_OUT="${REPO_ROOT}/results/Checkpoints/${STAGE1_RUN_ID}"
-echo ">> stage1 vlm run_id=${STAGE1_RUN_ID} samples=${STAGE1_SAMPLES} steps=${STAGE1_STEPS}" | tee "${LOG_DIR}/${STAGE1_RUN_ID}.log"
-mkdir -p "${STAGE1_OUT}/tensorboard"
-echo "${STAGE1_OUT}/tensorboard" > "${MARKER}"
-
-VISIBLE_GPUS="${VISIBLE_GPUS}" \
-NUM_PROCESSES="${NUM_PROCESSES}" \
-PER_DEVICE_BATCH_SIZE="${PER_DEVICE_BATCH_SIZE}" \
-GRADIENT_ACCUMULATION_STEPS="${GRADIENT_ACCUMULATION_STEPS}" \
-RUN_ID="${STAGE1_RUN_ID}" \
-PRETRAINED_CHECKPOINT="${VLM_PRETRAINED}" \
-MAX_TRAIN_STEPS="${STAGE1_STEPS}" \
-WARMUP_STEPS="${STAGE1_WARMUP:-100}" \
-SAVE_INTERVAL="${SAVE_INTERVAL:-1000}" \
-EVAL_INTERVAL="${EVAL_INTERVAL:-100}" \
-CHECK_GPU_IDLE="${CHECK_GPU_IDLE:-1}" \
-DS_SKIP_CUDA_CHECK="${DS_SKIP_CUDA_CHECK:-1}" \
-OFFLOAD_OPTIMIZER_DEVICE="${OFFLOAD_OPTIMIZER_DEVICE:-none}" \
-STARVLA_PYTHON_ENV="${STARVLA_PYTHON_ENV}" \
-TRAIN_CONFIG="${TRAIN_CONFIG}" \
-  "${REPO_ROOT}/scripts/run_go2_staged_training.sh" vlm_instruction \
-    --datasets.router_data.root "[\"${N200_ROOT}\",\"${N250_ROOT}\"]" \
-    2>&1 | tee -a "${LOG_DIR}/${STAGE1_RUN_ID}.log"
-
-[[ -f "${STAGE1_OUT}/final_model/pytorch_model.pt" ]] || {
-  echo "stage1 final model missing: ${STAGE1_OUT}/final_model/pytorch_model.pt" >&2
-  exit 1
-}
-
-STAGE2_RUN_ID="go2_n200n250_action_10ep_$(date +%m%d_%H%M%S)"
-STAGE2_OUT="${REPO_ROOT}/results/Checkpoints/${STAGE2_RUN_ID}"
-echo ">> stage2 action run_id=${STAGE2_RUN_ID} samples=${STAGE2_SAMPLES} steps=${STAGE2_STEPS}" | tee "${LOG_DIR}/${STAGE2_RUN_ID}.log"
-mkdir -p "${STAGE2_OUT}/tensorboard"
-echo "${STAGE2_OUT}/tensorboard" > "${MARKER}"
-
-VISIBLE_GPUS="${VISIBLE_GPUS}" \
-NUM_PROCESSES="${NUM_PROCESSES}" \
-PER_DEVICE_BATCH_SIZE="${PER_DEVICE_BATCH_SIZE}" \
-GRADIENT_ACCUMULATION_STEPS="${GRADIENT_ACCUMULATION_STEPS}" \
-RUN_ID="${STAGE2_RUN_ID}" \
-PRETRAINED_CHECKPOINT="${STAGE1_OUT}/final_model/pytorch_model.pt" \
-MAX_TRAIN_STEPS="${STAGE2_STEPS}" \
-WARMUP_STEPS="${STAGE2_WARMUP:-150}" \
-SAVE_INTERVAL="${SAVE_INTERVAL:-1000}" \
-EVAL_INTERVAL="${EVAL_INTERVAL:-100}" \
-CHECK_GPU_IDLE="${CHECK_GPU_IDLE:-1}" \
-DS_SKIP_CUDA_CHECK="${DS_SKIP_CUDA_CHECK:-1}" \
-OFFLOAD_OPTIMIZER_DEVICE="${OFFLOAD_OPTIMIZER_DEVICE:-none}" \
-STARVLA_PYTHON_ENV="${STARVLA_PYTHON_ENV}" \
-TRAIN_CONFIG="${TRAIN_CONFIG}" \
-  "${REPO_ROOT}/scripts/run_go2_staged_training.sh" action \
-    --datasets.router_data.root "[\"${N200_ROOT}\",\"${N250_ROOT}\"]" \
-    --datasets.router_data.include_routes "[nav,grasp,place]" \
-    2>&1 | tee -a "${LOG_DIR}/${STAGE2_RUN_ID}.log"
-
-rm -f "${MARKER}"
-echo ">> ALL STAGES DONE: ${STAGE1_RUN_ID} -> ${STAGE2_RUN_ID}"
-'
-
-# 先建空会话并设置 remain-on-exit，再用 send-keys 启动命令，
-# 避免窗口命令先退出导致窗口在设置选项前被销毁。
+# 先建空会话并设置 remain-on-exit，再用 send-keys 启动独立脚本，
+# 避免内联字符串中的变量在外层 shell 被提前展开。
 tmux new-session -d -s "${TMUX_SESSION}"
 tmux set-option -w -t "${TMUX_SESSION}:0" remain-on-exit on
 tmux rename-window -t "${TMUX_SESSION}:0" train
-tmux send-keys -t "${TMUX_SESSION}:train" "bash -lc $(printf '%q' "${CHAIN}")" Enter
+tmux send-keys -t "${TMUX_SESSION}:train" \
+  "STAGE1_STEPS=${STAGE1_STEPS} STAGE2_STEPS=${STAGE2_STEPS} MARKER=${MARKER} \
+   REPO_ROOT=${REPO_ROOT} STARVLA_PYTHON_ENV=${STARVLA_PYTHON_ENV} \
+   VISIBLE_GPUS=${VISIBLE_GPUS} NUM_PROCESSES=${NUM_PROCESSES} \
+   PER_DEVICE_BATCH_SIZE=${PER_DEVICE_BATCH_SIZE} GRADIENT_ACCUMULATION_STEPS=${GRADIENT_ACCUMULATION_STEPS} \
+   TRAIN_CONFIG=${TRAIN_CONFIG} N200_ROOT=${N200_ROOT} N250_ROOT=${N250_ROOT} \
+   VLM_PRETRAINED=${VLM_PRETRAINED} STAGE1_WARMUP=${STAGE1_WARMUP} STAGE2_WARMUP=${STAGE2_WARMUP} \
+   LOG_DIR=${LOG_DIR} SAVE_INTERVAL=${SAVE_INTERVAL} EVAL_INTERVAL=${EVAL_INTERVAL} \
+   CHECK_GPU_IDLE=${CHECK_GPU_IDLE} DS_SKIP_CUDA_CHECK=${DS_SKIP_CUDA_CHECK} \
+   OFFLOAD_OPTIMIZER_DEVICE=${OFFLOAD_OPTIMIZER_DEVICE} \
+   bash ${REPO_ROOT}/scripts/train_go2_n200n250_chain.sh" Enter
 tmux new-window -t "${TMUX_SESSION}" -n tensorboard
 tmux set-option -w -t "${TMUX_SESSION}:tensorboard" remain-on-exit on
-tmux send-keys -t "${TMUX_SESSION}:tensorboard" "bash -lc $(printf '%q' "${TB_WATCHER}")" Enter
+tmux send-keys -t "${TMUX_SESSION}:tensorboard" \
+  "MARKER=${MARKER} TB_PORT=${TB_PORT} TENSORBOARD_BIN=${TENSORBOARD_BIN} \
+   LOG_DIR=${LOG_DIR} TMUX_SESSION=${TMUX_SESSION} \
+   bash ${REPO_ROOT}/scripts/go2_tb_watcher.sh" Enter
 
 echo "tmux_session=${TMUX_SESSION}"
 echo "gpu=${VISIBLE_GPUS}"
