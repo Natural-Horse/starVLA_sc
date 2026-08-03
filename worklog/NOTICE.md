@@ -17,6 +17,8 @@
 - 真机 Fork：`https://github.com/Natural-Horse/gx-real.git`（`origin`）
 - 真机上游：`https://github.com/lemonoscar/gx-real.git`（`upstream`）
 
+`gx-real` 的提交、分支推送和 PR 只面向用户 Fork `Natural-Horse/gx-real`（`origin`）；`upstream` 仅供只读参考，不得向其推送或创建 PR。推送前必须核对 `git remote get-url --push origin`。
+
 ## 远程服务器
 
 服务器连接参数以 `/home/natural/.ssh/config` 为准。启动训练、数据处理、服务或 smoke test 前，必须由用户当次确认使用哪台服务器。
