@@ -315,7 +315,10 @@ def _dataset_total_episodes(data_cfg: Any) -> int:
     if not raw_roots:
         raise ValueError("data_cfg.root is required when datasets.split.enable is true.")
     if str(_cfg_get(data_cfg, "dataset_py", "")) == "go2_waypoint_router_dataset":
-        roots = raw_roots if isinstance(raw_roots, (list, tuple)) else [raw_roots]
+        if isinstance(raw_roots, str):
+            roots = [raw_roots]
+        else:
+            roots = list(raw_roots)
         total = 0
         for root in roots:
             info_path = Path(str(root)) / "meta" / "info.json"
@@ -326,7 +329,10 @@ def _dataset_total_episodes(data_cfg: Any) -> int:
 
     repo_id = str(_cfg_get(data_cfg, "repo_id", "dzb/lerobot_ego_data"))
     total = 0
-    roots = raw_roots if isinstance(raw_roots, (list, tuple)) else [raw_roots]
+    if isinstance(raw_roots, str):
+        roots = [raw_roots]
+    else:
+        roots = list(raw_roots)
     for root in roots:
         meta = LeRobotDatasetMetadata(repo_id, root=str(root))
         total += int(meta.total_episodes)

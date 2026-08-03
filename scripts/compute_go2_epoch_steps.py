@@ -46,7 +46,10 @@ def main() -> None:
         if str(split_cfg.get("mode", "contiguous")) != "contiguous":
             raise ValueError("Only contiguous dataset splits are supported")
         raw_roots = data_cfg.root
-        roots = raw_roots if isinstance(raw_roots, (list, tuple)) else [raw_roots]
+        if isinstance(raw_roots, str):
+            roots = [raw_roots]
+        else:
+            roots = list(raw_roots)
         total_episodes = 0
         for root in roots:
             info = json.loads((Path(str(root)) / "meta" / "info.json").read_text())
