@@ -169,10 +169,15 @@ rm -f "${MARKER}"
 echo ">> ALL STAGES DONE: ${STAGE1_RUN_ID} -> ${STAGE2_RUN_ID}"
 '
 
-tmux new-session -d -s "${TMUX_SESSION}" -n train "bash -lc $(printf '%q' "${CHAIN}")"
-tmux set-option -w -t "${TMUX_SESSION}:train" remain-on-exit on
-tmux new-window -t "${TMUX_SESSION}" -n tensorboard "bash -lc $(printf '%q' "${TB_WATCHER}")"
+# 先建空会话并设置 remain-on-exit，再用 send-keys 启动命令，
+# 避免窗口命令先退出导致窗口在设置选项前被销毁。
+tmux new-session -d -s "${TMUX_SESSION}"
+tmux set-option -w -t "${TMUX_SESSION}:0" remain-on-exit on
+tmux rename-window -t "${TMUX_SESSION}:0" train
+tmux send-keys -t "${TMUX_SESSION}:train" "bash -lc $(printf '%q' "${CHAIN}")" Enter
+tmux new-window -t "${TMUX_SESSION}" -n tensorboard
 tmux set-option -w -t "${TMUX_SESSION}:tensorboard" remain-on-exit on
+tmux send-keys -t "${TMUX_SESSION}:tensorboard" "bash -lc $(printf '%q' "${TB_WATCHER}")" Enter
 
 echo "tmux_session=${TMUX_SESSION}"
 echo "gpu=${VISIBLE_GPUS}"
