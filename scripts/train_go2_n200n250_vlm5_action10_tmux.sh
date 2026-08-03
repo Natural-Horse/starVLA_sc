@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 一键编排：阶段1 VLM(n200+n250, 5 epoch) -> 阶段2 Action(n200+n250, 10 epoch)
+# 一键编排：阶段1 VLM(n250-only, 1 epoch) -> 阶段2 Action(n200+n250, 5 epoch)
 # 串行自动衔接；tmux 内启动；TensorBoard 只显示当前阶段数据。
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -9,7 +9,7 @@ cd "${REPO_ROOT}"
 
 STARVLA_PYTHON_ENV="${STARVLA_PYTHON_ENV:-/hdd4/MaTianran/rtc_starvla/envs/mtr_star}"
 TENSORBOARD_BIN="${TENSORBOARD_BIN:-${STARVLA_PYTHON_ENV}/bin/tensorboard}"
-TMUX_SESSION="${TMUX_SESSION:-go2_n200n250_vlm5_action10}"
+TMUX_SESSION="${TMUX_SESSION:-go2_n250_vlm1_n200n250_action5}"
 TB_PORT="${TB_PORT:-6016}"
 VISIBLE_GPUS="${VISIBLE_GPUS:-3,4}"
 NUM_PROCESSES="${NUM_PROCESSES:-2}"
@@ -19,8 +19,8 @@ TRAIN_CONFIG="${TRAIN_CONFIG:-${REPO_ROOT}/starVLA/config/training/starvla_go2_q
 N200_ROOT="${N200_ROOT:-${REPO_ROOT}/datasets/liangzhu_0729_n200/lerobot_dataset}"
 N250_ROOT="${N250_ROOT:-${REPO_ROOT}/datasets/liangzhu_0729_n250/lerobot_dataset}"
 VLM_PRETRAINED="${VLM_PRETRAINED:-${REPO_ROOT}/results/Checkpoints/go2_n200_vlm_instruction_a40x2_b1_0802/final_model/pytorch_model.pt}"
-STAGE1_EPOCHS=5
-STAGE2_EPOCHS=10
+STAGE1_EPOCHS=1
+STAGE2_EPOCHS=5
 LOG_DIR="${LOG_DIR:-${REPO_ROOT}/results/launcher_logs}"
 MARKER="/tmp/go2_tb_target_${TMUX_SESSION}.txt"
 SAVE_INTERVAL="${SAVE_INTERVAL:-1000}"
@@ -62,12 +62,12 @@ PYTHON_BIN="${STARVLA_PYTHON_ENV}/bin/python"
 read -r STAGE1_SAMPLES STAGE1_STEPS < <(
   PYTHONPATH="${REPO_ROOT}" "${PYTHON_BIN}" "${REPO_ROOT}/scripts/compute_go2_epoch_steps.py" \
     --config "${TRAIN_CONFIG}" \
-    --dataset-root "${N200_ROOT},${N250_ROOT}" \
-    --routes nav grasp place done recover \
-    --world-size "${NUM_PROCESSES}" \
-    --batch-size "${PER_DEVICE_BATCH_SIZE}" \
-    --gradient-accumulation-steps "${GRADIENT_ACCUMULATION_STEPS}" \
-    --epochs "${STAGE1_EPOCHS}"
+    --dataset-root "${N250_ROOT}" \
+  --routes nav grasp place done recover \
+  --world-size "${NUM_PROCESSES}" \
+  --batch-size "${PER_DEVICE_BATCH_SIZE}" \
+  --gradient-accumulation-steps "${GRADIENT_ACCUMULATION_STEPS}" \
+  --epochs "${STAGE1_EPOCHS}"
 )
 read -r STAGE2_SAMPLES STAGE2_STEPS < <(
   PYTHONPATH="${REPO_ROOT}" "${PYTHON_BIN}" "${REPO_ROOT}/scripts/compute_go2_epoch_steps.py" \
@@ -111,7 +111,7 @@ echo "tmux_session=${TMUX_SESSION}"
 echo "gpu=${VISIBLE_GPUS}"
 echo "stage1_samples=${STAGE1_SAMPLES} stage1_steps=${STAGE1_STEPS}"
 echo "stage2_samples=${STAGE2_SAMPLES} stage2_steps=${STAGE2_STEPS}"
-echo "stage1_run_id=go2_n200n250_vlm_5ep_*"
-echo "stage2_run_id=go2_n200n250_action_10ep_*"
+echo "stage1_run_id=go2_n250_vlm_1ep_*"
+echo "stage2_run_id=go2_n200n250_action_5ep_*"
 echo "tensorboard=http://127.0.0.1:${TB_PORT}"
 echo "logs=${LOG_DIR}"

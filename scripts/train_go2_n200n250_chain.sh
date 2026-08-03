@@ -15,6 +15,9 @@ GRADIENT_ACCUMULATION_STEPS="${GRADIENT_ACCUMULATION_STEPS:-1}"
 TRAIN_CONFIG="${TRAIN_CONFIG:-${REPO_ROOT}/starVLA/config/training/starvla_go2_qwen3vl_waypoint_router.yaml}"
 N200_ROOT="${N200_ROOT:-${REPO_ROOT}/datasets/liangzhu_0729_n200/lerobot_dataset}"
 N250_ROOT="${N250_ROOT:-${REPO_ROOT}/datasets/liangzhu_0729_n250/lerobot_dataset}"
+STAGE1_ROOT="${STAGE1_ROOT:-${N250_ROOT}}"
+STAGE2_ROOT="${STAGE2_ROOT:-${N200_ROOT},${N250_ROOT}}"
+STAGE2_ROOT_LIST="[$(printf '"%s",' "${STAGE2_ROOT}" | sed 's/,$//' | sed "s|,|\",\"|g")]"
 VLM_PRETRAINED="${VLM_PRETRAINED:-${REPO_ROOT}/results/Checkpoints/go2_n200_vlm_instruction_a40x2_b1_0802/final_model/pytorch_model.pt}"
 STAGE1_STEPS="${STAGE1_STEPS:?set by orchestrator}"
 STAGE2_STEPS="${STAGE2_STEPS:?set by orchestrator}"
@@ -32,7 +35,7 @@ export PATH="${STARVLA_PYTHON_ENV}/bin:${PATH}"
 export PYTHONPATH="${REPO_ROOT}${PYTHONPATH:+:${PYTHONPATH}}"
 export PYTHONDONTWRITEBYTECODE=1
 
-STAGE1_RUN_ID="go2_n200n250_vlm_5ep_$(date +%m%d_%H%M%S)"
+STAGE1_RUN_ID="go2_n250_vlm_1ep_$(date +%m%d_%H%M%S)"
 STAGE1_OUT="${REPO_ROOT}/results/Checkpoints/${STAGE1_RUN_ID}"
 echo ">> stage1 vlm run_id=${STAGE1_RUN_ID} steps=${STAGE1_STEPS}" | tee "${LOG_DIR}/${STAGE1_RUN_ID}.log"
 mkdir -p "${STAGE1_OUT}/tensorboard"
@@ -54,7 +57,7 @@ OFFLOAD_OPTIMIZER_DEVICE="${OFFLOAD_OPTIMIZER_DEVICE}" \
 STARVLA_PYTHON_ENV="${STARVLA_PYTHON_ENV}" \
 TRAIN_CONFIG="${TRAIN_CONFIG}" \
   "${REPO_ROOT}/scripts/run_go2_staged_training.sh" vlm_instruction \
-    --datasets.router_data.root "[\"${N200_ROOT}\",\"${N250_ROOT}\"]" \
+    --datasets.router_data.root "${STAGE1_ROOT}" \
     2>&1 | tee -a "${LOG_DIR}/${STAGE1_RUN_ID}.log"
 
 [[ -f "${STAGE1_OUT}/final_model/pytorch_model.pt" ]] || {
@@ -62,7 +65,7 @@ TRAIN_CONFIG="${TRAIN_CONFIG}" \
   exit 1
 }
 
-STAGE2_RUN_ID="go2_n200n250_action_10ep_$(date +%m%d_%H%M%S)"
+STAGE2_RUN_ID="go2_n200n250_action_5ep_$(date +%m%d_%H%M%S)"
 STAGE2_OUT="${REPO_ROOT}/results/Checkpoints/${STAGE2_RUN_ID}"
 echo ">> stage2 action run_id=${STAGE2_RUN_ID} steps=${STAGE2_STEPS}" | tee "${LOG_DIR}/${STAGE2_RUN_ID}.log"
 mkdir -p "${STAGE2_OUT}/tensorboard"
@@ -84,7 +87,7 @@ OFFLOAD_OPTIMIZER_DEVICE="${OFFLOAD_OPTIMIZER_DEVICE}" \
 STARVLA_PYTHON_ENV="${STARVLA_PYTHON_ENV}" \
 TRAIN_CONFIG="${TRAIN_CONFIG}" \
   "${REPO_ROOT}/scripts/run_go2_staged_training.sh" action \
-    --datasets.router_data.root "[\"${N200_ROOT}\",\"${N250_ROOT}\"]" \
+    --datasets.router_data.root "${STAGE2_ROOT_LIST}" \
     --datasets.router_data.include_routes "[nav,grasp,place]" \
     2>&1 | tee -a "${LOG_DIR}/${STAGE2_RUN_ID}.log"
 
