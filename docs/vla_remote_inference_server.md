@@ -4,6 +4,10 @@
 远程推理服务。服务只监听回环地址 `127.0.0.1`，评测机/机器狗通过 SSH 隧道访问，
 不直接暴露公网。
 
+推理服务跑在 GPU 服务器上，仓库路径按服务器为准（例如
+`/hdd4/MaTianran/pct_workspace/starVLA_sc`）。启动前先登录服务器，
+并确认代码已同步（`git pull` 或 rsync）。
+
 ## 1. 配置（YAML）
 
 所有启动参数集中在 `configs/vla_eval/server.yaml`：
@@ -33,6 +37,7 @@ server:
 ## 2. 启动
 
 ```bash
+ssh zju-server
 cd /hdd4/MaTianran/pct_workspace/starVLA_sc   # 服务器上的仓库
 bash scripts/evaluation/start_vla_inference.sh --config configs/vla_eval/server.yaml
 ```
@@ -73,3 +78,4 @@ tmux kill-session -t go2_vla_eval_server
   机器狗客户端连接本机 `ws://127.0.0.1:10093`。
 
 注意：`robodog` 没有默认路由，隧道由工作站主动发起，机器狗无需出网。
+三台机器（服务器/工作站/robodog）各自登录、各自启动对应进程。
