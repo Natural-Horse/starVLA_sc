@@ -1,0 +1,13 @@
+# starVLA_sc 远程推理服务配置（go2_remote WebSocket server）
+# 启动：bash scripts/evaluation/start_vla_inference.sh --config configs/vla_eval/server.yaml
+
+server:
+  host: 127.0.0.1          # 只允许回环；不要改
+  port: 10093
+  checkpoint: /hdd4/MaTianran/pct_workspace/starVLA_sc/results/Checkpoints/go2_n200n250_action_5ep_0804_052616/checkpoints/steps_25000_pytorch_model.pt
+  device: cuda             # cuda | cpu
+  use_bf16: true
+  gpu: 5                   # 推理用哪张 GPU（CUDA_VISIBLE_DEVICES）
+  tmux_session: go2_vla_eval_server
+  log_dir: results/evaluation_logs
+  python_bin: /hdd4/MaTianran/rtc_starvla/envs/mtr_star/bin/python
