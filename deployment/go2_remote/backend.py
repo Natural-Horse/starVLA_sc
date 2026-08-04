@@ -85,6 +85,7 @@ class StarVLABackend:
         )
         # 按 route 分别保存上一帧 chunk：episode_id -> {nav|grasp: chunk}
         self._rtc_prev: dict[str, dict[str, Any]] = {}
+        self._rtc_last_route: dict[str, str] = {}
 
     @staticmethod
     def _load_model(checkpoint: str | Path):
@@ -269,6 +270,14 @@ class StarVLABackend:
                 allow_bbox=False,
             )
             detected_route = str(detection["routes"][0]["route"]).strip().lower()
+            if episode_id:
+                # 跨 route 切换（nav<->grasp/place）时清空该 episode 的 RTC
+                # 历史，避免复用上一阶段的旧 chunk 作 prefix。
+                last_route = self._rtc_last_route.get(episode_id)
+                if last_route != detected_route:
+                    self._rtc_prev.pop(episode_id, None)
+                    if detected_route in {"nav", "grasp", "place"}:
+                        self._rtc_last_route[episode_id] = detected_route
             # RTC 条件只取当前 route 自己的历史 chunk；route 变化时通常还没有
             # 同 route 历史，此时不传 prev（delay=0）。
             rtc_kwargs = self._rtc_kwargs(episode_id, detected_route)
@@ -293,6 +302,9 @@ class StarVLABackend:
                 allow_bbox=False,
             )
         if episode_id:
+            route = str(raw.get("route", "")).strip().lower()
+            if route in {"nav", "grasp", "place"}:
+                self._rtc_last_route[episode_id] = route
             self._remember_rtc_chunk(episode_id, raw)
         raw = self._denormalize_decision(raw)
         return normalize_decision(raw)
