@@ -633,6 +633,8 @@ class Qwen_PI(baseframework):
         elif type(examples) is not list:
             examples = [examples]
 
+        prev_action_chunk = kwargs.pop("prev_action_chunk", None)
+        inference_delay = kwargs.pop("inference_delay", 0)
         route_output = self.predict_route(
             examples=examples,
             continue_action=True,
@@ -649,8 +651,8 @@ class Qwen_PI(baseframework):
             action_output = self.predict_action(
                 examples=action_examples,
                 solutions=solutions,
-                prev_action_chunk=kwargs.pop("prev_action_chunk", None),
-                inference_delay=kwargs.pop("inference_delay", 0),
+                prev_action_chunk=prev_action_chunk,
+                inference_delay=inference_delay,
             )
             for local_idx, sample_idx in enumerate(action_indices):
                 action_chunk = action_output["normalized_actions"][local_idx]
