@@ -67,11 +67,9 @@ class StarVLABackend:
     ):
         import torch
 
-        from starVLA.model.framework.base_framework import baseframework
-
         self.checkpoint = str(Path(checkpoint).expanduser().resolve())
         self.device = device
-        self.model = baseframework.from_pretrained(self.checkpoint)
+        self.model = self._load_model(self.checkpoint)
         if use_bf16:
             self.model = self.model.to(torch.bfloat16)
         self.model = self.model.to(device).eval()
@@ -82,6 +80,52 @@ class StarVLABackend:
             _cfg_get(router_cfg, "router_prompt", DEFAULT_ROUTER_PROMPT)
         )
         self.include_state = bool(_cfg_get(router_cfg, "include_state", False))
+
+    @staticmethod
+    def _load_model(checkpoint: str | Path):
+        """加载完整 QwenPI checkpoint，兼容旧词表 padding 差异。
+
+        ``baseframework.from_pretrained`` 使用严格 ``load_state_dict``，遇到旧
+        checkpoint（embed_tokens/lm_head 151677 vs 配置 151936）会直接失败。
+        这里复用评测脚本的 ``adapt_padded_vocab_state_dict`` 路径扩展 padding 行。
+        """
+        import torch
+        from accelerate import PartialState
+        from omegaconf import OmegaConf
+
+        from starVLA.model.framework.__init__ import build_framework
+        from starVLA.model.framework.share_tools import dict_to_namespace
+        from starVLA.training.trainer_utils.trainer_tools import (
+            adapt_padded_vocab_state_dict,
+        )
+
+        # 模型构建过程（prepare_qwen_special_tokens 等）会使用 accelerate 的
+        # logging，必须先初始化分布式状态，否则抛出 RuntimeError。
+        PartialState()
+
+        checkpoint = Path(checkpoint).expanduser().resolve()
+        config_path = checkpoint.parents[1] / "config.yaml"
+        if not config_path.is_file():
+            raise FileNotFoundError(f"checkpoint run 缺少 config.yaml: {config_path}")
+        config = dict_to_namespace(
+            OmegaConf.to_container(OmegaConf.load(config_path), resolve=True)
+        )
+        config.trainer.pretrained_checkpoint = None
+        model = build_framework(cfg=config)
+        if checkpoint.suffix == ".safetensors":
+            from safetensors.torch import load_file
+
+            state_dict = load_file(str(checkpoint))
+        else:
+            state_dict = torch.load(checkpoint, map_location="cpu", mmap=True)
+        state_dict, expanded_keys = adapt_padded_vocab_state_dict(model, state_dict)
+        model.load_state_dict(state_dict, strict=True)
+        if expanded_keys:
+            print(
+                "[vla] 已兼容扩展旧 checkpoint 的词表 padding 行："
+                + ", ".join(expanded_keys)
+            )
+        return model
 
     @property
     def metadata(self) -> dict[str, Any]:
