@@ -132,11 +132,30 @@ class StarVLABackend:
                 raise ProtocolError("locked_route must be nav/grasp/place")
             if locked_subtask is not None and not isinstance(locked_subtask, str):
                 raise ProtocolError("locked_subtask must be a string")
-            raw = self.model.predict_locked_action(
+            # 先做一次轻量 first-token route 检测（不生成 subtask，~85ms）。
+            # route 与锁定一致 -> 沿用 locked subtask，只跑 action（~180ms）；
+            # route 变化（如 nav->grasp）-> 完整推理重新生成 subtask + action。
+            detection = self.model.predict_route(
                 examples=[example],
-                locked_route=locked_route,
-                locked_subtask=locked_subtask,
+                max_new_tokens=0,
+                do_sample=False,
+                route_mode="first_token",
+                continue_action=False,
+                continue_bbox=False,
+                allow_bbox=False,
             )
+            detected_route = str(detection["routes"][0]["route"]).strip().lower()
+            if detected_route == locked_route:
+                raw = self.model.predict_locked_action(
+                    examples=[example],
+                    locked_route=locked_route,
+                    locked_subtask=locked_subtask,
+                )
+            else:
+                raw = self.model.predict_typed_action(
+                    examples=[example],
+                    allow_bbox=False,
+                )
         else:
             raw = self.model.predict_typed_action(
                 examples=[example],
