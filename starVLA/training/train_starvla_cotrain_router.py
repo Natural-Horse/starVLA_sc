@@ -10,11 +10,20 @@ This trainer uses one prompt for both branches:
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# starVLA_sc 与 rtc_starvla 是独立仓库：本仓库自带完整 RTC 实现，运行时必须
+# 优先加载本仓库的 starVLA 包，避免被环境里的 editable install（映射到
+# rtc_starvla）或其它路径意外劫持。
+_STARVLA_SC_ROOT = Path(__file__).resolve().parents[2]
+if str(_STARVLA_SC_ROOT) not in sys.path:
+    sys.path.insert(0, str(_STARVLA_SC_ROOT))
+
 import argparse
 import json
 import os
 import time
-from pathlib import Path
 from typing import Any, Optional, Tuple
 
 import numpy as np
