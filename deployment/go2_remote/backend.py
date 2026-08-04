@@ -125,10 +125,23 @@ class StarVLABackend:
         example: dict[str, Any] = {"image": ordered_images, "lang": prompt}
         if state is not None:
             example["state"] = state
-        raw = self.model.predict_typed_action(
-            examples=[example],
-            allow_bbox=False,
-        )
+        locked_route = payload.get("locked_route")
+        locked_subtask = payload.get("locked_subtask")
+        if locked_route:
+            if not isinstance(locked_route, str) or locked_route not in {"nav", "grasp", "place"}:
+                raise ProtocolError("locked_route must be nav/grasp/place")
+            if locked_subtask is not None and not isinstance(locked_subtask, str):
+                raise ProtocolError("locked_subtask must be a string")
+            raw = self.model.predict_locked_action(
+                examples=[example],
+                locked_route=locked_route,
+                locked_subtask=locked_subtask,
+            )
+        else:
+            raw = self.model.predict_typed_action(
+                examples=[example],
+                allow_bbox=False,
+            )
         return normalize_decision(raw)
 
     def reset(self, episode_id: str | None) -> dict[str, Any]:

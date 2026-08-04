@@ -673,6 +673,85 @@ class Qwen_PI(baseframework):
         return results[0] if len(results) == 1 else {"results": results}
 
     @torch.inference_mode()
+    def predict_locked_action(
+        self,
+        instruction: str | None = None,
+        head_images=None,
+        wrist_image=None,
+        state=None,
+        examples: List[dict] | None = None,
+        locked_route: str | None = None,
+        locked_subtask: str | None = None,
+        **kwargs,
+    ) -> dict:
+        """Predict only the action expert for an already-locked route/subtask.
+
+        Skips the autoregressive router/subtask generation entirely: the caller
+        provides the decided route and subtask, and the action head is run
+        directly with the fixed solution as the assistant prefix. This is the
+        fast path used by real/sim clients once a subtask is locked, reducing
+        single inference latency from several seconds to a few hundred ms.
+        """
+        if examples is None:
+            images = []
+            if head_images is not None:
+                images.extend(
+                    head_images
+                    if isinstance(head_images, (list, tuple))
+                    else [head_images]
+                )
+            if wrist_image is not None:
+                images.append(wrist_image)
+            example: dict[str, Any] = {"image": images, "lang": str(instruction or "")}
+            if state is not None:
+                example["state"] = state
+            examples = [example]
+        elif type(examples) is not list:
+            examples = [examples]
+
+        route = str(locked_route or "").strip().lower()
+        if route not in {"nav", "grasp", "place"}:
+            raise ValueError(
+                f"predict_locked_action requires locked_route in "
+                f"nav/grasp/place, got {locked_route!r}"
+            )
+
+        router_cfg = _cfg_get(_cfg_get(self.config, "datasets", None), "router_data", None)
+        route_tokens = self._configured_route_tokens()
+        route_token = str(_cfg_get(route_tokens, route, ""))
+        subtask_start = str(
+            _cfg_get(router_cfg, "subtask_start_token", "<|subtask|>")
+        )
+        subtask_end = str(
+            _cfg_get(router_cfg, "subtask_end_token", "<|end_subtask|>")
+        )
+        subtask = str(locked_subtask or "").strip()
+        solution = f"{route_token}{subtask_start}{subtask}{subtask_end}"
+
+        action_output = self.predict_action(examples=examples, solutions=[solution])
+        action_chunk = action_output["normalized_actions"][0]
+        if route == "nav":
+            nav_waypoints = action_chunk[:, :3]
+            arm_targets_base = None
+        else:
+            nav_waypoints = None
+            arm_targets_base = action_chunk[:, 3:10]
+
+        return {
+            "route": route,
+            "subtask": subtask or None,
+            "nav_waypoints": nav_waypoints,
+            "arm_targets_base": arm_targets_base,
+            "stop_probability": None,
+            "target_name": None,
+            "grasp_primitive": None,
+            "raw_text": solution,
+            "route_confidence": None,
+            "route_probs": None,
+            "locked_action": True,
+        }
+
+    @torch.inference_mode()
     def predict_bbox(
         self,
         instruction: str,
