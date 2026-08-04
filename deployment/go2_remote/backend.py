@@ -83,7 +83,8 @@ class StarVLABackend:
         self.rtc_enabled = bool(
             getattr(getattr(self.model, "action_model", None), "rtc_enabled", False)
         )
-        self._rtc_prev: dict[str, Any] = {}
+        # 按 route 分别保存上一帧 chunk：episode_id -> {nav|grasp: chunk}
+        self._rtc_prev: dict[str, dict[str, Any]] = {}
 
     @staticmethod
     def _load_model(checkpoint: str | Path):
@@ -170,11 +171,18 @@ class StarVLABackend:
     def _remember_rtc_chunk(
         self, episode_id: str, raw: dict[str, Any]
     ) -> None:
-        """保存归一化空间的上一帧 action chunk，供 RTC 推理条件化。"""
+        """按 route 保存归一化空间的上一帧 action chunk。
+
+        nav chunk 只填 0:3，grasp/place chunk 只填 3:10，其余维度为 0，
+        与训练目标中 inactive dims=0 的分布一致；跨 route 不互相借用。
+        """
         import numpy as np
 
         waypoints = raw.get("nav_waypoints")
         arm_targets = raw.get("arm_targets_base")
+        route = str(raw.get("route", "")).strip().lower()
+        if route not in {"nav", "grasp", "place"}:
+            return
         if waypoints is not None:
             chunk = np.zeros((len(waypoints), 10), dtype=np.float32)
             chunk[:, 0:3] = np.asarray(waypoints, dtype=np.float32)
@@ -183,12 +191,17 @@ class StarVLABackend:
             chunk[:, 3:10] = np.asarray(arm_targets, dtype=np.float32)
         else:
             return
-        self._rtc_prev[episode_id] = chunk
+        self._rtc_prev.setdefault(episode_id, {})[route] = chunk
 
-    def _rtc_kwargs(self, episode_id: str) -> dict[str, Any]:
+    def _rtc_kwargs(self, episode_id: str, route: str) -> dict[str, Any]:
+        """取当前 route 自己的上一帧 chunk 作为 RTC 条件。
+
+        首次进入某 route（没有同 route 历史）时不传 prev，避免把
+        上一 route 的 chunk 或全 0 值钉进 prefix。
+        """
         if not self.rtc_enabled or not episode_id:
             return {}
-        prev = self._rtc_prev.get(episode_id)
+        prev = self._rtc_prev.get(episode_id, {}).get(route)
         if prev is None:
             return {"prev_action_chunk": None, "inference_delay": 0}
         return {"prev_action_chunk": prev, "inference_delay": 1}
@@ -238,7 +251,6 @@ class StarVLABackend:
             example["state"] = state
         locked_route = payload.get("locked_route")
         locked_subtask = payload.get("locked_subtask")
-        rtc_kwargs = self._rtc_kwargs(episode_id)
         if locked_route:
             if not isinstance(locked_route, str) or locked_route not in {"nav", "grasp", "place"}:
                 raise ProtocolError("locked_route must be nav/grasp/place")
@@ -257,6 +269,9 @@ class StarVLABackend:
                 allow_bbox=False,
             )
             detected_route = str(detection["routes"][0]["route"]).strip().lower()
+            # RTC 条件只取当前 route 自己的历史 chunk；route 变化时通常还没有
+            # 同 route 历史，此时不传 prev（delay=0）。
+            rtc_kwargs = self._rtc_kwargs(episode_id, detected_route)
             if detected_route == locked_route:
                 raw = self.model.predict_locked_action(
                     examples=[example],
@@ -271,10 +286,11 @@ class StarVLABackend:
                     **rtc_kwargs,
                 )
         else:
+            # 非锁定路径不携带 prev：route 在推理后才确定，且首次/切换
+            # route 时本来就不该用上一 route 的 chunk 作条件。
             raw = self.model.predict_typed_action(
                 examples=[example],
                 allow_bbox=False,
-                **rtc_kwargs,
             )
         if episode_id:
             self._remember_rtc_chunk(episode_id, raw)
