@@ -646,7 +646,12 @@ class Qwen_PI(baseframework):
         if action_indices:
             action_examples = [examples[idx] for idx in action_indices]
             solutions = [routes[idx]["generated_text"] for idx in action_indices]
-            action_output = self.predict_action(examples=action_examples, solutions=solutions)
+            action_output = self.predict_action(
+                examples=action_examples,
+                solutions=solutions,
+                prev_action_chunk=kwargs.pop("prev_action_chunk", None),
+                inference_delay=kwargs.pop("inference_delay", 0),
+            )
             for local_idx, sample_idx in enumerate(action_indices):
                 action_chunk = action_output["normalized_actions"][local_idx]
                 if routes[sample_idx]["route"] == "nav":
@@ -728,7 +733,12 @@ class Qwen_PI(baseframework):
         subtask = str(locked_subtask or "").strip()
         solution = f"{route_token}{subtask_start}{subtask}{subtask_end}"
 
-        action_output = self.predict_action(examples=examples, solutions=[solution])
+        action_output = self.predict_action(
+            examples=examples,
+            solutions=[solution],
+            prev_action_chunk=kwargs.pop("prev_action_chunk", None),
+            inference_delay=kwargs.pop("inference_delay", 0),
+        )
         action_chunk = action_output["normalized_actions"][0]
         if route == "nav":
             nav_waypoints = action_chunk[:, :3]

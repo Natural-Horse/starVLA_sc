@@ -80,6 +80,10 @@ class StarVLABackend:
             _cfg_get(router_cfg, "router_prompt", DEFAULT_ROUTER_PROMPT)
         )
         self.include_state = bool(_cfg_get(router_cfg, "include_state", False))
+        self.rtc_enabled = bool(
+            getattr(getattr(self.model, "action_model", None), "rtc_enabled", False)
+        )
+        self._rtc_prev: dict[str, Any] = {}
 
     @staticmethod
     def _load_model(checkpoint: str | Path):
@@ -112,6 +116,12 @@ class StarVLABackend:
         )
         config.trainer.pretrained_checkpoint = None
         model = build_framework(cfg=config)
+        stats_path = checkpoint.parents[1] / "dataset_statistics.json"
+        if stats_path.is_file():
+            import json
+
+            with open(stats_path, encoding="utf-8") as stream:
+                model.norm_stats = json.load(stream)
         if checkpoint.suffix == ".safetensors":
             from safetensors.torch import load_file
 
@@ -127,6 +137,62 @@ class StarVLABackend:
             )
         return model
 
+    def _denormalize_decision(self, raw: dict[str, Any]) -> dict[str, Any]:
+        """把模型输出的归一化 action（≈[-1,1]）还原为物理单位。
+
+        训练侧 go2 dataloader 用 q01/q99 把目标归一化到 [-1,1]，推理输出同样
+        在该空间，必须用同一份统计量还原；NAV 用 0:3，机械臂用 3:10。
+        """
+        import numpy as np
+
+        norm_stats = getattr(self.model, "norm_stats", None)
+        if not norm_stats:
+            return raw
+        unnorm_key = next(iter(norm_stats.keys()))
+        stats = norm_stats[unnorm_key]["action"]
+        q01 = np.asarray(stats["q01"], dtype=np.float64)
+        q99 = np.asarray(stats["q99"], dtype=np.float64)
+
+        waypoints = raw.get("nav_waypoints")
+        if waypoints is not None:
+            arr = np.clip(np.asarray(waypoints, dtype=np.float64), -1.0, 1.0)
+            raw["nav_waypoints"] = (
+                0.5 * (arr + 1.0) * (q99[0:3] - q01[0:3]) + q01[0:3]
+            )
+        arm_targets = raw.get("arm_targets_base")
+        if arm_targets is not None:
+            arr = np.clip(np.asarray(arm_targets, dtype=np.float64), -1.0, 1.0)
+            raw["arm_targets_base"] = (
+                0.5 * (arr + 1.0) * (q99[3:10] - q01[3:10]) + q01[3:10]
+            )
+        return raw
+
+    def _remember_rtc_chunk(
+        self, episode_id: str, raw: dict[str, Any]
+    ) -> None:
+        """保存归一化空间的上一帧 action chunk，供 RTC 推理条件化。"""
+        import numpy as np
+
+        waypoints = raw.get("nav_waypoints")
+        arm_targets = raw.get("arm_targets_base")
+        if waypoints is not None:
+            chunk = np.zeros((len(waypoints), 10), dtype=np.float32)
+            chunk[:, 0:3] = np.asarray(waypoints, dtype=np.float32)
+        elif arm_targets is not None:
+            chunk = np.zeros((len(arm_targets), 10), dtype=np.float32)
+            chunk[:, 3:10] = np.asarray(arm_targets, dtype=np.float32)
+        else:
+            return
+        self._rtc_prev[episode_id] = chunk
+
+    def _rtc_kwargs(self, episode_id: str) -> dict[str, Any]:
+        if not self.rtc_enabled or not episode_id:
+            return {}
+        prev = self._rtc_prev.get(episode_id)
+        if prev is None:
+            return {"prev_action_chunk": None, "inference_delay": 0}
+        return {"prev_action_chunk": prev, "inference_delay": 1}
+
     @property
     def metadata(self) -> dict[str, Any]:
         return {
@@ -137,6 +203,7 @@ class StarVLABackend:
         }
 
     def infer(self, payload: dict[str, Any]) -> dict[str, Any]:
+        episode_id = str(payload.get("episode_id", "") or "")
         images = payload["images"]
         front = _decode_jpeg(images["front"])
         ordered_images = [front]
@@ -171,6 +238,7 @@ class StarVLABackend:
             example["state"] = state
         locked_route = payload.get("locked_route")
         locked_subtask = payload.get("locked_subtask")
+        rtc_kwargs = self._rtc_kwargs(episode_id)
         if locked_route:
             if not isinstance(locked_route, str) or locked_route not in {"nav", "grasp", "place"}:
                 raise ProtocolError("locked_route must be nav/grasp/place")
@@ -194,20 +262,28 @@ class StarVLABackend:
                     examples=[example],
                     locked_route=locked_route,
                     locked_subtask=locked_subtask,
+                    **rtc_kwargs,
                 )
             else:
                 raw = self.model.predict_typed_action(
                     examples=[example],
                     allow_bbox=False,
+                    **rtc_kwargs,
                 )
         else:
             raw = self.model.predict_typed_action(
                 examples=[example],
                 allow_bbox=False,
+                **rtc_kwargs,
             )
+        if episode_id:
+            self._remember_rtc_chunk(episode_id, raw)
+        raw = self._denormalize_decision(raw)
         return normalize_decision(raw)
 
     def reset(self, episode_id: str | None) -> dict[str, Any]:
+        if episode_id:
+            self._rtc_prev.pop(str(episode_id), None)
         return {"reset": True, "episode_id": episode_id}
 
 

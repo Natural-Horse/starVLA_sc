@@ -8,6 +8,12 @@ is_debug: false
 
 framework:
   name: QwenPI
+  rtc:
+    enable: true
+    # simulated_delay 为开区间：uniform 采样 delay ∈ [0, 4]
+    simulated_delay: 5
+    delay_sampling: uniform
+    conditioning_mode: dit_token
   router:
     action_supervision: flow_matching
     action_route_format: route_subtask
@@ -43,8 +49,8 @@ framework:
     # [dx_body,dy_body,dyaw,tcp_x_base,tcp_y_base,tcp_z_base,roll,pitch,yaw,gripper]
     action_dim: 10
     state_dim: 10
-    future_action_window_size: 3
-    action_horizon: 4
+    future_action_window_size: 9
+    action_horizon: 10
     past_action_window_size: 0
     noise_beta_alpha: 1.5
     noise_beta_beta: 1.0
@@ -75,7 +81,7 @@ datasets:
     num_workers: 4
     shuffle: true
     image_size: [224, 224]
-    action_horizon: 4
+    action_horizon: 10
     include_state: false
     main_routes: [nav, grasp, place, done, recover]
     include_routes: [nav, grasp, place, done, recover]

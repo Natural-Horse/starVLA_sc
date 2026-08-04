@@ -296,34 +296,137 @@ class Go2WaypointRouterDataset(Dataset):
                 repeat = self.done_repeat if route == "done" else 1
                 self.samples.extend([(episode.episode_index, frame_index)] * repeat)
 
-    def save_dataset_statistics(self, out_path: Path | str) -> None:
-        """Write the go2 dataset statistics file required by checkpoint loading.
+        self.norm_stats = self._compute_action_stats()
 
-        The go2 flow-matching pipeline keeps actions in physical units and does
-        not use these statistics for un-normalization, but ``read_mode_config``
-        asserts the file exists next to ``config.yaml``, so every training run
-        writes it together with the run config.
+    def save_dataset_statistics(self, out_path: Path | str) -> None:
+        """Write go2 dataset statistics (per-dim q01/q99 over active route dims).
+
+        Statistics are computed over the actual training targets: NAV dims use
+        the body-frame waypoint chunk values, arm dims use the base-frame TCP
+        targets on grasp/place frames. The same file is used by the dataloader
+        for input normalization and by ``read_mode_config`` at inference time.
         """
         out_path = Path(out_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        actions: list[np.ndarray] = []
-        for episode in self.episodes.values():
-            if episode.actions.size:
-                actions.append(episode.actions)
-        if not actions:
-            raise ValueError("cannot build go2 dataset statistics without any actions")
-        stacked = np.concatenate(actions, axis=0).astype(np.float64)
-        q01 = np.quantile(stacked, 0.01, axis=0).tolist()
-        q99 = np.quantile(stacked, 0.99, axis=0).tolist()
-        mask = [True] * int(stacked.shape[1])
         stats = {
             "go2_waypoint_router_dataset": {
-                "action": {"q01": q01, "q99": q99, "mask": mask},
+                "action": {
+                    "q01": self.norm_stats["action"]["q01"],
+                    "q99": self.norm_stats["action"]["q99"],
+                    "mask": self.norm_stats["action"]["mask"],
+                },
                 "num_trajectories": int(len(self.episodes)),
-                "num_transitions": int(stacked.shape[0]),
+                "num_transitions": int(
+                    sum(len(ep.actions) for ep in self.episodes.values())
+                ),
             }
         }
         out_path.write_text(json.dumps(stats, indent=2), encoding="utf-8")
+
+    def _build_route_target(
+        self,
+        episode: "_Episode",
+        frame_index: int,
+        route: str,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray] | tuple[None, None, None]:
+        """Build the physical-unit action target for one sample.
+
+        Returns (action, time_valid_mask, dim_active_mask). NAV fills the first
+        three dims with body-frame waypoints; grasp/place fill the last seven
+        dims with base-frame TCP targets from ``episode.actions``.
+        """
+        if route not in {"nav", "grasp", "place"}:
+            return None, None, None
+        action = np.zeros((self.action_horizon, ACTION_DIM), dtype=np.float32)
+        action_dim_mask = np.zeros((ACTION_DIM,), dtype=np.float32)
+        if route == "nav":
+            sparse_indices, segment_start, stage_stop = (
+                episode.waypoint_indices_by_frame[frame_index]
+            )
+            segment_poses = episode.poses[segment_start:stage_stop]
+            local_frame = frame_index - segment_start
+            waypoints, valid_mask = future_waypoint_chunk(
+                segment_poses,
+                local_frame,
+                sparse_indices,
+                self.action_horizon,
+            )
+            action[:, NAV_ACTION_SLICE] = waypoints
+            action_dim_mask[NAV_ACTION_SLICE] = 1.0
+            return (
+                action,
+                valid_mask.astype(np.float16),
+                action_dim_mask.astype(np.float16),
+            )
+
+        stage = str(episode.stages[frame_index])
+        stage_stop = frame_index + 1
+        while stage_stop < len(episode.stages) and str(episode.stages[stage_stop]) == stage:
+            stage_stop += 1
+        valid_count = min(self.action_horizon, stage_stop - frame_index)
+        source = episode.actions[frame_index : frame_index + valid_count, ARM_ACTION_SLICE]
+        action[:valid_count, ARM_ACTION_SLICE] = source
+        action[valid_count:, ARM_ACTION_SLICE] = source[-1]
+        valid_mask = np.arange(self.action_horizon) < valid_count
+        action_dim_mask[ARM_ACTION_SLICE] = 1.0
+        return (
+            action,
+            valid_mask.astype(np.float16),
+            action_dim_mask.astype(np.float16),
+        )
+
+    def _compute_action_stats(self) -> dict[str, dict[str, list[float]]]:
+        """Per-dim q01/q99 over the active route dims of training targets."""
+
+        per_dim_values: list[list[np.ndarray]] = [[] for _ in range(ACTION_DIM)]
+        for episode_index, frame_index in self.samples:
+            episode = self.episodes[episode_index]
+            route = self._route_for_frame(episode, frame_index)
+            built = self._build_route_target(episode, frame_index, route)
+            if built[0] is None:
+                continue
+            action, valid_mask, dim_mask = built
+            valid = valid_mask.astype(bool)
+            if route == "nav":
+                values = action[valid, NAV_ACTION_SLICE]
+                for dim in range(3):
+                    per_dim_values[dim].append(values[:, dim])
+            else:
+                values = action[valid, ARM_ACTION_SLICE]
+                for dim in range(7):
+                    per_dim_values[3 + dim].append(values[:, dim])
+
+        q01 = np.zeros((ACTION_DIM,), dtype=np.float64)
+        q99 = np.zeros((ACTION_DIM,), dtype=np.float64)
+        for dim in range(ACTION_DIM):
+            if per_dim_values[dim]:
+                stacked = np.concatenate(per_dim_values[dim]).astype(np.float64)
+                q01[dim] = float(np.quantile(stacked, 0.01))
+                q99[dim] = float(np.quantile(stacked, 0.99))
+            else:
+                q01[dim] = -1.0
+                q99[dim] = 1.0
+        return {
+            "action": {
+                "q01": q01.tolist(),
+                "q99": q99.tolist(),
+                "mask": [True] * ACTION_DIM,
+            }
+        }
+
+    def _normalize_action(self, action: np.ndarray) -> np.ndarray:
+        """Map physical action targets to [-1, 1] with per-dim q01/q99 stats."""
+
+        q01 = np.asarray(
+            self.norm_stats["action"]["q01"], dtype=np.float32
+        )
+        q99 = np.asarray(
+            self.norm_stats["action"]["q99"], dtype=np.float32
+        )
+        delta = q99 - q01
+        delta = np.where(delta == 0.0, 1.0, delta)
+        normalized = (action - q01) / delta * 2.0 - 1.0
+        return np.clip(normalized, -1.0, 1.0).astype(np.float16)
 
     def _load_episode(self, parquet_path: Path, *, root_index: int) -> _Episode:
         columns = [
@@ -467,43 +570,22 @@ class Go2WaypointRouterDataset(Dataset):
         }
 
         if route in {"nav", "grasp", "place"}:
-            action = np.zeros((self.action_horizon, ACTION_DIM), dtype=np.float32)
-            action_dim_mask = np.zeros((ACTION_DIM,), dtype=np.float32)
-            state = np.zeros((1, ACTION_DIM), dtype=np.float32)
-
-        if route == "nav":
-            sparse_indices, segment_start, stage_stop = episode.waypoint_indices_by_frame[frame_index]
-            segment_poses = episode.poses[segment_start:stage_stop]
-            local_frame = frame_index - segment_start
-            waypoints, valid_mask = future_waypoint_chunk(
-                segment_poses,
-                local_frame,
-                sparse_indices,
-                self.action_horizon,
+            action, valid_mask, action_dim_mask = self._build_route_target(
+                episode, frame_index, route
             )
-            action[:, NAV_ACTION_SLICE] = waypoints
-            action_dim_mask[NAV_ACTION_SLICE] = 1.0
+            action = self._normalize_action(action)
+            state = np.zeros((1, ACTION_DIM), dtype=np.float32)
             if self.include_state:
-                state[0, NAV_ACTION_SLICE] = episode.base_velocity[frame_index]
-        elif route in {"grasp", "place"}:
-            stage = str(episode.stages[frame_index])
-            stage_stop = frame_index + 1
-            while stage_stop < len(episode.stages) and str(episode.stages[stage_stop]) == stage:
-                stage_stop += 1
-            valid_count = min(self.action_horizon, stage_stop - frame_index)
-            source = episode.actions[frame_index : frame_index + valid_count, ARM_ACTION_SLICE]
-            action[:valid_count, ARM_ACTION_SLICE] = source
-            action[valid_count:, ARM_ACTION_SLICE] = source[-1]
-            valid_mask = np.arange(self.action_horizon) < valid_count
-            action_dim_mask[ARM_ACTION_SLICE] = 1.0
-            if self.include_state:
-                previous_index = max(0, frame_index - 1)
-                state[0, ARM_ACTION_SLICE] = episode.actions[previous_index, ARM_ACTION_SLICE]
-
-        if route in {"nav", "grasp", "place"}:
-            output["action"] = action.astype(np.float16)
-            output["action_mask"] = valid_mask.astype(np.float16)
-            output["action_dim_mask"] = action_dim_mask.astype(np.float16)
+                if route == "nav":
+                    state[0, NAV_ACTION_SLICE] = episode.base_velocity[frame_index]
+                else:
+                    previous_index = max(0, frame_index - 1)
+                    state[0, ARM_ACTION_SLICE] = episode.actions[
+                        previous_index, ARM_ACTION_SLICE
+                    ]
+            output["action"] = action
+            output["action_mask"] = valid_mask
+            output["action_dim_mask"] = action_dim_mask
             if self.include_state:
                 output["state"] = state.astype(np.float16)
         return output
