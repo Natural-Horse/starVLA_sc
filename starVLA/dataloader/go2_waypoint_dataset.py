@@ -97,6 +97,10 @@ class _Episode:
     poses: np.ndarray
     base_velocity: np.ndarray
     actions: np.ndarray
+    # 夹爪指令（归一化 0=闭合,1=张开，来自 control.action 两指节均值）。
+    # 训练目标的夹爪维必须用"指令"而非"实测指位"：实测在抓握时停在物体宽度，
+    # 会教模型输出过宽的夹爪目标导致实机抓不住。
+    control_gripper: np.ndarray
     stages: np.ndarray
     subtasks: np.ndarray
     instructions: np.ndarray
@@ -333,7 +337,8 @@ class Go2WaypointRouterDataset(Dataset):
 
         Returns (action, time_valid_mask, dim_active_mask). NAV fills the first
         three dims with body-frame waypoints; grasp/place fill the last seven
-        dims with base-frame TCP targets from ``episode.actions``.
+        dims with base-frame TCP targets from ``episode.actions``，其中夹爪维
+        使用 control.action 的指令值（部署语义：模型输出=夹爪目标指令）。
         """
         if route not in {"nav", "grasp", "place"}:
             return None, None, None
@@ -364,7 +369,9 @@ class Go2WaypointRouterDataset(Dataset):
         while stage_stop < len(episode.stages) and str(episode.stages[stage_stop]) == stage:
             stage_stop += 1
         valid_count = min(self.action_horizon, stage_stop - frame_index)
-        source = episode.actions[frame_index : frame_index + valid_count, ARM_ACTION_SLICE]
+        source = episode.actions[frame_index : frame_index + valid_count, ARM_ACTION_SLICE].copy()
+        # 夹爪维改用指令值（0=闭合,1=张开），保持部署语义一致
+        source[:, 6] = episode.control_gripper[frame_index : frame_index + valid_count]
         action[:valid_count, ARM_ACTION_SLICE] = source
         action[valid_count:, ARM_ACTION_SLICE] = source[-1]
         valid_mask = np.arange(self.action_horizon) < valid_count
@@ -411,7 +418,7 @@ class Go2WaypointRouterDataset(Dataset):
         for step in range(self.action_horizon):
             for dim in range(ACTION_DIM):
                 if per_step_values[step][dim]:
-                    stacked = np.concatenate(per_step_values[step][dim]).astype(np.float64)
+                    stacked = np.stack(per_step_values[step][dim]).astype(np.float64)
                     q01[step, dim] = float(np.quantile(stacked, 0.01))
                     q99[step, dim] = float(np.quantile(stacked, 0.99))
                 else:
@@ -450,6 +457,7 @@ class Go2WaypointRouterDataset(Dataset):
             "observation.state",
             "observation.base_velocity",
             "action",
+            "control.action",
             "task_stage",
             "subtask",
             "instruction",
@@ -472,6 +480,16 @@ class Go2WaypointRouterDataset(Dataset):
             raise ValueError(
                 f"Episode {episode_index} action must have shape [T,{ACTION_DIM}], got {actions.shape}"
             )
+        control = np.asarray(table["control.action"].to_pylist(), dtype=np.float32)
+        if control.ndim != 2 or control.shape[0] != actions.shape[0]:
+            raise ValueError(
+                f"Episode {episode_index} control.action must be [T,D], "
+                f"got {control.shape} vs action {actions.shape}"
+            )
+        # control.action 最后两列是夹爪两指节指令（0=闭合 ~ opened=0.043/指）。
+        gripper_cmd = np.clip(
+            (control[:, -2] + control[:, -1]) / 2.0 / 0.043, 0.0, 1.0
+        ).astype(np.float32)
         stages = np.asarray(table["task_stage"].to_pylist(), dtype=object)
         waypoint_by_frame: dict[int, tuple[np.ndarray, int, int]] = {}
         for stage, start, stop in contiguous_stage_segments(stages):
@@ -498,6 +516,7 @@ class Go2WaypointRouterDataset(Dataset):
             poses=poses,
             base_velocity=np.asarray(table["observation.base_velocity"].to_pylist(), dtype=np.float32),
             actions=actions,
+            control_gripper=gripper_cmd,
             stages=stages,
             subtasks=np.asarray(table["subtask"].to_pylist(), dtype=object),
             instructions=instructions,

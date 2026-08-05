@@ -34,6 +34,22 @@ server:
 - `server.use_bf16`：默认 `true`，显存不足时可关掉（会慢）；
 - `server.python_bin`：含 torch/starVLA 的 Python 解释器。
 
+## 1.1 模型架构与归一化（重要）
+
+- 2025-08 起的训练产物使用 **按 step 索引归一化**：`dataset_statistics.json` 的
+  `q01/q99` 为 `[action_horizon, 10]` 形状（每个 horizon step 独立统计，避免
+  waypoint 首步被跨 step 合并统计压坏）。server 端反归一化自动按步查表；
+  旧的 pooled（10 维）统计仍兼容。
+- 双 expert 模型（`robodog_two_heads` 分支）：NAV(3 维)/ARM(7 维) 两个 flow
+  matching head，由 route token 选路，各自独立统计与 RTC。
+  **server 端 QwenPI 代码必须与 checkpoint 架构匹配**：单 head checkpoint 用
+  `robodog` 分支代码，双 head checkpoint 用 `robodog_two_heads` 分支代码，
+  否则 `state_dict` 键（`action_model.*` vs `action_model.nav.*/arm.*`）不匹配，
+  启动直接失败。
+- 夹爪维语义：训练目标的夹爪维使用 **control.action 的夹爪指令**（0=闭合,
+  1=张开），不是实测指位（实测在抓握时停在物体宽度，会让模型输出过宽目标
+  导致实机抓不住）。模型输出即为夹爪目标指令，`0..1` 映射到 X5 `0..0.088m`。
+
 ## 2. 启动
 
 ```bash
