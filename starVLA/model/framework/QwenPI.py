@@ -144,12 +144,21 @@ class Qwen_PI(baseframework):
         base_cfg = self.config.framework.action_model
         heads_cfg = _cfg_get(self.config.framework, "action_heads", None)
 
+        def _to_plain(cfg):
+            if cfg is None:
+                return None
+            if hasattr(cfg, "to_dict"):
+                return cfg.to_dict(resolve=True)
+            if OmegaConf.is_config(cfg):
+                return OmegaConf.to_container(cfg, resolve=True)
+            return dict(cfg)
+
         def _merged(head_name: str):
             override = _cfg_get(heads_cfg, head_name, None) if heads_cfg is not None else None
-            base_dict = OmegaConf.to_container(base_cfg, resolve=True)
+            base_dict = _to_plain(base_cfg)
             if override is None:
                 return base_dict
-            override_dict = OmegaConf.to_container(override, resolve=True)
+            override_dict = _to_plain(override)
             return {**base_dict, **override_dict}
 
         def _head_global(head_name: str):
@@ -157,8 +166,8 @@ class Qwen_PI(baseframework):
                 {
                     "framework": {
                         "action_model": _merged(head_name),
-                        "qwenvl": self.config.framework.qwenvl,
-                        "rtc": _cfg_get(self.config.framework, "rtc", None),
+                        "qwenvl": _to_plain(self.config.framework.qwenvl),
+                        "rtc": _to_plain(_cfg_get(self.config.framework, "rtc", None)),
                     }
                 }
             )
