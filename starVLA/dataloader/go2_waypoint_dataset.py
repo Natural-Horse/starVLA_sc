@@ -376,9 +376,17 @@ class Go2WaypointRouterDataset(Dataset):
         )
 
     def _compute_action_stats(self) -> dict[str, dict[str, list[float]]]:
-        """Per-dim q01/q99 over the active route dims of training targets."""
+        """Per-step, per-dim q01/q99 over the active route dims of training targets.
 
-        per_dim_values: list[list[np.ndarray]] = [[] for _ in range(ACTION_DIM)]
+        NAV 前几个 step 的 waypoint 物理上很小（<=0.5m/25°），越靠后累积越大；
+        跨 step 合并统计会把 step0 压进很窄的归一化区间，导致推理 clip 后
+        反归一化成极值。因此按 horizon step 分别统计，q01/q99 形状为
+        [action_horizon, ACTION_DIM]。
+        """
+
+        per_step_values: list[list[list[np.ndarray]]] = [
+            [[] for _ in range(ACTION_DIM)] for _ in range(self.action_horizon)
+        ]
         for episode_index, frame_index in self.samples:
             episode = self.episodes[episode_index]
             route = self._route_for_frame(episode, frame_index)
@@ -389,40 +397,47 @@ class Go2WaypointRouterDataset(Dataset):
             valid = valid_mask.astype(bool)
             if route == "nav":
                 values = action[valid, NAV_ACTION_SLICE]
-                for dim in range(3):
-                    per_dim_values[dim].append(values[:, dim])
+                for step, row in enumerate(values):
+                    for dim in range(3):
+                        per_step_values[step][dim].append(row[dim])
             else:
                 values = action[valid, ARM_ACTION_SLICE]
-                for dim in range(7):
-                    per_dim_values[3 + dim].append(values[:, dim])
+                for step, row in enumerate(values):
+                    for dim in range(7):
+                        per_step_values[step][3 + dim].append(row[dim])
 
-        q01 = np.zeros((ACTION_DIM,), dtype=np.float64)
-        q99 = np.zeros((ACTION_DIM,), dtype=np.float64)
-        for dim in range(ACTION_DIM):
-            if per_dim_values[dim]:
-                stacked = np.concatenate(per_dim_values[dim]).astype(np.float64)
-                q01[dim] = float(np.quantile(stacked, 0.01))
-                q99[dim] = float(np.quantile(stacked, 0.99))
-            else:
-                q01[dim] = -1.0
-                q99[dim] = 1.0
+        q01 = np.zeros((self.action_horizon, ACTION_DIM), dtype=np.float64)
+        q99 = np.zeros((self.action_horizon, ACTION_DIM), dtype=np.float64)
+        for step in range(self.action_horizon):
+            for dim in range(ACTION_DIM):
+                if per_step_values[step][dim]:
+                    stacked = np.concatenate(per_step_values[step][dim]).astype(np.float64)
+                    q01[step, dim] = float(np.quantile(stacked, 0.01))
+                    q99[step, dim] = float(np.quantile(stacked, 0.99))
+                else:
+                    q01[step, dim] = -1.0
+                    q99[step, dim] = 1.0
         return {
             "action": {
                 "q01": q01.tolist(),
                 "q99": q99.tolist(),
                 "mask": [True] * ACTION_DIM,
+                "per_step": True,
             }
         }
 
     def _normalize_action(self, action: np.ndarray) -> np.ndarray:
-        """Map physical action targets to [-1, 1] with per-dim q01/q99 stats."""
+        """Map physical action targets to [-1, 1] with per-step q01/q99 stats."""
 
-        q01 = np.asarray(
-            self.norm_stats["action"]["q01"], dtype=np.float32
-        )
-        q99 = np.asarray(
-            self.norm_stats["action"]["q99"], dtype=np.float32
-        )
+        q01 = np.asarray(self.norm_stats["action"]["q01"], dtype=np.float32)
+        q99 = np.asarray(self.norm_stats["action"]["q99"], dtype=np.float32)
+        if q01.ndim == 1:
+            q01 = np.broadcast_to(q01, action.shape)
+            q99 = np.broadcast_to(q99, action.shape)
+        else:
+            horizon = min(action.shape[0], q01.shape[0])
+            q01 = np.broadcast_to(q01[:horizon], action.shape)
+            q99 = np.broadcast_to(q99[:horizon], action.shape)
         delta = q99 - q01
         delta = np.where(delta == 0.0, 1.0, delta)
         normalized = (action - q01) / delta * 2.0 - 1.0

@@ -154,18 +154,31 @@ class StarVLABackend:
         stats = norm_stats[unnorm_key]["action"]
         q01 = np.asarray(stats["q01"], dtype=np.float64)
         q99 = np.asarray(stats["q99"], dtype=np.float64)
+        per_step = q01.ndim == 2
 
         waypoints = raw.get("nav_waypoints")
         if waypoints is not None:
             arr = np.clip(np.asarray(waypoints, dtype=np.float64), -1.0, 1.0)
-            raw["nav_waypoints"] = (
-                0.5 * (arr + 1.0) * (q99[0:3] - q01[0:3]) + q01[0:3]
-            )
+            if per_step:
+                t = min(arr.shape[0], q01.shape[0])
+                q01_slice = np.broadcast_to(q01[:t, 0:3], arr.shape)
+                q99_slice = np.broadcast_to(q99[:t, 0:3], arr.shape)
+            else:
+                q01_slice = np.broadcast_to(q01[0:3], arr.shape)
+                q99_slice = np.broadcast_to(q99[0:3], arr.shape)
+            raw["nav_waypoints"] = 0.5 * (arr + 1.0) * (q99_slice - q01_slice) + q01_slice
         arm_targets = raw.get("arm_targets_base")
         if arm_targets is not None:
             arr = np.clip(np.asarray(arm_targets, dtype=np.float64), -1.0, 1.0)
+            if per_step:
+                t = min(arr.shape[0], q01.shape[0])
+                q01_slice = np.broadcast_to(q01[:t, 3:10], arr.shape)
+                q99_slice = np.broadcast_to(q99[:t, 3:10], arr.shape)
+            else:
+                q01_slice = np.broadcast_to(q01[3:10], arr.shape)
+                q99_slice = np.broadcast_to(q99[3:10], arr.shape)
             raw["arm_targets_base"] = (
-                0.5 * (arr + 1.0) * (q99[3:10] - q01[3:10]) + q01[3:10]
+                0.5 * (arr + 1.0) * (q99_slice - q01_slice) + q01_slice
             )
         return raw
 
