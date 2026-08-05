@@ -34,6 +34,17 @@ server:
 - `server.use_bf16`：默认 `true`，显存不足时可关掉（会慢）；
 - `server.python_bin`：含 torch/starVLA 的 Python 解释器。
 
+## 1.1 模型/归一化/夹爪/RTC（当前单 head 管线）
+
+- 训练产物使用 **按 step 索引归一化**：`dataset_statistics.json` 的 `q01/q99`
+  为 `[action_horizon, 10]`（每个 horizon step 独立统计，避免 waypoint 首步被
+  跨 step 合并统计压坏）；server 端反归一化自动按步查表（兼容旧 pooled 10 维）。
+- 夹爪维语义：训练目标夹爪维使用 **control.action 的夹爪指令**（0=闭合,1=张开），
+  不是实测指位；模型输出即夹爪目标指令，`0..1` 映射到 X5 `0..0.088m`。
+- RTC 开关：`framework.rtc.enable` 为总开关（训练/推理一致生效）；当前 go2 动作
+  训练用最简单方式（单 head + 按步归一化，无 RTC），server 加载对应 checkpoint
+  后自动跳过 prev-chunk 条件化。
+
 ## 2. 启动
 
 ```bash

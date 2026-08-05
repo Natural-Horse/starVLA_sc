@@ -9,8 +9,11 @@ is_debug: false
 framework:
   name: QwenPI
   rtc:
-    enable: true
-    # simulated_delay 为开区间：uniform 采样 delay ∈ [0, 4]
+    # RTC 开关：enable=false 时不启用 RTC（训练/推理都不做 prev-chunk 条件化）。
+    # 当前 go2 动作训练改用最简单方式（单 head + 按步 q01/q99 归一化），
+    # 不再使用 RTC。
+    enable: false
+    # simulated_delay 为开区间：uniform 采样 delay ∈ [0, 4]（enable=true 时生效）
     simulated_delay: 5
     delay_sampling: uniform
     conditioning_mode: dit_token
