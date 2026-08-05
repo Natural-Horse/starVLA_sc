@@ -46,6 +46,7 @@ framework:
     hidden_size: 1024
     add_pos_embed: true
     max_seq_len: 1024
+    # 共享模板（10 维兼容校验）；实际维度由 action_heads 拆分：
     # [dx_body,dy_body,dyaw,tcp_x_base,tcp_y_base,tcp_z_base,roll,pitch,yaw,gripper]
     action_dim: 10
     state_dim: 10
@@ -68,6 +69,18 @@ framework:
       output_dim: 2560
       positional_embeddings: null
 
+  # 双 expert 动作头：route token 选择激活哪一个。
+  # nav head 只预测 body 系 waypoint [dx,dy,dyaw]；
+  # arm head 只预测 base 系 TCP [x,y,z,roll,pitch,yaw,gripper]。
+  # 其余字段（DiT、horizon、RTC、noise 等）继承上方 action_model 模板。
+  action_heads:
+    nav:
+      action_dim: 3
+      state_dim: 3
+    arm:
+      action_dim: 7
+      state_dim: 7
+
 datasets:
   split:
     enable: true
@@ -77,7 +90,7 @@ datasets:
   router_data:
     dataset_py: go2_waypoint_router_dataset
     root: /hdd4/MaTianran/pct_workspace/starVLA_sc/datasets/liangzhu_0729_n200/lerobot_dataset
-    per_device_batch_size: 4
+    per_device_batch_size: 12
     num_workers: 4
     shuffle: true
     image_size: [224, 224]

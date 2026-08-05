@@ -45,6 +45,41 @@ from starVLA.model.tools import FRAMEWORK_REGISTRY
 # ⚠️ Warning: This framework has been restructured and is NOT compatible with checkpoints created before 2025-10-20.
 ####################################################
 
+
+class DualActionHeads(nn.Module):
+    """NAV / ARM 双 expert 动作头容器。
+
+    - ``nav``: 3 维 body 系 waypoint head（dx, dy, dyaw）。
+    - ``arm``: 7 维 base 系 TCP head（x, y, z, roll, pitch, yaw, gripper）。
+
+    route token 决定训练/推理时激活哪一个 head；容器本身作为
+    ``model.action_model`` 暴露给 trainer 的 freeze / param-group / 日志逻辑。
+    """
+
+    def __init__(self, nav: LayerwiseFlowmatchingActionHead, arm: LayerwiseFlowmatchingActionHead):
+        super().__init__()
+        self.nav = nav
+        self.arm = arm
+        self._latest_dim_loss: Optional[torch.Tensor] = None
+
+    @property
+    def rtc_enabled(self) -> bool:
+        return bool(getattr(self.nav, "rtc_enabled", False)) or bool(
+            getattr(self.arm, "rtc_enabled", False)
+        )
+
+    @property
+    def latest_action_dim_loss(self) -> Optional[torch.Tensor]:
+        return self._latest_dim_loss
+
+    @property
+    def latest_rtc_delay(self):
+        delay = getattr(self.arm, "latest_rtc_delay", None)
+        if delay is None:
+            delay = getattr(self.nav, "latest_rtc_delay", None)
+        return delay
+
+
 @FRAMEWORK_REGISTRY.register("QwenPI")
 class Qwen_PI(baseframework):
     """
@@ -92,11 +127,57 @@ class Qwen_PI(baseframework):
         self.config.framework.qwenvl.vl_hidden_dim = llm_hidden_size
         self.config.framework.qwenvl.num_vl_layers = num_vl_layers
 
-        self.action_model: LayerwiseFlowmatchingActionHead = get_action_model(config=self.config)
+        self.action_model = self._build_dual_action_heads()
 
         self.future_action_window_size = config.framework.action_model.future_action_window_size
         self.past_action_window_size = config.framework.action_model.past_action_window_size
         self.chunk_len = self.past_action_window_size + 1 + self.future_action_window_size
+
+    def _build_dual_action_heads(self) -> DualActionHeads:
+        """构建 NAV(3 维) / ARM(7 维) 两个 flow-matching expert。
+
+        ``framework.action_model`` 作为共享模板；``framework.action_heads``
+        提供每个 head 的覆盖字段（action_dim/state_dim 等）。
+        """
+        from omegaconf import OmegaConf
+
+        base_cfg = self.config.framework.action_model
+        heads_cfg = _cfg_get(self.config.framework, "action_heads", None)
+
+        def _merged(head_name: str):
+            override = _cfg_get(heads_cfg, head_name, None) if heads_cfg is not None else None
+            base_dict = OmegaConf.to_container(base_cfg, resolve=True)
+            if override is None:
+                return base_dict
+            override_dict = OmegaConf.to_container(override, resolve=True)
+            return {**base_dict, **override_dict}
+
+        def _head_global(head_name: str):
+            return OmegaConf.create(
+                {
+                    "framework": {
+                        "action_model": _merged(head_name),
+                        "qwenvl": self.config.framework.qwenvl,
+                        "rtc": _cfg_get(self.config.framework, "rtc", None),
+                    }
+                }
+            )
+
+        nav_head = get_action_model(config=_head_global("nav"))
+        arm_head = get_action_model(config=_head_global("arm"))
+        return DualActionHeads(nav=nav_head, arm=arm_head)
+
+    @staticmethod
+    def _route_from_solution(solution: Optional[str]) -> str:
+        text = str(solution or "")
+        for token, route in (
+            ("<|nav|>", "nav"),
+            ("<|grasp|>", "grasp"),
+            ("<|place|>", "place"),
+        ):
+            if token in text:
+                return route
+        return "nav"
         
     def _router_tokens(self) -> tuple[str, str]:
         datasets_cfg = _cfg_get(self.config, "datasets", None)
@@ -146,7 +227,7 @@ class Qwen_PI(baseframework):
         return result
 
     def _select_action_hidden_states(self, hidden_states, indices: torch.Tensor | None = None) -> list[torch.Tensor]:
-        expected_layers = len(self.action_model.model.transformer_blocks)
+        expected_layers = len(self.action_model.nav.model.transformer_blocks)
         vl_embs_list = list(hidden_states[-expected_layers:])
         if indices is not None:
             vl_embs_list = [hidden.index_select(0, indices.to(hidden.device)) for hidden in vl_embs_list]
@@ -168,57 +249,93 @@ class Qwen_PI(baseframework):
         if detach_vlm_hidden_states:
             vl_embs_list = [hidden.detach() for hidden in vl_embs_list]
         base_hidden = vl_embs_list[-1]
-        actions = [example["action"] for example in examples]
-        state = [example["state"] for example in examples] if "state" in examples[0] else None
-        action_mask = [example["action_mask"] for example in examples] if "action_mask" in examples[0] else None
+
+        routes = [str(example.get("route", "")).strip().lower() for example in examples]
+        actions = np.array([example["action"] for example in examples], dtype=np.float32)
+        state = np.array([example["state"] for example in examples], dtype=np.float32) if "state" in examples[0] else None
+        action_mask = (
+            np.array([example["action_mask"] for example in examples], dtype=np.float32)
+            if "action_mask" in examples[0]
+            else None
+        )
         action_dim_mask = (
-            [example["action_dim_mask"] for example in examples]
+            np.array([example["action_dim_mask"] for example in examples], dtype=np.float32)
             if "action_dim_mask" in examples[0]
             else None
         )
 
         device_type = "cuda" if base_hidden.is_cuda else "cpu"
         with torch.autocast(device_type=device_type, dtype=torch.float32, enabled=base_hidden.is_cuda):
-            actions = torch.tensor(
-                np.array(actions), device=base_hidden.device, dtype=base_hidden.dtype
-            )
+            actions = torch.tensor(actions, device=base_hidden.device, dtype=base_hidden.dtype)
             actions_target = actions[:, -(self.future_action_window_size + 1):, :]
 
             repeated_diffusion_steps = (
                 self.config.trainer.get("repeated_diffusion_steps", 4) if self.config and self.config.trainer else 4
             )
-            actions_target_repeated = actions_target.repeat(repeated_diffusion_steps, 1, 1)
-            vl_embs_list_repeated = [h.repeat(repeated_diffusion_steps, 1, 1) for h in vl_embs_list]
 
-            state_repeated = None
-            if state is not None:
-                state = torch.tensor(
-                    np.array(state), device=base_hidden.device, dtype=base_hidden.dtype
-                )
-                state_repeated = state.repeat(repeated_diffusion_steps, 1, 1)
-
-            action_mask_repeated = None
-            if action_mask is not None:
-                action_mask = torch.tensor(
-                    np.array(action_mask), device=base_hidden.device, dtype=torch.bool
-                )
-                action_mask = action_mask[:, -(self.future_action_window_size + 1):]
-                action_mask_repeated = action_mask.repeat(repeated_diffusion_steps, 1)
-
-            action_dim_mask_repeated = None
-            if action_dim_mask is not None:
-                action_dim_mask = torch.tensor(
-                    np.array(action_dim_mask), device=base_hidden.device, dtype=torch.bool
-                )
-                action_dim_mask_repeated = action_dim_mask.repeat(repeated_diffusion_steps, 1)
-
-            action_loss = self.action_model(
-                vl_embs_list_repeated,
-                actions_target_repeated,
-                state_repeated,
-                action_mask=action_mask_repeated,
-                action_dim_mask=action_dim_mask_repeated,
+            # 双 expert：按 route 分组，nav 样本进 nav head，grasp/place 进 arm head。
+            groups = (
+                ("nav", self.action_model.nav, slice(0, 3), {"nav"}),
+                ("arm", self.action_model.arm, slice(3, 10), {"grasp", "place"}),
             )
+            head_losses: dict[str, tuple[torch.Tensor, int]] = {}
+            for head_name, head, dim_slice, route_set in groups:
+                indices_group = [i for i, r in enumerate(routes) if r in route_set]
+                if not indices_group:
+                    continue
+                idx_t = torch.tensor(indices_group, device=base_hidden.device, dtype=torch.long)
+                group_embs = [h.index_select(0, idx_t) for h in vl_embs_list]
+                group_embs_repeated = [h.repeat(repeated_diffusion_steps, 1, 1) for h in group_embs]
+
+                actions_group = actions_target[indices_group][:, :, dim_slice]
+                actions_group_repeated = actions_group.repeat(repeated_diffusion_steps, 1, 1)
+
+                state_repeated = None
+                if state is not None:
+                    state_tensor = torch.tensor(state, device=base_hidden.device, dtype=base_hidden.dtype)
+                    state_group = state_tensor[indices_group][:, :, dim_slice]
+                    state_repeated = state_group.repeat(repeated_diffusion_steps, 1, 1)
+
+                mask_repeated = None
+                if action_mask is not None:
+                    mask_tensor = torch.tensor(action_mask, device=base_hidden.device, dtype=torch.bool)
+                    mask_group = mask_tensor[indices_group][:, -(self.future_action_window_size + 1):]
+                    mask_repeated = mask_group.repeat(repeated_diffusion_steps, 1)
+
+                dim_mask_repeated = None
+                if action_dim_mask is not None:
+                    dim_tensor = torch.tensor(action_dim_mask, device=base_hidden.device, dtype=torch.bool)
+                    dim_group = dim_tensor[indices_group][:, dim_slice]
+                    dim_mask_repeated = dim_group.repeat(repeated_diffusion_steps, 1)
+
+                loss = head(
+                    group_embs_repeated,
+                    actions_group_repeated,
+                    state_repeated,
+                    action_mask=mask_repeated,
+                    action_dim_mask=dim_mask_repeated,
+                )
+                head_losses[head_name] = (loss, len(indices_group))
+
+        if not head_losses:
+            return base_hidden.new_zeros(())
+
+        total = sum(count for _, count in head_losses.values())
+        action_loss = sum(
+            (count / total) * loss for loss, count in head_losses.values()
+        )
+
+        # 汇总 per-dim loss 为 10 维（nav 0:2 + arm 3:9），供 TensorBoard 日志使用。
+        dim_vec = base_hidden.new_zeros(10, dtype=torch.float32)
+        if "nav" in head_losses:
+            nav_dim_loss = getattr(self.action_model.nav, "latest_action_dim_loss", None)
+            if nav_dim_loss is not None:
+                dim_vec[0:3] = nav_dim_loss
+        if "arm" in head_losses:
+            arm_dim_loss = getattr(self.action_model.arm, "latest_action_dim_loss", None)
+            if arm_dim_loss is not None:
+                dim_vec[3:10] = arm_dim_loss
+        self.action_model._latest_dim_loss = dim_vec.detach().float()
 
         return action_loss
 
@@ -311,6 +428,7 @@ class Qwen_PI(baseframework):
         self,
         examples: List[dict] = None,
         solutions: Optional[List[str]] = None,
+        route: Optional[str | List[str]] = None,
         **kwargs,
     ) -> np.ndarray:
         """
@@ -321,12 +439,24 @@ class Qwen_PI(baseframework):
           2. Encode with QwenVL (hidden states retained)
           6. Return normalized action trajectory
 
+        route 决定激活 NAV(3 维) 还是 ARM(7 维) head；未指定时从 solution 的
+        route token 推断。
+
         Returns:
             dict:
-                normalized_actions (np.ndarray): Shape [B, T, action_dim], diffusion-sampled normalized actions.
+                normalized_actions (list[np.ndarray]): 每个样本一个 [T, head_action_dim] chunk。
         """
         if type(examples) is not list:
             examples = [examples]
+        if route is None:
+            route = (
+                [self._route_from_solution(sol) for sol in solutions]
+                if solutions is not None
+                else ["nav"] * len(examples)
+            )
+        elif isinstance(route, str):
+            route = [route] * len(examples)
+        routes = [str(r).strip().lower() for r in route]
         from deployment.model_server.tools.image_tools import to_pil_preserve
         batch_images = [to_pil_preserve(example["image"]) for example in examples]  #  [B，[PLT]]
         instructions = [example["lang"] for example in examples]  # [B, str]
@@ -363,14 +493,37 @@ class Qwen_PI(baseframework):
             logger.warning("Ignoring unsupported predict_action kwargs: %s", sorted(kwargs))
         # Step 4: Action Expert Forward and Loss
         with torch.autocast("cuda", dtype=torch.float32):
-            pred_actions = self.action_model.predict_action(
-                vl_embs_list,
-                state,
-                prev_action_chunk=prev_action_chunk,
-                inference_delay=inference_delay,
-            )  # (B, chunk_len, action_dim)
+            results: list[Optional[torch.Tensor]] = [None] * len(examples)
+            for head_name, head, dim_slice, route_set in (
+                ("nav", self.action_model.nav, slice(0, 3), {"nav"}),
+                ("arm", self.action_model.arm, slice(3, 10), {"grasp", "place"}),
+            ):
+                indices_group = [i for i, r in enumerate(routes) if r in route_set]
+                if not indices_group:
+                    continue
+                idx_t = torch.tensor(indices_group, device=base_hidden.device, dtype=torch.long)
+                group_embs = [h.index_select(0, idx_t) for h in vl_embs_list]
+                group_state = state[idx_t] if state is not None else None
+                group_prev = None
+                if prev_action_chunk is not None:
+                    prev_t = torch.as_tensor(
+                        prev_action_chunk, device=base_hidden.device, dtype=base_hidden.dtype
+                    )
+                    group_prev = prev_t[idx_t][:, :, dim_slice]
+                pred = head.predict_action(
+                    group_embs,
+                    group_state,
+                    prev_action_chunk=group_prev,
+                    inference_delay=inference_delay,
+                )  # (B, chunk_len, head_action_dim)
+                for local, global_i in enumerate(indices_group):
+                    results[global_i] = pred[local]
+            if any(result is None for result in results):
+                raise ValueError(f"predict_action: 无法为 route {routes} 找到匹配 head")
 
-        normalized_actions = pred_actions.detach().cpu().numpy()
+        # 每个样本返回 [T, head_action_dim]；nav/arm 的 action_dim 不同，
+        # 混合 route 批次不 stack，按样本索引取用。
+        normalized_actions = [results[i].detach().cpu().numpy() for i in range(len(examples))]
         if torch.is_tensor(inference_delay):
             delay_metadata = inference_delay.detach().cpu().tolist()
         elif isinstance(inference_delay, np.ndarray):
@@ -400,6 +553,7 @@ class Qwen_PI(baseframework):
         return self.predict_action(
             examples=examples,
             solutions=[route_token for _ in examples],
+            route=self._route_from_solution(route_token),
             **kwargs,
         )
 
@@ -646,20 +800,29 @@ class Qwen_PI(baseframework):
             idx for idx, item in enumerate(routes) if item["route"] in {"nav", "grasp", "place"}
         ]
         if action_indices:
-            action_examples = [examples[idx] for idx in action_indices]
-            solutions = [routes[idx]["generated_text"] for idx in action_indices]
-            action_output = self.predict_action(
-                examples=action_examples,
-                solutions=solutions,
-                prev_action_chunk=prev_action_chunk,
-                inference_delay=inference_delay,
-            )
-            for local_idx, sample_idx in enumerate(action_indices):
-                action_chunk = action_output["normalized_actions"][local_idx]
-                if routes[sample_idx]["route"] == "nav":
-                    routes[sample_idx]["nav_waypoints"] = action_chunk[:, :3]
-                else:
-                    routes[sample_idx]["arm_targets_base"] = action_chunk[:, 3:10]
+            rtc_kwargs = {
+                "prev_action_chunk": prev_action_chunk,
+                "inference_delay": inference_delay,
+            }
+            for group_route, field, route_set in (
+                ("nav", "nav_waypoints", {"nav"}),
+                ("arm", "arm_targets_base", {"grasp", "place"}),
+            ):
+                group_idx = [
+                    idx for idx in action_indices if routes[idx]["route"] in route_set
+                ]
+                if not group_idx:
+                    continue
+                action_examples = [examples[idx] for idx in group_idx]
+                solutions = [routes[idx]["generated_text"] for idx in group_idx]
+                action_output = self.predict_action(
+                    examples=action_examples,
+                    solutions=solutions,
+                    route=group_route,
+                    **rtc_kwargs,
+                )
+                for local_idx, sample_idx in enumerate(group_idx):
+                    routes[sample_idx][field] = action_output["normalized_actions"][local_idx]
 
         results = []
         for item in routes:
@@ -738,16 +901,17 @@ class Qwen_PI(baseframework):
         action_output = self.predict_action(
             examples=examples,
             solutions=[solution],
+            route=route,
             prev_action_chunk=kwargs.pop("prev_action_chunk", None),
             inference_delay=kwargs.pop("inference_delay", 0),
         )
         action_chunk = action_output["normalized_actions"][0]
         if route == "nav":
-            nav_waypoints = action_chunk[:, :3]
+            nav_waypoints = action_chunk
             arm_targets_base = None
         else:
             nav_waypoints = None
-            arm_targets_base = action_chunk[:, 3:10]
+            arm_targets_base = action_chunk
 
         return {
             "route": route,

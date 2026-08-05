@@ -1013,6 +1013,7 @@ class VLARouterTrainer(TrainerUtils):
         state_dim = int(_cfg_get(action_cfg, "state_dim", 6))
 
         example: dict[str, Any] = {
+            "route": "nav",
             "action": np.zeros((action_horizon, action_dim), dtype=np.float16),
             "action_mask": np.ones((action_horizon,), dtype=np.float16),
             "action_dim_mask": np.ones((action_dim,), dtype=np.float16),
