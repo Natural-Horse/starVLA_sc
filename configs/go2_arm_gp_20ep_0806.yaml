@@ -1,0 +1,149 @@
+datasets:
+  router_data:
+    action_horizon: 10
+    action_route_format: route_subtask
+    action_supervision: flow_matching
+    bbox:
+      allow_route_prediction: false
+      evaluation_enabled: false
+      fallback_enabled: false
+      train_enabled: false
+    dataset_py: go2_waypoint_router_dataset
+    include_routes:
+    - grasp
+    - place
+    main_routes:
+    - nav
+    - grasp
+    - place
+    - done
+    - recover
+    max_translation_m: 0.5
+    max_yaw_deg: 25.0
+    num_workers: 4
+    per_device_batch_size: 16
+    pred_bbox_token: <|pred_bbox|>
+    rdp_epsilon_m: 0.12
+    root:
+    - /hdd4/MaTianran/pct_workspace/starVLA_sc/datasets/liangzhu_0729_n200/lerobot_dataset
+    - /hdd4/MaTianran/pct_workspace/starVLA_sc/datasets/liangzhu_0729_n250/lerobot_dataset
+    route_tokens:
+      done: <|done|>
+      grasp: <|grasp|>
+      nav: <|nav|>
+      place: <|place|>
+      recover: <|recover|>
+    subtask_end_token: <|end_subtask|>
+    subtask_start_token: <|subtask|>
+    yaw_metric_scale_m_per_rad: 0.45
+  sft_multi:
+    enable: false
+  split:
+    enable: true
+    mode: contiguous
+    train_ratio: 0.9
+framework:
+  action_model:
+    action_dim: 10
+    action_horizon: 10
+    add_pos_embed: true
+    diffusion_model_cfg:
+      attention_head_dim: 64
+      cross_attention_dim: 2560
+      dropout: 0.2
+      final_dropout: true
+      input_embedding_dim: 2560
+      interleave_self_attention: true
+      norm_type: ada_norm
+      num_attention_heads: 40
+      num_layers: 16
+      output_dim: 2560
+      positional_embeddings: null
+    freeze: false
+    future_action_window_size: 9
+    max_seq_len: 1024
+    noise_beta_alpha: 1.5
+    noise_beta_beta: 1.0
+    noise_s: 0.999
+    num_inference_timesteps: 4
+    num_target_vision_tokens: 8
+    num_timestep_buckets: 1000
+    past_action_window_size: 0
+    state_dim: 10
+  name: QwenPI
+  qwenvl:
+    attn_implementation: sdpa
+    base_vlm: /hdd4/MaTianran/rtc_starvla/models/base_vlm/Qwen3-VL-4B-Instruct
+    freeze: true
+    num_vl_layers: 36
+    special_tokens:
+      policy: auto_add
+      require_fast_action_tokens: false
+      router_tokens:
+      - <|nav|>
+      - <|grasp|>
+      - <|place|>
+      - <|done|>
+      - <|recover|>
+      - <|pred_bbox|>
+      - <|subtask|>
+      - <|end_subtask|>
+    vl_hidden_dim: 2560
+  router:
+    action_loss_grad_to_vlm: false
+    action_route_format: route_subtask
+    action_supervision: flow_matching
+    subtask_end_token: <|end_subtask|>
+    subtask_start_token: <|subtask|>
+  rtc:
+    conditioning_mode: dit_token
+    delay_sampling: uniform
+    enable: false
+    simulated_delay: 5
+output_dir: results/Checkpoints/go2_singlehead_arm_gp_20ep_5a40_0806_r9
+run_id: go2_singlehead_arm_gp_20ep_5a40_0806_r9
+run_root_dir: results/Checkpoints
+seed: 42
+trainer:
+  deepspeed:
+    offload_optimizer_device: none
+    offload_param_device: none
+    zero3_save_16bit_model: true
+    zero_stage: 3
+  enable_tensorboard: true
+  eval_interval: 100
+  freeze_modules: qwen_vl_interface
+  gradient_accumulation_steps: 1
+  gradient_clipping: 5.0
+  learning_rate:
+    action_model: 5.0e-06
+    base: 1.0e-05
+    qwen_vl_interface: 5.0e-06
+  logging_frequency: 10
+  loss_scale:
+    action: 1.0
+    sft_vlm: 0.0
+    vlm: 0.0
+  lr_scheduler_type: cosine_with_min_lr
+  max_train_steps: 1600
+  num_warmup_steps: 150
+  optimizer:
+    betas:
+    - 0.9
+    - 0.95
+    eps: 1.0e-08
+    foreach: false
+    fused: true
+    weight_decay: 1.0e-08
+  pretrained_checkpoint: /hdd4/MaTianran/pct_workspace/starVLA_sc/results/Checkpoints/go2_singlehead_perstep_nortc_3a40_0805_r8/final_model/pytorch_model.pt
+  reload_modules: qwen_vl_interface
+  repeated_diffusion_steps: 4
+  save_final_model: true
+  save_format: pt
+  save_interval: 500
+  scheduler_specific_kwargs:
+    min_lr: 1.0e-07
+  skip_no_grad_batches: true
+  stage: action
+wandb_entity: null
+wandb_project: starvla_go2_waypoint
