@@ -153,6 +153,7 @@ dmypy.json
 # Caches and Datasets
 cache/
 data/
+datasets/
 playground/Models
 =4.43.2
 
