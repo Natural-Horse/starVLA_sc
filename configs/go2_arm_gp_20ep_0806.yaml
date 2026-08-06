@@ -1,3 +1,4 @@
+is_debug: false
 datasets:
   router_data:
     action_horizon: 10
@@ -21,7 +22,7 @@ datasets:
     max_translation_m: 0.5
     max_yaw_deg: 25.0
     num_workers: 4
-    per_device_batch_size: 16
+    per_device_batch_size: 24
     pred_bbox_token: <|pred_bbox|>
     rdp_epsilon_m: 0.12
     root:
@@ -125,7 +126,7 @@ trainer:
     sft_vlm: 0.0
     vlm: 0.0
   lr_scheduler_type: cosine_with_min_lr
-  max_train_steps: 1600
+  max_train_steps: 1060
   num_warmup_steps: 150
   optimizer:
     betas:
